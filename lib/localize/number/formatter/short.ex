@@ -136,6 +136,14 @@ defmodule Localize.Number.Formatter.Short do
     mantissa != 0
   end
 
+  # Significant digits take precedence over fraction digits when both are
+  # given, as under ECMA-402's default `roundingPriority`, so the carry is
+  # checked at the precision the mantissa will be written to.
+  defp round_mantissa(mantissa, %{maximum_significant_digits: maximum} = options)
+       when is_integer(maximum) do
+    Math.round_significant(mantissa, maximum, options.rounding_mode)
+  end
+
   defp round_mantissa(mantissa, options) do
     # `maybe_set_fractional_digits/2` leaves the options untouched when the
     # caller supplied any precision of their own, so the maximum can still be
@@ -188,9 +196,17 @@ defmodule Localize.Number.Formatter.Short do
   # forcing a trailing zero — "1.2M", "12M", "123M" and "1M" (not "1.0M").
   # That reduces to max one fraction digit while the mantissa is a
   # single integer digit, none afterwards.
+  # The compact default is only a default: a caller's significant digits
+  # replace it, as ECMA-402's compact rounding is replaced by
+  # `maximumSignificantDigits` (TR35 does not say how compact numbers round).
   defp maybe_set_fractional_digits(
-         %{fractional_digits: nil, min_fractional_digits: nil, max_fractional_digits: nil} =
-           options,
+         %{
+           fractional_digits: nil,
+           min_fractional_digits: nil,
+           max_fractional_digits: nil,
+           minimum_significant_digits: nil,
+           maximum_significant_digits: nil
+         } = options,
          mantissa
        ) do
     %{options | min_fractional_digits: 0, max_fractional_digits: compact_max_fraction(mantissa)}

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] — Unreleased
+
+### Fixed
+
+* `Localize.Number.to_string/2` keeps a caller's `:maximum_significant_digits` and `:minimum_significant_digits` in a compact format, where 1.4.0 replaced them with the two-significant-digit compact default, and a rounding carry to the next magnitude is checked at that precision. Thanks to @etareduction for the report. Closes #64.
+
 ## [1.4.1] — October 27th, 2026
 
 ### Changed

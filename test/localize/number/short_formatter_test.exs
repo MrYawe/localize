@@ -122,4 +122,81 @@ defmodule Localize.Number.ShortFormatterTest do
       end
     end
   end
+
+  # https://github.com/elixir-localize/localize/issues/64: the compact
+  # default of two significant digits replaced a caller's own. As in
+  # ECMA-402, significant digits replace the compact default and take
+  # precedence over fraction digits; expected values are Intl.NumberFormat's.
+  describe "significant digits in a compact format" do
+    test "a maximum replaces the compact default" do
+      assert {:ok, "36.44M"} =
+               Localize.Number.to_string(36_437_123,
+                 format: :short,
+                 maximum_significant_digits: 4
+               )
+
+      assert {:ok, "$142.9M"} =
+               Localize.Number.to_string(142_934_567,
+                 format: :short,
+                 currency: :USD,
+                 maximum_significant_digits: 4
+               )
+
+      assert {:ok, "1.234K"} =
+               Localize.Number.to_string(1234, format: :short, maximum_significant_digits: 4)
+
+      assert {:ok, "36.44 million"} =
+               Localize.Number.to_string(36_437_123, format: :long, maximum_significant_digits: 4)
+    end
+
+    test "a negative number, a Decimal and a float round alike" do
+      for value <- [-36_437_123, Decimal.new(-36_437_123), -36_437_123.0] do
+        assert {:ok, "-36.44M"} =
+                 Localize.Number.to_string(value, format: :short, maximum_significant_digits: 4)
+      end
+    end
+
+    test "rounding that carries moves to the next magnitude" do
+      assert {:ok, "1M"} =
+               Localize.Number.to_string(999_950, format: :short, maximum_significant_digits: 4)
+
+      assert {:ok, "1M"} =
+               Localize.Number.to_string(999_950,
+                 format: :short,
+                 maximum_significant_digits: 4,
+                 max_fractional_digits: 3
+               )
+
+      assert {:ok, "1.0M"} =
+               Localize.Number.to_string(999_950,
+                 format: :short,
+                 minimum_significant_digits: 2,
+                 maximum_significant_digits: 4
+               )
+    end
+
+    test "a minimum alone leaves the maximum at ECMA-402's default of 21" do
+      assert {:ok, "1.234K"} =
+               Localize.Number.to_string(1234, format: :short, minimum_significant_digits: 3)
+
+      assert {:ok, "36.437123M"} =
+               Localize.Number.to_string(36_437_123,
+                 format: :short,
+                 minimum_significant_digits: 3
+               )
+    end
+
+    test "significant digits take precedence over fraction digits" do
+      for fraction <- [[max_fractional_digits: 3], [fractional_digits: 0]] do
+        options = [format: :short, maximum_significant_digits: 4] ++ fraction
+        assert {:ok, "36.44M"} = Localize.Number.to_string(36_437_123, options)
+        assert {:ok, "0.008318"} = Localize.Number.to_string(0.00831765, options)
+      end
+    end
+
+    test "with no digit options the compact default still applies" do
+      assert {:ok, "36M"} = Localize.Number.to_string(36_437_123, format: :short)
+      assert {:ok, "1.2K"} = Localize.Number.to_string(1234, format: :short)
+    end
+  end
 end
