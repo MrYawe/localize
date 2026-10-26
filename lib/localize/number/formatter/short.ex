@@ -206,6 +206,28 @@ defmodule Localize.Number.Formatter.Short do
   # forcing a trailing zero — "1.2M", "12M", "123M" and "1M" (not "1.0M").
   # That reduces to max one fraction digit while the mantissa is a
   # single integer digit, none afterwards.
+  # ECMA-402 applies compact rounding only under `:auto` with no digit
+  # options. Under `:more_precision` and `:less_precision` both bounds take
+  # part, and with a fraction bound given it applies; either way a fraction
+  # bound the caller did not give takes compact notation's default of 0..3,
+  # for a currency too: a minimum given raises the maximum to it, and a
+  # maximum given caps the minimum.
+  defp maybe_set_fractional_digits(
+         %{
+           rounding_priority: priority,
+           fractional_digits: nil,
+           min_fractional_digits: minimum,
+           max_fractional_digits: maximum
+         } = options,
+         _mantissa
+       )
+       when priority in [:more_precision, :less_precision] or not is_nil(minimum) or
+              not is_nil(maximum) do
+    minimum = options.min_fractional_digits || 0
+    maximum = options.max_fractional_digits || max(minimum, 3)
+    %{options | min_fractional_digits: min(minimum, maximum), max_fractional_digits: maximum}
+  end
+
   # The compact default is only a default: a caller's significant digits
   # replace it, as ECMA-402's compact rounding is replaced by
   # `maximumSignificantDigits` (TR35 does not say how compact numbers round).

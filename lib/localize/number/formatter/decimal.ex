@@ -120,7 +120,7 @@ defmodule Localize.Number.Formatter.Decimal do
 
   @doc false
   def update_meta(meta, number, options) do
-    options = resolve_rounding_priority(options, number)
+    options = resolve_rounding_priority(options, scaled(number, meta), meta.fractional_digits)
 
     meta
     |> apply_significant_digit_options(options)
@@ -164,33 +164,56 @@ defmodule Localize.Number.Formatter.Decimal do
   @doc false
   # The digit options that apply to `number` once the rounding priority has
   # chosen between significant and fraction digits, as `to_string/3` resolves
-  # them. The compact formatter checks a rounding carry at this precision.
+  # them. The compact formatter checks a rounding carry at this precision;
+  # it supplies its own fraction bounds, so the defaults here are ECMA-402's
+  # for a pattern with no fraction digits of its own.
   def resolve_digit_options(options, number) do
-    resolve_rounding_priority(options, number)
+    resolve_rounding_priority(options, number, %{min: 0, max: 3})
   end
 
-  # ECMA-402 `roundingPriority`. Meaningful only when both
-  # significant-digit and fraction-digit bounds are present. For
-  # `:more_precision` / `:less_precision` the spec compares the
-  # rounding position each bound implies for this value —
-  # significant digits round at `magnitude - (max_sd - 1)`,
-  # fraction digits at `-max_fd` — and the winner's bounds apply
-  # while the loser's are discarded. Ties go to the significant-
-  # digit bounds, matching `Intl.NumberFormat`.
-  defp resolve_rounding_priority(%{rounding_priority: priority} = options, number)
+  # ECMA-402 `roundingPriority` (`SetNumberFormatDigitOptions` and
+  # `FormatNumericToString`). Under `:more_precision` and `:less_precision`
+  # both bounds always take part: a significant-digit bound the caller did
+  # not give defaults to 1..21, and a fraction-digit bound to the format
+  # pattern's own fraction digits (0..3 for "#,##0.###", 0..0 for a percent,
+  # the currency's digits for a currency pattern), as ECMA-402's style
+  # defaults are. Each bound's rounding magnitude is compared and the more
+  # (or less) precise one applies, the other being discarded; on a tie
+  # `morePrecision` takes the significant digits and `lessPrecision` the
+  # fraction digits.
+  defp resolve_rounding_priority(%{rounding_priority: priority} = options, number, defaults)
        when priority in [:more_precision, :less_precision] do
-    significant? =
-      not is_nil(options.minimum_significant_digits) or
-        not is_nil(options.maximum_significant_digits)
+    min_sd = options.minimum_significant_digits || 1
+    max_sd = options.maximum_significant_digits || 21
+    # A minimum the caller gave raises the defaulted maximum to it, and a
+    # maximum caps the defaulted minimum, as ECMA-402's defaults do.
+    max_fd =
+      options.max_fractional_digits || options.fractional_digits ||
+        max(defaults.max, options.min_fractional_digits || 0)
 
-    max_fd = options.max_fractional_digits || options.fractional_digits
+    min_fd =
+      options.min_fractional_digits || options.fractional_digits || min(defaults.min, max_fd)
 
-    fractional? = not is_nil(max_fd) or not is_nil(options.min_fractional_digits)
+    significant_magnitude = significant_rounding_magnitude(number, max_sd, options.rounding_mode)
 
-    if significant? and fractional? do
-      apply_rounding_priority(options, number, priority, max_fd)
+    if significant_wins?(priority, significant_magnitude, -max_fd) do
+      %{
+        options
+        | minimum_significant_digits: min_sd,
+          maximum_significant_digits: max_sd,
+          fractional_digits: nil,
+          min_fractional_digits: nil,
+          max_fractional_digits: nil
+      }
     else
-      options
+      %{
+        options
+        | minimum_significant_digits: nil,
+          maximum_significant_digits: nil,
+          fractional_digits: nil,
+          min_fractional_digits: min_fd,
+          max_fractional_digits: max_fd
+      }
     end
   end
 
@@ -198,7 +221,7 @@ defmodule Localize.Number.Formatter.Decimal do
   # SetNumberFormatDigitOptions, a significant-digit bound causes
   # the fraction-digit bounds to be ignored entirely — significant
   # digits win outright, not merely round first.
-  defp resolve_rounding_priority(options, _number) do
+  defp resolve_rounding_priority(options, _number, _defaults) do
     significant? =
       not is_nil(options.minimum_significant_digits) or
         not is_nil(options.maximum_significant_digits)
@@ -215,29 +238,20 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
-  defp apply_rounding_priority(options, number, priority, max_fd) do
-    max_sd = options.maximum_significant_digits || 21
-    resolved_max_fd = max_fd || max(options.min_fractional_digits || 0, 3)
+  defp significant_wins?(:more_precision, significant_magnitude, fraction_magnitude) do
+    significant_magnitude <= fraction_magnitude
+  end
 
-    significant_position = magnitude(number) - (max_sd - 1)
-    fractional_position = -resolved_max_fd
+  defp significant_wins?(:less_precision, significant_magnitude, fraction_magnitude) do
+    significant_magnitude > fraction_magnitude
+  end
 
-    significant_wins? =
-      case priority do
-        :more_precision -> significant_position <= fractional_position
-        :less_precision -> significant_position >= fractional_position
-      end
-
-    if significant_wins? do
-      %{
-        options
-        | fractional_digits: nil,
-          min_fractional_digits: nil,
-          max_fractional_digits: nil
-      }
-    else
-      %{options | minimum_significant_digits: nil, maximum_significant_digits: nil}
-    end
+  # ECMA-402's `RoundingMagnitude` of `ToRawPrecision`: the place of the last
+  # significant digit kept, taken from the value once rounded, so 999.5 at
+  # three significant digits (1000) rounds at the tens.
+  defp significant_rounding_magnitude(number, max_sd, rounding_mode) do
+    rounded = Math.round_significant(number, max_sd, rounding_mode || :half_even)
+    magnitude(rounded) - (max_sd - 1)
   end
 
   # The exponent of the most significant digit: floor(log10(|x|)),
@@ -1534,11 +1548,27 @@ defmodule Localize.Number.Formatter.Decimal do
          %{significant_digits: %{min: min_sig, max: max_sig}} = meta,
          number
        ) do
-    rounded = Math.round_significant(number, max_sig)
+    # Counted on the value as written: a percent's 0.5 is written 50, whose
+    # two integer digits need no fraction digit.
+    rounded = Math.round_significant(scaled(number, meta), max_sig)
     integer_digit_count = Digits.number_of_integer_digits(rounded)
     fraction_min = max(min_sig - integer_digit_count, 0)
 
     %{meta | fractional_digits: %{max: 10, min: fraction_min}}
+  end
+
+  # The value as it is written, after a percent or per-mille pattern's
+  # multiplier, which is the value whose digits are counted and rounded.
+  defp scaled(%Decimal{} = number, %{multiplier: multiplier}) when multiplier != 1 do
+    Decimal.mult(number, multiplier)
+  end
+
+  defp scaled(number, %{multiplier: multiplier}) when is_number(number) and multiplier != 1 do
+    number * multiplier
+  end
+
+  defp scaled(number, _meta) do
+    number
   end
 
   defp adjust_for_fractional_digits(meta, options) do
@@ -1549,8 +1579,8 @@ defmodule Localize.Number.Formatter.Decimal do
     cond do
       # Explicit min/max take precedence
       min_fd != nil or max_fd != nil ->
-        min_val = min_fd || fd || meta.fractional_digits[:min]
-        max_val = max_fd || fd || meta.fractional_digits[:max]
+        max_val = fraction_maximum(max_fd, fd, min_fd, meta)
+        min_val = fraction_minimum(min_fd, fd, max_val, meta)
         %{meta | fractional_digits: %{max: max_val, min: min_val}}
 
       # Legacy :fractional_digits sets both min and max
@@ -1561,6 +1591,19 @@ defmodule Localize.Number.Formatter.Decimal do
       true ->
         meta
     end
+  end
+
+  # ECMA-402 raises a defaulted maximum to the minimum given and caps a
+  # defaulted minimum at the maximum given (`mxfd` defaults to
+  # max(mxfdDefault, mnfd), `mnfd` to min(mnfdDefault, mxfd)): a percent at
+  # `min_fractional_digits: 1` keeps that digit, and a currency at
+  # `max_fractional_digits: 0` writes "$1", not "$1.00".
+  defp fraction_maximum(max_fd, fd, min_fd, meta) do
+    max_fd || fd || max(meta.fractional_digits[:max], min_fd || 0)
+  end
+
+  defp fraction_minimum(min_fd, fd, max_val, meta) do
+    min_fd || fd || min(meta.fractional_digits[:min], max_val)
   end
 
   defp adjust_for_integer_digits(meta, nil), do: meta

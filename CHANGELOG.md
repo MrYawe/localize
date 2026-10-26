@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `:rounding_priority` `:more_precision` and `:less_precision` compare both digit bounds even when only one is given, a missing bound taking its ECMA-402 default, and break ties as ECMA-402 does; compact formats follow it too. Checked against 11,392 `Intl.NumberFormat` results; thanks to @etareduction for the report, closes #66.
+
+* A defaulted fraction bound follows ECMA-402: a currency's `max_fractional_digits: 0` writes "$1,235", not "$1,235.00", and a percent keeps a `min_fractional_digits` it was given. A percent with significant digits writes "50%" for 0.5, not "50.0%".
+
 * `Localize.Number.to_string/2` keeps a caller's `:maximum_significant_digits` and `:minimum_significant_digits` in a compact format, where 1.4.0 replaced them with the two-significant-digit compact default. A rounding carry to the next magnitude is checked at that precision; thanks to @etareduction for the report, closes #64.
 
 ## [1.4.1] — October 27th, 2026

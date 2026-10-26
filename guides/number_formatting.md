@@ -363,7 +363,7 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:minimum_integer_digits` | integer | `nil` | Minimum integer digits (1–21); zero-pads and groups the padding. Mirrors ECMA-402 `minimumIntegerDigits`. |
 | `:minimum_significant_digits` | integer | `nil` | Minimum significant digits (1–21). Takes precedence over fractional digit settings. |
 | `:maximum_significant_digits` | integer | `nil` | Maximum significant digits (1–21). Values are rounded to fit. |
-| `:rounding_priority` | atom | `:auto` | Conflict resolution when both fraction and significant bounds are set: `:auto`, `:more_precision`, or `:less_precision`. Mirrors ECMA-402 `roundingPriority`. |
+| `:rounding_priority` | atom | `:auto` | How significant and fraction bounds combine: `:auto` (significant digits win), `:more_precision`, or `:less_precision` (both bounds compared, a missing one at its default). Mirrors ECMA-402 `roundingPriority`. |
 | `:trailing_zero_display` | atom | `:auto` | `:strip_if_integer` drops the fraction when the rounded value is an integer. Mirrors ECMA-402 `trailingZeroDisplay`. |
 | `:sign_display` | atom | `:auto` | When to show the sign: `:auto`, `:always`, `:except_zero`, `:negative`, or `:never`. Mirrors ECMA-402 `signDisplay`. |
 | `:exponent_style` | atom | `:e` | Scientific exponent rendering: `:e` (`1.234E3`) or `:superscript` (`1.234 × 10³`). |

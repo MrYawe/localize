@@ -220,11 +220,14 @@ defmodule Localize.Number.Format.Options do
       pattern = if negative?(number), do: :negative, else: :positive
       currency_digits = Keyword.get(options, :currency_digits, :accounting)
 
-      # For standard currency formats (not custom pattern strings),
-      # set fractional_digits from the currency when not explicitly provided.
-      fractional_digits =
-        Keyword.get(options, :fractional_digits) ||
-          default_currency_fractional_digits(format, currency_struct, currency_digits)
+      # For standard currency formats (not custom pattern strings), the
+      # currency's digits are the default for whichever fraction bound the
+      # caller did not give, as ECMA-402's currency defaults are.
+      currency_fraction =
+        default_currency_fractional_digits(format, currency_struct, currency_digits)
+
+      {fractional_digits, min_fractional_digits, max_fractional_digits} =
+        currency_fraction_bounds(options, currency_fraction)
 
       # Build struct from the options keyword list (passthrough fields)
       # then overlay the resolved values
@@ -241,6 +244,8 @@ defmodule Localize.Number.Format.Options do
           currency_spacing: currency_spacing,
           currency_digits: currency_digits,
           fractional_digits: fractional_digits,
+          min_fractional_digits: min_fractional_digits,
+          max_fractional_digits: max_fractional_digits,
           pattern: pattern
         })
 
@@ -634,6 +639,35 @@ defmodule Localize.Number.Format.Options do
   end
 
   defp default_currency_fractional_digits(_format, _currency, _currency_digits), do: nil
+
+  # The fraction bounds once the currency's default fills the ones the
+  # caller did not give. With none given the default sets both, as
+  # `:fractional_digits`; with only a maximum the default minimum is capped
+  # at it, and with only a minimum the default maximum is raised to it
+  # (ECMA-402: mnfd = min(mnfdDefault, mxfd), mxfd = max(mxfdDefault, mnfd)),
+  # so `max_fractional_digits: 0` writes "$1,235", not "$1,235.00".
+  defp currency_fraction_bounds(options, default) do
+    fractional_digits = Keyword.get(options, :fractional_digits)
+    minimum = Keyword.get(options, :min_fractional_digits)
+    maximum = Keyword.get(options, :max_fractional_digits)
+
+    cond do
+      not is_nil(fractional_digits) or is_nil(default) ->
+        {fractional_digits, minimum, maximum}
+
+      is_nil(minimum) and is_nil(maximum) ->
+        {default, nil, nil}
+
+      is_nil(minimum) ->
+        {nil, min(default, maximum), maximum}
+
+      is_nil(maximum) ->
+        {nil, minimum, max(default, minimum)}
+
+      true ->
+        {nil, minimum, maximum}
+    end
+  end
 
   defp currency_fraction_digits(currency, :accounting), do: currency.digits
   defp currency_fraction_digits(currency, :cash), do: currency.cash_digits

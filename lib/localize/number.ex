@@ -85,7 +85,7 @@ defmodule Localize.Number do
 
   * `:trailing_zero_display` is `:auto` (the default) or `:strip_if_integer`, mirroring ECMA-402's `trailingZeroDisplay`. With `:strip_if_integer` the fraction is dropped entirely when the rounded value is an integer, even when a fraction minimum would otherwise pad it: `1000` with `fractional_digits: 2` renders "1,000" while `1000.5` renders "1,000.50".
 
-  * `:rounding_priority` is `:auto` (the default), `:more_precision`, or `:less_precision`, mirroring ECMA-402's `roundingPriority`. It applies only when both fraction-digit and significant-digit bounds are given: `:auto` lets significant digits win, while `:more_precision`/`:less_precision` pick whichever bound yields more/fewer digits for the value being formatted.
+  * `:rounding_priority` is `:auto` (the default), `:more_precision`, or `:less_precision`, mirroring ECMA-402's `roundingPriority`. Under `:auto` a significant-digit bound, when given, wins over any fraction-digit bound. Under `:more_precision` and `:less_precision` both bounds always take part, a bound not given taking its default (one to 21 significant digits, the format's own fraction digits), and whichever yields more or fewer digits for the value being formatted applies; on a tie `:more_precision` takes the significant digits and `:less_precision` the fraction digits.
 
   * `:minimum_significant_digits` is an integer in `1..21` specifying the minimum number of significant digits the formatted output should retain. When set, significant-digit precision overrides the format pattern's fractional-digit settings. Defaults to the value derived from the format pattern's `@@##` notation, or `nil` (no significant-digit constraint).
 
