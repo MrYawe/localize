@@ -91,6 +91,16 @@ iex> Localize.Number.to_string(1234567, format: :currency_short, currency: :USD)
 {:ok, "$1.2M"}
 ```
 
+A compact number is written to two significant digits by default, as ECMA-402's compact notation is. Significant-digit or fraction-digit options replace that default, and a value that rounds up to the next magnitude moves to it:
+
+```elixir
+iex> Localize.Number.to_string(36_437_123, format: :short, maximum_significant_digits: 4)
+{:ok, "36.44M"}
+
+iex> Localize.Number.to_string(999_950, format: :short, maximum_significant_digits: 4)
+{:ok, "1M"}
+```
+
 ### Long (word) formats
 
 Spell out the magnitude in words:

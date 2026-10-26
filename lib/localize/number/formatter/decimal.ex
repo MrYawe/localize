@@ -161,6 +161,14 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
+  @doc false
+  # The digit options that apply to `number` once the rounding priority has
+  # chosen between significant and fraction digits, as `to_string/3` resolves
+  # them. The compact formatter checks a rounding carry at this precision.
+  def resolve_digit_options(options, number) do
+    resolve_rounding_priority(options, number)
+  end
+
   # ECMA-402 `roundingPriority`. Meaningful only when both
   # significant-digit and fraction-digit bounds are present. For
   # `:more_precision` / `:less_precision` the spec compares the

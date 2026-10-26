@@ -136,22 +136,32 @@ defmodule Localize.Number.Formatter.Short do
     mantissa != 0
   end
 
-  # Significant digits take precedence over fraction digits when both are
-  # given, as under ECMA-402's default `roundingPriority`, so the carry is
-  # checked at the precision the mantissa will be written to.
-  defp round_mantissa(mantissa, %{maximum_significant_digits: maximum} = options)
-       when is_integer(maximum) do
-    Math.round_significant(mantissa, maximum, options.rounding_mode)
-  end
-
+  # The mantissa rounded as it will be written: the compact default when
+  # the caller gave no digit options, then the decimal formatter's own
+  # choice between significant and fraction digits under the rounding
+  # priority (ECMA-402's `roundingPriority`), so the carry is checked at the
+  # precision the mantissa is written to.
   defp round_mantissa(mantissa, options) do
-    # `maybe_set_fractional_digits/2` leaves the options untouched when the
-    # caller supplied any precision of their own, so the maximum can still be
-    # nil here — a caller who set only `:min_fractional_digits`, say. Nothing
-    # to round to in that case, and nothing that could carry.
-    case maybe_set_fractional_digits(options, mantissa) do
-      %{max_fractional_digits: nil} -> mantissa
-      %{max_fractional_digits: max} -> Math.round(mantissa, max, options.rounding_mode)
+    resolved =
+      options
+      |> maybe_set_fractional_digits(mantissa)
+      |> Localize.Number.Formatter.Decimal.resolve_digit_options(mantissa)
+
+    max_fractional_digits = resolved.max_fractional_digits || resolved.fractional_digits
+
+    cond do
+      is_integer(resolved.maximum_significant_digits) ->
+        Math.round_significant(
+          mantissa,
+          resolved.maximum_significant_digits,
+          options.rounding_mode
+        )
+
+      is_integer(max_fractional_digits) ->
+        Math.round(mantissa, max_fractional_digits, options.rounding_mode)
+
+      true ->
+        mantissa
     end
   end
 

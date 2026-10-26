@@ -194,6 +194,27 @@ defmodule Localize.Number.ShortFormatterTest do
       end
     end
 
+    test "the rounding priority chooses the precision a carry is checked at" do
+      options = [format: :short, maximum_significant_digits: 4, max_fractional_digits: 3]
+
+      assert {:ok, "999.95K"} =
+               Localize.Number.to_string(999_950, options ++ [rounding_priority: :more_precision])
+
+      assert {:ok, "1M"} =
+               Localize.Number.to_string(999_950, options ++ [rounding_priority: :less_precision])
+
+      assert {:ok, "36M"} =
+               Localize.Number.to_string(36_437_123,
+                 format: :short,
+                 maximum_significant_digits: 4,
+                 max_fractional_digits: 0,
+                 rounding_priority: :less_precision
+               )
+
+      assert {:ok, "1M"} =
+               Localize.Number.to_string(999_950, format: :short, fractional_digits: 0)
+    end
+
     test "with no digit options the compact default still applies" do
       assert {:ok, "36M"} = Localize.Number.to_string(36_437_123, format: :short)
       assert {:ok, "1.2K"} = Localize.Number.to_string(1234, format: :short)
