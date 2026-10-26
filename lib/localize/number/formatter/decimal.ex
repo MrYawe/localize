@@ -1559,12 +1559,10 @@ defmodule Localize.Number.Formatter.Decimal do
 
   # The value as it is written, after a percent or per-mille pattern's
   # multiplier, which is the value whose digits are counted and rounded.
-  defp scaled(%Decimal{} = number, %{multiplier: multiplier}) when multiplier != 1 do
-    Decimal.mult(number, multiplier)
-  end
-
-  defp scaled(number, %{multiplier: multiplier}) when is_number(number) and multiplier != 1 do
-    number * multiplier
+  # Scaled as the formatting pipeline scales it, so a float near the top of
+  # its range is multiplied as a Decimal rather than overflowing.
+  defp scaled(number, %{multiplier: _multiplier} = meta) do
+    multiply_by_factor(number, meta)
   end
 
   defp scaled(number, _meta) do

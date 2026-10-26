@@ -62,6 +62,19 @@ defmodule Localize.Number.RoundingPriorityIntlTest do
            "#{length(mismatches)} combinations differ from Intl.NumberFormat"
   end
 
+  # The magnitude a rounding priority compares is taken on the value as
+  # written, after a percent's multiplier, which overflows a float near the
+  # top of its range unless it is scaled as a Decimal.
+  test "a percent or per mille of the largest floats formats under every priority" do
+    for value <- [1.0e308, -1.0e308, 1.797_693_134_862_315_7e308],
+        format <- [:percent, "#,##0‰"],
+        priority <- [:auto, :more_precision, :less_precision],
+        digits <- [[], [maximum_significant_digits: 3], [max_fractional_digits: 1]] do
+      options = [format: format, rounding_priority: priority] ++ digits
+      assert {:ok, _string} = Localize.Number.to_string(value, options), inspect({value, options})
+    end
+  end
+
   defp format_options("standard", "decimal"), do: [format: :standard]
   defp format_options("standard", "percent"), do: [format: :percent]
   defp format_options("standard", "currency"), do: [format: :currency, currency: :USD]
