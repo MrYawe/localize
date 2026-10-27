@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Compact formats cost ten times a decimal** — `Localize.Number.to_string(1234, format: :short)` is about 1,900 reductions with a validated struct, where a decimal is 170: `PluralRule.Cardinal.pluralize/3` on a `Decimal` costs 578 because `decimal_operands/1` is seven Decimal library calls, and `Formatter.Short` pluralises twice (once before and once after the rounding-carry re-selection), and below 1000 reads the formats up to three times. Derive the operands by integer arithmetic on `coef` and `exp` in Cardinal and Ordinal, pluralise once after the re-selection, and pass the formats down. Follows #67.
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -67,6 +65,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Compact formats cost ten times a decimal** — a compact 1234 fell from 1,908 to 721 reductions: a `Decimal`'s plural operands are integer arithmetic on its coefficient and exponent, `Formatter.Short` pluralises once after the rounding carry, and reads the formats once. 2026-10-27, unreleased.
 
 * [x] **Resolve a locale's number data once per format** — a default `Localize.Number.to_string/2` fell from 786 to 363 reductions: the number system, symbols, standard patterns and minimum grouping digits are kept per locale and number system in `FormatCache`, `Locale.get/3` reads with no options go straight to the provider, and `Format.formats_for/2` reads the number systems once (#67). 2026-10-27, unreleased.
 

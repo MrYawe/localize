@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.to_string/2` resolves a locale's number system, symbols, standard patterns and minimum grouping digits once per locale and number system and keeps them in the format cache, so a default format costs about half the reductions and time it did (786 to 363 reductions); `Localize.Locale.get/3` reads with no options go straight to the provider and `Localize.Number.Format.formats_for/2` reads the number systems once, which the compact and currency formats and dates share. Thanks to @etareduction for the report, closes #67.
 
+* A compact format (`:short`, `:long` and `:currency_short`) costs about 40 percent of what it did (1,908 to 721 reductions for 1234): a `Decimal`'s plural operands are integer arithmetic on its coefficient and exponent in `Localize.Number.PluralRule.Cardinal` and `Ordinal`, which every plural selection on a `Decimal` shares, the plural form is chosen once after the rounding carry, and the formats are read once.
+
 ## [1.4.2] — October 27th, 2026
 
 ### Fixed
