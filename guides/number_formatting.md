@@ -479,7 +479,7 @@ iex> Localize.Number.to_string(2.5, fractional_digits: 0, rounding_mode: :ceilin
 
 ## Performance and optimization
 
-`to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path resolves the number system, loads format patterns, resolves currency data, and builds metadata on every call. Locale validation itself is cached in ETS and is fast (~1µs), but the remaining options resolution — format pattern lookup, currency data loading, symbol resolution — still adds measurable overhead, especially for currency formatting.
+`to_string/2` accepts either a keyword list or a pre-validated `Localize.Number.Format.Options` struct. The keyword list path validates the options on every call and resolves the locale's number system, symbols, format patterns and minimum grouping digits. That resolution is kept per locale and number system in the format cache, so after the first call for a locale it is one ETS read; locale validation is cached too (~1µs). What remains on every call is checking each option and, for a currency, resolving the currency's data, which is why the struct helps most for currency formatting.
 
 For high-throughput formatting (rendering a table of thousands of numbers, batch processing), call `Localize.Number.Format.Options.validate_options/2` once to build an options struct, then pass it to `to_string/2` for each number. The first argument is a representative number such as `0`; the struct formats numbers of either sign:
 
@@ -494,23 +494,23 @@ iex> {:ok, _} = Localize.Number.to_string(9876.54, options)
 
 ### Performance comparison
 
-Benchmarks on a typical development machine (Apple Silicon):
+Formatting `1234.56` in `en`, measured in reductions (the BEAM's unit of work, the same on every machine) and in time on an Intel Xeon desktop; a current laptop CPU is about twice as fast:
 
 | Approach | Simple decimal | Currency |
-|----------|---------------|----------|
-| Keyword options | ~7 µs/call | ~300 µs/call |
-| Normalized `Options` struct | ~2 µs/call | ~6 µs/call |
-| Speedup | ~3x | ~50x |
+|---|---|---|
+| Keyword options | 541 reductions, ~18 µs | 730 reductions, ~33 µs |
+| Validated `Options` struct | 310 reductions, ~9 µs | 366 reductions, ~17 µs |
+| Speedup | ~1.7x | ~2x |
 
-The difference is largest for currency formatting because options resolution must load currency metadata (symbols, decimal places, spacing rules) in addition to the standard format pattern. With normalized options, currency formatting drops from ~300µs to ~6µs.
+The difference is larger for currency formatting because the keyword path also resolves the currency's data (its symbol, decimal places and spacing rules) on each call. Most of the struct path's own cost is the formatting itself: an integer such as `12345` formats in about 170 reductions, and a float costs more for the digits it has to find.
 
-For simple decimal formatting the keyword path is already fast (~7µs) thanks to the locale validation cache, and the normalized path is ~2µs. The difference is small enough that keyword options are fine for most use cases.
+For simple decimal formatting the keyword path costs about twice the struct path. The difference is small enough that keyword options are fine for most use cases.
 
 **When to use `Options.validate_options/2`:**
 
 * Formatting many numbers with the same locale and format (reports, tables, batch processing).
 
-* Currency formatting in hot loops — the 50x speedup is significant.
+* Currency formatting in hot loops, where the struct path is about half the cost.
 
 * Server-side rendering where latency matters.
 
@@ -518,7 +518,7 @@ For simple decimal formatting the keyword path is already fast (~7µs) thanks to
 
 * One-off formatting calls.
 
-* Simple decimal formatting (already ~7µs with keywords).
+* Simple decimal formatting, where the keyword path is about 540 reductions, twice the struct path.
 
 * When the locale or format changes between calls.
 

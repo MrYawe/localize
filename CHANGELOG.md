@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] — Unreleased
+
+### Changed
+
+* `Localize.Number.to_string/2` resolves a locale's number system, symbols, standard patterns and minimum grouping digits once per locale and number system and keeps them in the format cache, so a default format costs about half the reductions and time it did (786 to 363 reductions); `Localize.Locale.get/3` reads with no options go straight to the provider and `Localize.Number.Format.formats_for/2` reads the number systems once, which the compact and currency formats and dates share. Thanks to @etareduction for the report, closes #67.
+
 ## [1.4.2] — October 27th, 2026
 
 ### Fixed
