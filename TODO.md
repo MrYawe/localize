@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Resolve a locale's number data once per format** — `Localize.Number.to_string!(12345)` costs about 790 reductions, 553 of them in `Options.validate_options/2`, which reads the locale's number systems, symbols, formats and minimum grouping digits through five `Localize.Locale.get/3` calls and rebuilds the number systems map three times, and the short and currency formatters resolve the formats a second time, as asked in #67. Keep the merged formats, symbols, minimum grouping digits and systems per locale and number system in `Localize.FormatCache`, carry the formats in `%Options{}`, and give `Localize.Locale.get/3` a fast path for a read with no options; the formatter's own 215 reductions are the floor.Landed: the resolution and its `FormatCache` entry in `Options.validate_options/2`, with the entry trimmed to the standard patterns, currency spacing, symbols and minimum grouping digits since an ETS read copies it (786 to 363 reductions for a default format); `Localize.Locale.get/3` reads with no options go straight to the provider, `Format.formats_for/2` reads the number systems once and `System.number_systems_for/1` returns the generated map as it is (a locale read 45 to 28 reductions, `formats_for` 251 to 93, a compact format 1,063 to 851); the CHANGELOG has the 1.4.3 entry and the guide's performance table its measured figures.
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -67,6 +65,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Resolve a locale's number data once per format** — a default `Localize.Number.to_string/2` fell from 786 to 363 reductions: the number system, symbols, standard patterns and minimum grouping digits are kept per locale and number system in `FormatCache`, `Locale.get/3` reads with no options go straight to the provider, and `Format.formats_for/2` reads the number systems once (#67). 2026-10-27, unreleased.
 
 * [x] **A non-finite `Decimal` formats everywhere** — NaN and ±Infinity format in every number format and select `other` in plural rules; NaN takes no affix (TR35 Special Values). 2026-10-27, v1.4.1.
 
