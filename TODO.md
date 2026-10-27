@@ -14,6 +14,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
+* [ ] **Compact formats cost ten times a decimal** — `Localize.Number.to_string(1234, format: :short)` is about 1,900 reductions with a validated struct, where a decimal is 170: `PluralRule.Cardinal.pluralize/3` on a `Decimal` costs 578 because `decimal_operands/1` is seven Decimal library calls, and `Formatter.Short` pluralises twice (once before and once after the rounding-carry re-selection), and below 1000 reads the formats up to three times. Derive the operands by integer arithmetic on `coef` and `exp` in Cardinal and Ordinal, pluralise once after the re-selection, and pass the formats down. Follows #67.
+
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked

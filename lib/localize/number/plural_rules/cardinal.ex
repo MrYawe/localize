@@ -192,9 +192,13 @@ defmodule Localize.Number.PluralRule.Cardinal do
     number
   end
 
-  defp exact_key(%Decimal{} = number) do
-    truncated = Decimal.round(number, 0, :down)
-    if Decimal.equal?(truncated, number), do: Decimal.to_integer(truncated), else: number
+  # A Decimal whose fraction digits are all zero is an integer: its integer
+  # digits with its sign.
+  defp exact_key(%Decimal{sign: sign, coef: coef, exp: exp} = number) do
+    case integer_and_fraction(coef, exp) do
+      {integer, _fraction_digits, 0} -> sign * integer
+      _fraction -> number
+    end
   end
 
   defp exact_key(number) do
@@ -385,7 +389,10 @@ defmodule Localize.Number.PluralRule.Cardinal do
     do_plural_rule(locale, n, i, v, w, f, t, e)
   end
 
-  # Computes the TR35 plural operands from a Decimal:
+  # Computes the TR35 plural operands from a Decimal, by integer arithmetic
+  # on its coefficient and exponent. The Decimal library's own arithmetic
+  # read its context on each of seven calls and cost a compact number most
+  # of its formatting (#67):
   #
   # * n — absolute value of the source (integer and decimals).
   # * i — integer digits of n.
@@ -395,22 +402,24 @@ defmodule Localize.Number.PluralRule.Cardinal do
   # * w — count of visible fraction digits, without trailing zeros.
   # * f — visible fraction digits as an integer, with trailing zeros.
   # * t — visible fraction digits as an integer, without trailing zeros.
-  defp decimal_operands(%Decimal{} = number) do
-    n = Decimal.abs(number)
-    i = Decimal.round(n, 0, :floor)
-    v = max(0, -n.exp)
-
-    f =
-      n
-      |> Decimal.sub(i)
-      |> Decimal.mult(Decimal.new(Math.power_of_10(v)))
-      |> Decimal.round(0, :floor)
-      |> Decimal.to_integer()
-
+  defp decimal_operands(%Decimal{coef: coef, exp: exp} = number) do
+    {i, v, f} = integer_and_fraction(coef, exp)
     t = remove_trailing_zeros(f)
     w = number_of_integer_digits(t)
 
-    {Math.to_float(n), Decimal.to_integer(i), v, w, f, t}
+    {abs(Math.to_float(number)), i, v, w, f, t}
+  end
+
+  # A positive exponent is an integer with no fraction digits; a negative
+  # one has as many as its magnitude, which split the coefficient into the
+  # integer digits and the fraction digits with their trailing zeros.
+  defp integer_and_fraction(coef, exp) when exp >= 0 do
+    {coef * Math.power_of_10(exp), 0, 0}
+  end
+
+  defp integer_and_fraction(coef, exp) do
+    scale = Math.power_of_10(-exp)
+    {div(coef, scale), -exp, rem(coef, scale)}
   end
 
   # ── Generated plural rule functions ───────────────────────────
