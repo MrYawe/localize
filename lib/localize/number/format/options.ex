@@ -23,6 +23,7 @@ defmodule Localize.Number.Format.Options do
     :currency_symbol,
     :symbols,
     :minimum_grouping_digits,
+    :locale_minimum_grouping_digits,
     :pattern,
     :rounding_mode,
     :fractional_digits,
@@ -91,6 +92,12 @@ defmodule Localize.Number.Format.Options do
     :decimal_short,
     :decimal_long
   ]
+
+  # The fields of a locale's `Localize.Number.Format` a decimal format reads,
+  # kept per locale and number system in `Localize.FormatCache`. The compact
+  # formats are left out: they are most of the struct, an ETS read copies
+  # the entry, and the compact formatters read them from the locale.
+  @cached_format_fields @standard_formats ++ [:currency_spacing]
 
   defstruct @options
 
@@ -195,7 +202,7 @@ defmodule Localize.Number.Format.Options do
     rounding_mode = Keyword.get(options, :rounding_mode, :half_even)
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, system_name} <- resolve_number_system(language_tag, number_system),
+         {:ok, locale_data} <- locale_number_data(language_tag, number_system),
          {:ok, currency_struct} <- resolve_currency(format, currency, language_tag),
          format <-
            maybe_switch_currency_format(
@@ -213,8 +220,8 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
          :ok <- validate_digit_counts(options, @digit_count_options),
          :ok <- validate_wrapper(Keyword.get(options, :wrapper)),
-         {:ok, symbols} <- resolve_symbols(language_tag, system_name, currency_struct),
-         {:ok, resolved_format, formats} <- resolve_format(format, language_tag, system_name) do
+         {:ok, symbols} <- resolve_symbols(locale_data.symbols, currency_struct),
+         {:ok, resolved_format, formats} <- resolve_format(format, locale_data) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
       currency_spacing = resolve_currency_spacing(currency_struct, formats)
       pattern = if negative?(number), do: :negative, else: :positive
@@ -235,10 +242,11 @@ defmodule Localize.Number.Format.Options do
         struct(__MODULE__, options)
         |> Map.merge(%{
           locale: language_tag,
-          number_system: system_name,
+          number_system: locale_data.system_name,
           currency: currency_struct,
           format: resolved_format,
           symbols: symbols,
+          locale_minimum_grouping_digits: locale_data.minimum_grouping_digits,
           rounding_mode: rounding_mode || :half_even,
           currency_symbol: currency_symbol,
           currency_spacing: currency_spacing,
@@ -546,27 +554,111 @@ defmodule Localize.Number.Format.Options do
   # A currency amount is separated by the locale's currency symbols where it
   # has them: CLDR gives `fr-CH` a `currencyDecimal` and `de-AT` a
   # `currencyGroup` that differ from their plain-number separators.
-  defp resolve_symbols(language_tag, system_name, currency) do
+  defp resolve_symbols(nil, _currency) do
+    {:ok, nil}
+  end
+
+  defp resolve_symbols(symbols, nil) do
+    {:ok, symbols}
+  end
+
+  defp resolve_symbols(symbols, currency) do
+    {:ok, Symbol.for_currency(symbols, currency)}
+  end
+
+  # ── Locale number data ──────────────────────────────────────
+
+  # The locale data a format reads: the number system the request
+  # resolves to, and the symbols, standard format patterns, currency
+  # spacing and minimum grouping digits of that system. Each is a read of
+  # the locale through `Localize.Locale.get/3`, and the formats merge the
+  # system's own with the locale's default system's, so together they
+  # were most of a format's cost (#67). They are resolved once per locale
+  # and number system and kept in `Localize.FormatCache`, where a hit is
+  # one ETS read. The read copies the entry, so it holds the format
+  # fields of `@cached_format_fields` and not the compact formats. The
+  # key carries the number system as it was asked for, since a type such
+  # as `:default` resolves against the locale; an error is not kept, so
+  # an unknown system name stays an error and leaves nothing.
+  defp locale_number_data(language_tag, number_system) do
+    key =
+      {:localize, :number_locale_data, language_tag.cldr_locale_id,
+       system_key(language_tag, number_system)}
+
+    case Localize.FormatCache.lookup(key) do
+      {:ok, locale_data} -> {:ok, locale_data}
+      :miss -> resolve_locale_number_data(key, language_tag, number_system)
+    end
+  end
+
+  defp resolve_locale_number_data(key, language_tag, number_system) do
+    with {:ok, system_name} <- resolve_number_system(language_tag, number_system) do
+      locale_data = %{
+        system_name: system_name,
+        symbols: symbols_for_system(language_tag, system_name),
+        formats: cached_formats(formats_for_system(language_tag, system_name)),
+        minimum_grouping_digits: minimum_grouping_digits_for(language_tag)
+      }
+
+      Localize.FormatCache.store(key, locale_data)
+      {:ok, locale_data}
+    end
+  end
+
+  # A tag's `-u-nu-` names the system a `:default` request resolves to,
+  # as `resolve_number_system/2` reads it, so it is the key's system.
+  defp system_key(%Localize.LanguageTag{locale: locale}, number_system)
+       when number_system in [:default, nil] do
+    case locale do
+      %{nu: system_name} when not is_nil(system_name) -> system_name
+      _no_number_system -> :default
+    end
+  end
+
+  defp system_key(_language_tag, number_system) do
+    number_system
+  end
+
+  defp symbols_for_system(language_tag, system_name) do
     case Symbol.number_symbols_for(language_tag, system_name) do
-      {:ok, symbols} when is_nil(currency) -> {:ok, symbols}
-      {:ok, symbols} -> {:ok, Symbol.for_currency(symbols, currency)}
-      _other -> {:ok, nil}
+      {:ok, symbols} -> symbols
+      {:error, _no_symbols} -> nil
+    end
+  end
+
+  defp formats_for_system(language_tag, system_name) do
+    case Format.formats_for(language_tag, system_name) do
+      {:ok, formats} -> formats
+      {:error, _no_formats} -> nil
+    end
+  end
+
+  defp cached_formats(nil) do
+    nil
+  end
+
+  defp cached_formats(%Format{} = formats) do
+    Map.take(formats, @cached_format_fields)
+  end
+
+  defp minimum_grouping_digits_for(language_tag) do
+    case Format.minimum_grouping_digits_for(language_tag) do
+      {:ok, digits} -> digits
+      {:error, _no_digits} -> nil
     end
   end
 
   # ── Format resolution ───────────────────────────────────────
 
   # `:engineering` is intercepted before the generic standard-formats
-  # lookup. We still load the locale's `Format` struct (so caller-side
-  # downstream resolutions — currency spacing, etc. — still work), but
-  # use either the struct's `:engineering` pattern when it is populated
-  # or the synthesised default, never the atom literal.
-  defp resolve_format(:engineering, language_tag, system_name) do
-    formats = formats_for_system(language_tag, system_name)
-
+  # lookup. The locale's `Format` struct still goes through (so
+  # caller-side downstream resolutions — currency spacing, etc. — still
+  # work), but the pattern is the struct's `:engineering` pattern when it
+  # is populated or the synthesised default, never the atom literal.
+  defp resolve_format(:engineering, %{formats: formats}) do
     pattern =
       case formats do
-        %Format{engineering: p} when is_binary(p) -> p
+        %{engineering: p} when is_binary(p) -> p
         _ -> @default_engineering_pattern
       end
 
@@ -586,38 +678,25 @@ defmodule Localize.Number.Format.Options do
   # algorithmic system" given by its RBNF rule set. All other standard
   # formats degrade to the default system's pattern (with latin
   # digits) since algorithmic systems define no patterns for them.
-  defp resolve_format(format, language_tag, system_name) when format in @standard_formats do
-    if format == :standard and algorithmic_system?(system_name) do
-      {:ok, :standard, nil}
-    else
-      case formats_for_system(language_tag, system_name) do
-        nil -> {:ok, format, nil}
-        f -> {:ok, Map.get(f, format) || format, f}
-      end
+  defp resolve_format(format, %{system_name: system_name, formats: formats})
+       when format in @standard_formats do
+    cond do
+      format == :standard and algorithmic_system?(system_name) -> {:ok, :standard, nil}
+      is_nil(formats) -> {:ok, format, nil}
+      true -> {:ok, Map.get(formats, format) || format, formats}
     end
   end
 
-  # Short formats: no resolution needed, but load formats for currency_spacing
-  defp resolve_format(format, language_tag, system_name) when format in @short_formats do
-    {:ok, format, formats_for_system(language_tag, system_name)}
+  # Short formats need no resolution, and a custom pattern none either,
+  # but the locale's formats still supply the currency spacing TR35
+  # applies wherever a currency sign meets the number.
+  defp resolve_format(format, %{formats: formats})
+       when format in @short_formats or is_binary(format) do
+    {:ok, format, formats}
   end
 
-  # A custom pattern needs no resolution, but the locale's formats still
-  # supply the currency spacing TR35 applies wherever a currency sign meets
-  # the number.
-  defp resolve_format(format, language_tag, system_name) when is_binary(format) do
-    {:ok, format, formats_for_system(language_tag, system_name)}
-  end
-
-  defp resolve_format(format, _language_tag, _system_name) do
+  defp resolve_format(format, _locale_data) do
     {:ok, format, nil}
-  end
-
-  defp formats_for_system(language_tag, system_name) do
-    case Format.formats_for(language_tag, system_name) do
-      {:ok, formats} -> formats
-      {:error, _} -> nil
-    end
   end
 
   defp algorithmic_system?(system_name) do
@@ -700,7 +779,7 @@ defmodule Localize.Number.Format.Options do
 
   defp resolve_currency_spacing(nil, _formats), do: nil
 
-  defp resolve_currency_spacing(%Localize.Currency{}, %Format{currency_spacing: spacing}),
+  defp resolve_currency_spacing(%Localize.Currency{}, %{currency_spacing: spacing}),
     do: spacing
 
   defp resolve_currency_spacing(%Localize.Currency{}, _formats), do: nil

@@ -1018,21 +1018,29 @@ defmodule Localize.Number.Formatter.Decimal do
     {sign, integer, fraction, exp_sign, exponent}
   end
 
-  defp minimum_group_size(%{first: group_size}, %{
-         minimum_grouping_digits: min_digits,
-         locale: locale
-       }) do
+  defp minimum_group_size(%{first: group_size}, %{minimum_grouping_digits: min_digits} = options) do
     if is_nil(min_digits) or min_digits == 0 do
-      # The locale goes through as it came: reducing a tag to its id here
-      # only made `minimum_grouping_digits_for/1` resolve the locale again,
-      # and a tag that carries no id is better validated there than
-      # silently read as `:en`.
-      case Localize.Number.Format.minimum_grouping_digits_for(locale) do
-        {:ok, digits} -> digits + group_size
-        _no_digits -> 1 + group_size
-      end
+      locale_minimum_grouping_digits(options) + group_size
     else
       min_digits + group_size
+    end
+  end
+
+  # The locale's minimum grouping digits come resolved in the options
+  # `Localize.Number.Format.Options.validate_options/2` builds. Options
+  # built elsewhere read the locale: it goes through as it came, since
+  # reducing a tag to its id here only made `minimum_grouping_digits_for/1`
+  # resolve the locale again, and a tag that carries no id is better
+  # validated there than silently read as `:en`.
+  defp locale_minimum_grouping_digits(%{locale_minimum_grouping_digits: digits})
+       when is_integer(digits) do
+    digits
+  end
+
+  defp locale_minimum_grouping_digits(%{locale: locale}) do
+    case Localize.Number.Format.minimum_grouping_digits_for(locale) do
+      {:ok, digits} -> digits
+      _no_digits -> 1
     end
   end
 
