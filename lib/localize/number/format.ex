@@ -188,11 +188,28 @@ defmodule Localize.Number.Format do
         ) ::
           {:ok, t()} | {:error, Exception.t()}
   def formats_for(locale, number_system \\ :default) do
-    with {:ok, system_name} <- System.system_name_from(number_system, locale),
-         {:ok, formats} <- all_formats_for(locale) do
+    # The locale's number systems are read once and resolve both the
+    # requested system and its fallbacks; they were read twice (#67).
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_systems} <- System.number_systems_for(language_tag),
+         {:ok, system_name} <- System.resolve_system_name(number_system, number_systems),
+         {:ok, formats} <- Localize.Locale.get(language_tag, [:number_formats]) do
       requested = Map.get(formats, system_name)
 
-      case merge_with_default_formats(requested, formats, locale, system_name) do
+      # CLDR inheritance: a format element for a numbering system the
+      # locale carries no data for (or only partial data for) is the first
+      # of `System.fallback_systems_in/2` the locale has formats for: its
+      # `latn`, which root aliases the rest to. Each field inherits
+      # independently, so a partially-populated entry (for example `zh`'s
+      # `:hans` entry, which is present but empty, or `arab` currency
+      # formats without short forms) is filled rather than left with `nil`
+      # patterns.
+      fallback =
+        number_systems
+        |> System.fallback_systems_in(system_name)
+        |> Enum.find_value(&Map.get(formats, &1))
+
+      case merge_formats(requested, fallback) do
         nil ->
           {:error,
            Localize.InvalidValueError.exception(
@@ -205,22 +222,6 @@ defmodule Localize.Number.Format do
           {:ok, format}
       end
     end
-  end
-
-  # CLDR inheritance: a format element for a numbering system the locale
-  # carries no data for (or only partial data for) is the first of
-  # `System.fallback_systems/2` the locale has formats for: its `latn`,
-  # which root aliases the rest to. Each field inherits independently, so
-  # a partially-populated entry (for example `zh`'s `:hans` entry, which
-  # is present but empty, or `arab` currency formats without short forms)
-  # is filled rather than left with `nil` patterns.
-  defp merge_with_default_formats(requested, all_formats, locale, system_name) do
-    fallback =
-      locale
-      |> System.fallback_systems(system_name)
-      |> Enum.find_value(&Map.get(all_formats, &1))
-
-    merge_formats(requested, fallback)
   end
 
   defp merge_formats(nil, default_formats), do: default_formats

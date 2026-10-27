@@ -193,4 +193,32 @@ defmodule Localize.Number.SystemTest do
       assert System.number_system_from_locale(tag) == {:ok, :thai}
     end
   end
+
+  describe "resolve_system_name/2 and fallback_systems_in/2 against a systems map" do
+    test "resolve a type, a listed name and a known unlisted name" do
+      {:ok, systems} = Localize.Number.System.number_systems_for(:ar)
+      assert systems == %{default: :latn, native: :arab}
+      assert Localize.Number.System.resolve_system_name(:default, systems) == {:ok, :latn}
+      assert Localize.Number.System.resolve_system_name(:native, systems) == {:ok, :arab}
+      assert Localize.Number.System.resolve_system_name(:arab, systems) == {:ok, :arab}
+      assert Localize.Number.System.resolve_system_name("thai", systems) == {:ok, :thai}
+
+      assert {:error, %Localize.UnknownNumberSystemError{}} =
+               Localize.Number.System.resolve_system_name(:nonesuch, systems)
+    end
+
+    test "fall back to latn and the default system, never to the system itself" do
+      systems = %{default: :arab, native: :arab}
+      assert Localize.Number.System.fallback_systems_in(systems, :thai) == [:latn, :arab]
+      assert Localize.Number.System.fallback_systems_in(systems, :arab) == [:latn]
+      assert Localize.Number.System.fallback_systems_in(systems, :latn) == [:arab]
+      assert Localize.Number.System.fallback_systems_in(%{}, :latn) == []
+    end
+
+    test "the systems map is the generated term of atoms" do
+      {:ok, systems} = Localize.Number.System.number_systems_for(:en)
+      assert systems == %{default: :latn, native: :latn}
+      assert Enum.all?(systems, fn {key, value} -> is_atom(key) and is_atom(value) end)
+    end
+  end
 end

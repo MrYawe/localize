@@ -723,8 +723,23 @@ defmodule Localize.Locale do
           {:ok, term()} | {:error, term()}
   def get(locale, keys, options \\ [])
 
+  # A read with no options is the common one and every formatter's hot
+  # path (#67): it goes straight to the default provider, with no option
+  # handling and no fallback to resolve, and loads the locale only on a
+  # miss.
+  def get(locale, keys, []) when is_list(keys) do
+    provider = default_provider()
+
+    with :ok <- validate_provider(provider) do
+      case provider.get(locale, keys, []) do
+        {:ok, _} = ok -> ok
+        {:error, _} -> load_and_retry(locale, keys, provider, [], false, nil)
+      end
+    end
+  end
+
   def get(locale, keys, options) when is_list(keys) and is_keyword_list(options) do
-    {provider, options} = Keyword.pop(options, :provider, default_provider())
+    {provider, options} = Keyword.pop_lazy(options, :provider, &default_provider/0)
     {fallback?, options} = Keyword.pop(options, :fallback, false)
     {fallback_to_default, options} = Keyword.pop(options, :fallback_to_default, false)
 

@@ -201,15 +201,8 @@ defmodule Localize.Number.System do
           {:ok, map()} | {:error, Exception.t()}
   def number_systems_for(%Localize.LanguageTag{cldr_locale_id: locale_id} = locale)
       when not is_nil(locale_id) do
-    with {:ok, raw_systems} <- Localize.Locale.get(locale, [:number_systems]) do
-      systems =
-        raw_systems
-        |> Enum.map(fn {key, value} ->
-          {to_atom_key(key), to_atom_key(value)}
-        end)
-        |> Map.new()
-
-      {:ok, systems}
+    with {:ok, systems} <- Localize.Locale.get(locale, [:number_systems]) do
+      {:ok, atomized_systems(systems)}
     end
   end
 
@@ -261,10 +254,24 @@ defmodule Localize.Number.System do
   @doc false
   @spec fallback_systems(Localize.LanguageTag.t() | atom() | String.t(), atom()) :: [atom()]
   def fallback_systems(locale, system_name) do
-    default =
+    number_systems =
       case number_systems_for(locale) do
-        {:ok, %{default: default_system}} -> [default_system]
-        _error -> []
+        {:ok, systems} -> systems
+        _error -> %{}
+      end
+
+    fallback_systems_in(number_systems, system_name)
+  end
+
+  # The same, from a locale's number systems map already read, so a caller
+  # that has the map does not read the locale again.
+  @doc false
+  @spec fallback_systems_in(map(), atom()) :: [atom()]
+  def fallback_systems_in(number_systems, system_name) do
+    default =
+      case number_systems do
+        %{default: default_system} -> [default_system]
+        _no_default -> []
       end
 
     Enum.uniq([:latn | default]) -- [system_name]
@@ -431,31 +438,40 @@ defmodule Localize.Number.System do
         ) ::
           {:ok, system_name()} | {:error, Exception.t()}
   def system_name_from(system_name, locale) do
-    system_name = to_atom_key(system_name)
-
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_systems} <- number_systems_for(language_tag) do
-      cond do
-        # It's a type (default, native, etc.) — resolve to actual system name
-        Map.has_key?(number_systems, system_name) ->
-          {:ok, Map.get(number_systems, system_name)}
+      resolve_system_name(system_name, number_systems)
+    end
+  end
 
-        # It's already a direct system name for this locale
-        system_name in Map.values(number_systems) ->
-          {:ok, system_name}
+  # The same, against a locale's number systems map already read, so a
+  # caller that has the map does not read the locale again.
+  @doc false
+  @spec resolve_system_name(system_name() | system_type(), map()) ::
+          {:ok, system_name()} | {:error, Exception.t()}
+  def resolve_system_name(system_name, number_systems) do
+    system_name = to_atom_key(system_name)
 
-        # Known globally even though the locale does not list it.
-        # Per TR35 an explicit numbering-system request (the
-        # `-u-nu-` keyword or a direct option) is honoured for any
-        # CLDR numbering system: formats and symbols inherit from
-        # the locale's default system (root aliases them to `latn`)
-        # while digits come from the requested system.
-        Map.has_key?(number_systems(), system_name) ->
-          {:ok, system_name}
+    cond do
+      # It's a type (default, native, etc.) — resolve to actual system name
+      Map.has_key?(number_systems, system_name) ->
+        {:ok, Map.get(number_systems, system_name)}
 
-        true ->
-          {:error, Localize.UnknownNumberSystemError.exception(number_system: system_name)}
-      end
+      # It's already a direct system name for this locale
+      system_name in Map.values(number_systems) ->
+        {:ok, system_name}
+
+      # Known globally even though the locale does not list it.
+      # Per TR35 an explicit numbering-system request (the
+      # `-u-nu-` keyword or a direct option) is honoured for any
+      # CLDR numbering system: formats and symbols inherit from
+      # the locale's default system (root aliases them to `latn`)
+      # while digits come from the requested system.
+      Map.has_key?(number_systems(), system_name) ->
+        {:ok, system_name}
+
+      true ->
+        {:error, Localize.UnknownNumberSystemError.exception(number_system: system_name)}
     end
   end
 
@@ -791,6 +807,18 @@ defmodule Localize.Number.System do
 
       systems
     end)
+  end
+
+  # The generator writes a locale's number systems with atom keys and
+  # values (`Localize.Data.Normalize.NumberSystem`), so the map is read as
+  # it is, and rebuilt only for a provider that gives strings. Rebuilding
+  # it on every read was three map walks per formatted number (#67).
+  defp atomized_systems(%{default: default} = systems) when is_atom(default) do
+    systems
+  end
+
+  defp atomized_systems(systems) do
+    Map.new(systems, fn {key, value} -> {to_atom_key(key), to_atom_key(value)} end)
   end
 
   defp to_atom_key(key) when is_atom(key), do: key
