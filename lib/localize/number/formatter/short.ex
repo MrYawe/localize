@@ -8,7 +8,7 @@ defmodule Localize.Number.Formatter.Short do
   # which define format patterns at each power of 10 with plural
   # variants.
 
-  alias Localize.Number.{Format, System}
+  alias Localize.Number.Format
   alias Localize.Number.Format.Options
   alias Localize.Number.Formatter
   alias Localize.Utils.Math
@@ -62,10 +62,10 @@ defmodule Localize.Number.Formatter.Short do
   end
 
   defp resolve_short_format(number, style, options) do
-    locale = options.locale
-
-    with {:ok, number_system} <- System.system_name_from(options.number_system, locale),
-         {:ok, formats} <- Format.formats_for(locale, number_system) do
+    # `options.number_system` is the resolved name, which `formats_for/2`
+    # resolves against the locale itself; resolving it first here read the
+    # locale once more (#67).
+    with {:ok, formats} <- Format.formats_for(options.locale, options.number_system) do
       format_rules = Map.get(formats, style)
 
       if is_nil(format_rules) do
@@ -76,10 +76,19 @@ defmodule Localize.Number.Formatter.Short do
            context: "Localize.Number.Formatter.Short"
          )}
       else
+        # The compact rules, and the standard (or currency) pattern a value
+        # no rule applies to is written with: a number below 1000, NaN,
+        # infinity, or a rule whose pattern is a bare "0". Read once here;
+        # the selection read the formats again for each of those (#67).
+        rules = %{
+          compact: format_rules,
+          standard: Map.get(formats, standard_or_currency(options))
+        }
+
         {normalized_number, format} =
           number
-          |> choose_short_format(format_rules, options)
-          |> promote_magnitude_on_carry(number, format_rules, options)
+          |> choose_short_format(rules)
+          |> promote_magnitude_on_carry(number, rules, options)
           |> pluralize_format(options)
 
         options =
@@ -112,11 +121,11 @@ defmodule Localize.Number.Formatter.Short do
   # all, so a mantissa-magnitude test silently skips exactly the cases that
   # need it. One pass suffices: rounding carries by at most one magnitude,
   # and where nothing carried the same rule is chosen again.
-  defp promote_magnitude_on_carry({mantissa, _format} = chosen, number, format_rules, options) do
+  defp promote_magnitude_on_carry({mantissa, _format} = chosen, number, rules, options) do
     if rescalable?(mantissa) do
       number
       |> scale_back(mantissa, round_mantissa(mantissa, options))
-      |> choose_short_format(format_rules, options)
+      |> choose_short_format(rules)
     else
       chosen
     end
@@ -299,19 +308,18 @@ defmodule Localize.Number.Formatter.Short do
   # with instead. The plural form is chosen last, by `pluralize_format/2`,
   # once the rounding carry has settled which rule applies: choosing it here
   # chose it twice and threw the first away (#67).
-  defp choose_short_format(number, format_rules, options)
-       when is_number(number) and number < 0 do
-    {normalized, selection} = choose_short_format(abs(number), format_rules, options)
+  defp choose_short_format(number, rules) when is_number(number) and number < 0 do
+    {normalized, selection} = choose_short_format(abs(number), rules)
     {normalized * -1, selection}
   end
 
-  defp choose_short_format(%Decimal{sign: -1} = number, format_rules, options) do
-    {normalized, selection} = choose_short_format(Decimal.abs(number), format_rules, options)
+  defp choose_short_format(%Decimal{sign: -1} = number, rules) do
+    {normalized, selection} = choose_short_format(Decimal.abs(number), rules)
     {Decimal.mult(normalized, -1), selection}
   end
 
-  defp choose_short_format(number, format_rules, options) do
-    case get_short_format_rule(number, format_rules, options) do
+  defp choose_short_format(number, rules) do
+    case get_short_format_rule(number, rules) do
       [range, plural_selectors] ->
         {normalise_number(number, range, plural_selectors.other), plural_selectors}
 
@@ -351,37 +359,31 @@ defmodule Localize.Number.Formatter.Short do
     abs(mantissa)
   end
 
-  defp get_short_format_rule(number, _format_rules, options)
-       when is_number(number) and number < 1000 do
-    with {:ok, formats} <- Format.formats_for(options.locale, options.number_system) do
-      format = Map.get(formats, standard_or_currency(options))
-      {number, format}
-    end
+  defp get_short_format_rule(number, rules) when is_number(number) and number < 1000 do
+    {number, rules.standard}
   end
 
-  defp get_short_format_rule(number, format_rules, options) when is_number(number) do
-    format_rules
+  defp get_short_format_rule(number, rules) when is_number(number) do
+    rules.compact
     |> Enum.filter(fn [range, _rules] -> range <= number end)
     |> Enum.reverse()
     |> hd()
-    |> maybe_get_default_format(number, options)
+    |> maybe_get_default_format(number, rules)
   end
 
   # NaN and ±Infinity have no magnitude to compact. TR35 does not say how
   # to compact them; ICU and ECMA-402 write the standard (or currency)
   # format, as for a number below 1000.
-  defp get_short_format_rule(%Decimal{coef: coef} = number, _format_rules, options)
-       when coef in [:NaN, :inf] do
-    {_zero, format} = get_short_format_rule(0, [], options)
-    {number, format}
+  defp get_short_format_rule(%Decimal{coef: coef} = number, rules) when coef in [:NaN, :inf] do
+    {number, rules.standard}
   end
 
-  defp get_short_format_rule(%Decimal{} = number, format_rules, options) do
+  defp get_short_format_rule(%Decimal{} = number, rules) do
     rule =
       number
       |> Decimal.round(0, :floor)
       |> Decimal.to_integer()
-      |> get_short_format_rule(format_rules, options)
+      |> get_short_format_rule(rules)
 
     case rule do
       {_ignore, format} -> {number, format}
@@ -389,12 +391,11 @@ defmodule Localize.Number.Formatter.Short do
     end
   end
 
-  defp maybe_get_default_format([_range, %{other: ["0", _]}], number, options) do
-    {_, format} = get_short_format_rule(0, [], options)
-    {number, format}
+  defp maybe_get_default_format([_range, %{other: ["0", _]}], number, rules) do
+    {number, rules.standard}
   end
 
-  defp maybe_get_default_format(rule, _number, _options), do: rule
+  defp maybe_get_default_format(rule, _number, _rules), do: rule
 
   defp standard_or_currency(options) do
     if options.currency, do: :currency, else: :standard
