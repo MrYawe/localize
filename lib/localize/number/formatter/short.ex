@@ -80,6 +80,7 @@ defmodule Localize.Number.Formatter.Short do
           number
           |> choose_short_format(format_rules, options)
           |> promote_magnitude_on_carry(number, format_rules, options)
+          |> pluralize_format(options)
 
         options =
           options
@@ -293,35 +294,61 @@ defmodule Localize.Number.Formatter.Short do
 
   # ── Format selection ────────────────────────────────────────
 
+  # The selection is the mantissa and either the rule's plural selectors, for
+  # a value a compact rule applies to, or the standard pattern it is written
+  # with instead. The plural form is chosen last, by `pluralize_format/2`,
+  # once the rounding carry has settled which rule applies: choosing it here
+  # chose it twice and threw the first away (#67).
   defp choose_short_format(number, format_rules, options)
        when is_number(number) and number < 0 do
-    {normalized, format} = choose_short_format(abs(number), format_rules, options)
-    {normalized * -1, format}
+    {normalized, selection} = choose_short_format(abs(number), format_rules, options)
+    {normalized * -1, selection}
   end
 
   defp choose_short_format(%Decimal{sign: -1} = number, format_rules, options) do
-    {normalized, format} = choose_short_format(Decimal.abs(number), format_rules, options)
-    {Decimal.mult(normalized, -1), format}
+    {normalized, selection} = choose_short_format(Decimal.abs(number), format_rules, options)
+    {Decimal.mult(normalized, -1), selection}
   end
 
   defp choose_short_format(number, format_rules, options) do
     case get_short_format_rule(number, format_rules, options) do
       [range, plural_selectors] ->
-        normalized_number = normalise_number(number, range, plural_selectors.other)
-        plural_key = pluralization_key(normalized_number, options)
-
-        [format, _number_of_zeros] =
-          Localize.Number.PluralRule.Cardinal.pluralize(
-            plural_key,
-            options.locale,
-            plural_selectors
-          )
-
-        {normalized_number, format}
+        {normalise_number(number, range, plural_selectors.other), plural_selectors}
 
       {number, format} ->
         {number, format}
     end
+  end
+
+  # The plural form is chosen from the mantissa's absolute value, as it was
+  # when the selection ran on the absolute value and the sign was restored
+  # after; the category is the same either way, and the compact selectors
+  # carry no exact negative keys.
+  defp pluralize_format({mantissa, %{} = plural_selectors}, options) do
+    plural_key = pluralization_key(absolute(mantissa), options)
+
+    [format, _number_of_zeros] =
+      Localize.Number.PluralRule.Cardinal.pluralize(
+        plural_key,
+        options.locale,
+        plural_selectors
+      )
+
+    {mantissa, format}
+  end
+
+  defp pluralize_format({mantissa, format}, _options) do
+    {mantissa, format}
+  end
+
+  # `Decimal.abs/1` rounds to the context precision on the way; the sign
+  # alone is wanted.
+  defp absolute(%Decimal{} = mantissa) do
+    %{mantissa | sign: 1}
+  end
+
+  defp absolute(mantissa) do
+    abs(mantissa)
   end
 
   defp get_short_format_rule(number, _format_rules, options)
