@@ -138,6 +138,45 @@ defmodule Localize.Number.CurrencyAmountTest do
       end
     end
 
+    test "a decimal mark that opens or closes the number" do
+      assert {:USD, "0.5"} = amount(".5 USD")
+      assert {:USD, "0.5"} = amount("USD .5")
+      assert {:USD, "-0.5"} = amount("-.5 USD")
+      assert {:USD, "5"} = amount("5. USD")
+      assert {:USD, "5"} = amount("5.USD")
+      assert {:USD, "5"} = amount("USD 5.")
+      assert {:EUR, "0.5"} = amount("€ ,5", locale: :de)
+    end
+
+    test "a grouping separator that opens or closes the number is refused" do
+      assert %Localize.InvalidAmountError{amount: ".5"} = amount("€ .5", locale: :de)
+      assert %Localize.InvalidAmountError{amount: "5."} = amount("5. €", locale: :de)
+      assert %Localize.InvalidAmountError{amount: ",5"} = amount(",5 USD")
+    end
+
+    # A mark between the currency and the digits is the currency's when CLDR
+    # writes the currency with it, the number's when it is the decimal mark,
+    # and refused otherwise. Before this "$.50" read as fifty dollars.
+    test "a mark CLDR writes with the currency stays with it" do
+      assert {:CHF, "5"} = amount("Fr.5", locale: :"de-CH")
+      assert {:DKK, "5"} = amount("kr.5", locale: :da)
+    end
+
+    test "a decimal mark touching the currency belongs to the number" do
+      assert {:USD, "0.50"} = amount("$.50")
+      assert {:USD, "0.50"} = amount("USD.50")
+      assert {:USD, "-0.50"} = amount("($.50)")
+      assert {:EUR, "0.5"} = amount("€,5", locale: :de)
+      assert {:BRL, "0.5"} = amount("R$,5", locale: :"pt-BR")
+    end
+
+    test "any other mark touching the currency is ambiguous and refused" do
+      for {string, locale} <- [{"kr.5", :nb}, {"€.5", :de}, {"R$.5", :"pt-BR"}] do
+        assert %Localize.ParseError{reason: :unexpected_input} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+    end
+
     test "a zero fraction written as a dash" do
       assert {:CHF, "5"} = amount("CHF 5.–", locale: :"de-CH")
       assert {:CHF, "5"} = amount("Fr. 5.—", locale: :"de-CH")

@@ -88,9 +88,17 @@ defmodule Localize.Number.Parser do
   # counts only between digits, so the period of `da` "kr.5" stays with the
   # currency, or before a zero fraction written as a dash, "5.–", which
   # `parse/2` reads as a whole amount.
-  @amount_number ~r/\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*(?:[\p{Po}\p{Pf}][\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0D}]{1,2}(?!\p{Nd}))?/u
+  #
+  # A mark may also open or close the number, as in ".5 USD" or "USD 5.",
+  # where `parse/2` reads it only if it is the decimal mark: `en` ".5" is 0.5
+  # and `de` ".5", whose "." groups, is refused. It opens the number only at
+  # the start or after a space, sign or "(", so the period of `de-CH` "Fr.5"
+  # stays with the currency. It may close the number before anything but a
+  # digit, as in "5.USD", since no currency's text begins with one.
+  @amount_number ~r/(?:(?<![^\s\p{Zs}(+\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0B}\x{FF0D}])\p{Po}(?=\p{Nd}))?\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*(?:[\p{Po}\p{Pf}][\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0D}]{1,2}(?!\p{Nd})|\p{Po}(?!\p{Nd}))?/u
 
   @any_digit ~r/\p{Nd}/u
+  @closing_mark ~r/\p{Po}\z/u
   @ends_in_digit ~r/\p{Nd}\z/u
 
   # The dashes that stand for a zero fraction, one or two of them, after
@@ -566,7 +574,7 @@ defmodule Localize.Number.Parser do
          {:ok, language_tag} <- Localize.validate_locale(locale),
          options = Keyword.put(options, :locale, language_tag),
          {:ok, parts} <- amount_parts(string, language_tag),
-         {:ok, currency, separators_of} <- amount_currency(parts, string, options),
+         {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
          {:ok, number} <- amount_number(parts, currency, separators_of, options) do
       {:ok, {currency, signed_amount(number, parts)}}
     end
@@ -953,10 +961,29 @@ defmodule Localize.Number.Parser do
       minus? = signs.minus == 1
       parenthesised? = String.contains?(opening, "(")
 
-      {:ok, %{currency: prefix <> suffix, number: number, negative?: minus? != parenthesised?}}
+      {:ok,
+       %{
+         currency: prefix <> suffix,
+         mark: touching_mark(prefix, before_number),
+         number: number,
+         negative?: minus? != parenthesised?
+       }}
     else
       {:error, not_an_amount(string)}
     end
+  end
+
+  # The punctuation mark that ends the currency text where nothing stands
+  # between it and the digits.
+  defp touching_mark(prefix, "") do
+    case Regex.run(@closing_mark, prefix) do
+      [mark] -> mark
+      nil -> ""
+    end
+  end
+
+  defp touching_mark(_prefix, _decorations) do
+    ""
   end
 
   # One currency text at most, on one side; no second number; a sign of one
@@ -1010,18 +1037,98 @@ defmodule Localize.Number.Parser do
   # The currency an amount names, and the currency whose separators its
   # number is read with: none for one the caller's `:unknown_currency`
   # function named, which Localize has no separators for.
-  defp amount_currency(%{currency: ""}, string, options) do
+  defp amount_currency(%{currency: ""} = parts, string, options) do
     default = Keyword.get(options, :default_currency)
 
     if is_nil(default) do
       {:error, Localize.ParseError.exception(input: string, reason: :missing_currency)}
     else
-      default_currency(default, options)
+      default
+      |> default_currency(options)
+      |> with_parts(parts)
     end
   end
 
-  defp amount_currency(%{currency: text}, _string, options) do
-    text_currency(text, options)
+  defp amount_currency(%{currency: text, mark: ""} = parts, _string, options) do
+    text
+    |> text_currency(options)
+    |> with_parts(parts)
+  end
+
+  # A mark between the currency and the digits, as in "$.50" or "kr.5". It
+  # is the currency's when CLDR writes the currency with it (`da` "kr.",
+  # `de-CH` "Fr."), and the number's when it is the currency's decimal mark
+  # in the locale, so "$.50" is fifty cents, not fifty dollars. Anything
+  # else is ambiguous and refused: `nb` writes the krone "kr" and its decimal
+  # with a comma, so "kr.5" could be 5 or 0.5.
+  defp amount_currency(%{currency: text, mark: mark} = parts, string, options) do
+    if written_with_mark?(text, options) do
+      text
+      |> text_currency(options)
+      |> with_parts(parts)
+    else
+      unmarked = String.replace_suffix(text, mark, "")
+
+      case text_currency(unmarked, options) do
+        {:ok, currency, separators_of} ->
+          marked_number(parts, unmarked, currency, separators_of, string, options)
+
+        {:error, _not_a_currency} ->
+          text
+          |> text_currency(options)
+          |> with_parts(parts)
+      end
+    end
+  end
+
+  defp with_parts({:ok, currency, separators_of}, parts) do
+    {:ok, currency, separators_of, parts}
+  end
+
+  defp with_parts({:error, _reason} = error, _parts) do
+    error
+  end
+
+  # Matched exactly, never fuzzily, since a fuzzy match would take "$." for
+  # a currency of its own.
+  defp written_with_mark?(text, options) do
+    filters = Keyword.take(options, [:locale, :only, :except])
+    match?([currency] when is_atom(currency), resolve_currency(text, filters))
+  end
+
+  defp marked_number(parts, unmarked, currency, separators_of, string, options) do
+    %{mark: mark, number: number} = parts
+
+    if decimal_mark?(mark, number, separators_of, options) do
+      {:ok, currency, separators_of, %{parts | currency: unmarked, number: mark <> number}}
+    else
+      {:error, not_an_amount(string)}
+    end
+  end
+
+  defp decimal_mark?(mark, number, separators_of, options) do
+    language_tag = Keyword.fetch!(options, :locale)
+
+    symbol_options =
+      options
+      |> Keyword.take([:separators])
+      |> put_separators_currency(separators_of)
+
+    case mark_symbols(language_tag, number, options, symbol_options) do
+      {:ok, symbols} ->
+        lenient = lenient_replacements(language_tag)
+        decimal = apply_lenient(extract_separator(symbols.decimal), lenient)
+        apply_lenient(mark, lenient) == decimal
+
+      {:error, _no_symbols} ->
+        false
+    end
+  end
+
+  defp mark_symbols(language_tag, number, options, symbol_options) do
+    with {:ok, number_system} <- digits_number_system_from(language_tag, number, options) do
+      number_symbols(language_tag, number_system, symbol_options)
+    end
   end
 
   defp default_currency(default, options) when is_atom(default) do
