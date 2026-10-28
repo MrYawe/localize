@@ -185,6 +185,10 @@ CLDR publishes test data under `common/testData`, generated from ICU, and Locali
 | A caller's currency, such as a digital token, read with the locale's and the root locale's separators, refused where they differ | Silent: CLDR has no data for it | Decided, 2026-10-28 | Done |
 | Text naming a CLDR currency and a different one of the caller's is refused | Silent | Decided, 2026-10-28 | Done |
 | A mark between currency and digits that is neither the currency's in CLDR nor the decimal mark is refused | Loose Matching: remove "." from currency symbols and the input "unless … '.' is in the decimal set, and its position in the input string is immediately before a decimal digit" | Departs, by the user's decision | Done |
+| Currency codes, symbols and names match in any case: `AR1.00` is the ariary (`Ar`) in `en` | Loose Matching: "Apply case folding (possibly including language-specific mappings such as Turkish i)", to the input and each field element alike, so " - NA f. 1,000.00" matches `NAf.` | TR35 is the rule; no language-specific folding | Done |
+| A period that is neither of the locale's separators reads as the decimal point only where it cannot group thousands: `fr` "100.00" is 100, "1.234" is refused | Silent | Decided, 2026-10-29 | Done |
+| A sign and accounting parentheses together, "(-5)", are refused | Silent: its heuristics take a sign or parentheses | Decided, 2026-10-29 | Done |
+| A minus before a decimal mark with no digit ahead of it, "-.15", is refused in every locale, since Swiss "Fr. –.15" and Dutch "€ -,50" write a dash for the zero there | Silent: CLDR has no data for the dash (CLDR-3394) | Decided, 2026-10-29, pending a Swiss reader's view | Done |
 
 **Groups.** With a two-digit lenient floor, `de` "1.23 EUR" read as 123 euros and `en` "1,23 USD" as 123 dollars. An amount's groups are held to the sizes the locale writes, the last of the primary size and the others of the primary or secondary one, so `en-IN` still takes both "12,34,567" and "1,234,567".
 

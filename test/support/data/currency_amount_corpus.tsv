@@ -2464,3 +2464,7 @@ en-US	lar1.00	refuse		icu:TestParseCurrencyInUCurr	refuse
 en-US	le1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	man1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	so1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
+en-US	AR1.00	MGA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so AR matches the ariary's Ar
+en-US	BS1.00	BOB 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case; Bs is the boliviano's, and otherwise only a historic currency's
+en-US	KZ1.00	AOA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so KZ matches the kwanza's Kz
+en-US	LT1.00	LTL 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so LT matches the litas's Lt
