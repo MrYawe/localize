@@ -96,13 +96,32 @@ defmodule Localize.Number.CurrencyAmountTest do
         end
       end
 
-      assert {"BTC", "100"} = amount("100 BTC", unknown_currency: token)
-      assert {"BTC", "100"} = amount("100 Bitcoin", unknown_currency: token)
-      assert {"BTC", "100"} = amount("BTC 100", unknown_currency: token)
-      assert {"BTC", "100"} = amount("Bitcoin 100", unknown_currency: token)
+      assert {"BTC", "100"} = amount("100 BTC", caller_currency: token)
+      assert {"BTC", "100"} = amount("100 Bitcoin", caller_currency: token)
+      assert {"BTC", "100"} = amount("BTC 100", caller_currency: token)
+      assert {"BTC", "100"} = amount("Bitcoin 100", caller_currency: token)
 
       assert %Localize.UnknownCurrencyError{currency: "Dogecoin"} =
-               amount("100 Dogecoin", unknown_currency: token)
+               amount("100 Dogecoin", caller_currency: token)
+    end
+
+    test "text that names a CLDR currency and a different one of the caller's is refused" do
+      caller = fn text ->
+        case text do
+          "₮" -> {:ok, "USDT"}
+          "MNT" -> {:ok, :MNT}
+          _other -> :error
+        end
+      end
+
+      assert {:MNT, "5"} = amount("₮5")
+
+      assert %Localize.ParseError{reason: :unexpected_input, detail: detail} =
+               amount("₮5", caller_currency: caller)
+
+      assert detail =~ "two currencies"
+      assert {:MNT, "5"} = amount("MNT 5", caller_currency: caller)
+      assert {:USD, "5"} = amount("5 USD", caller_currency: caller)
     end
 
     # A caller's currency has no separators in CLDR, so its amount is read
@@ -126,13 +145,13 @@ defmodule Localize.Number.CurrencyAmountTest do
             {"1,234.56 BTC", :de, "1234.56"},
             {"₿.5", :de, "0.5"}
           ] do
-        assert {"BTC", ^value} = amount(string, locale: locale, unknown_currency: token),
+        assert {"BTC", ^value} = amount(string, locale: locale, caller_currency: token),
                "#{locale} #{inspect(string)}"
       end
 
       for string <- ["₿1.234", "1,234 BTC"] do
         assert %Localize.InvalidAmountError{cause: %Localize.ParseError{detail: detail}} =
-                 amount(string, locale: :de, unknown_currency: token)
+                 amount(string, locale: :de, caller_currency: token)
 
         assert detail =~ "ambiguous"
       end
@@ -291,7 +310,7 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:error, _} = Parser.parse_currency_amount("USD 100", locale: "xx-invalid-!!")
       assert {:error, _} = Parser.parse_currency_amount("100 eurosports", fuzzy: 2.0)
       assert {:error, _} = Parser.parse_currency_amount("100", default_currency: 12)
-      assert {:error, _} = Parser.parse_currency_amount("100 BTC", unknown_currency: :nope)
+      assert {:error, _} = Parser.parse_currency_amount("100 BTC", caller_currency: :nope)
     end
 
     test "an over-long string" do

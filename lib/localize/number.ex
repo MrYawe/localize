@@ -1253,8 +1253,8 @@ defmodule Localize.Number do
 
   * `:default_currency` is the currency of an amount that names none.
 
-  * `:unknown_currency` is a function called with currency text that
-    names no currency of the locale.
+  * `:caller_currency` is a function naming currencies of the caller's
+    own, such as digital tokens.
 
   ### Returns
 

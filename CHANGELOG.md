@@ -8,13 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Options include `:default_currency` and `:unknown_currency`, a function for currencies of a caller's own.
+* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Options include `:default_currency` and `:caller_currency`, a function for currencies of a caller's own; text that names a CLDR currency and a different one of the caller's, as `₮` names the tugrik and Tether, is refused.
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
 * `Localize.Number.Parser.parse/2` option `grouping: :sizes` takes only groups of the sizes the locale writes, so `de` "1.23" is refused rather than read as 123; `parse_currency_amount/2` reads amounts with it.
 
-* `Localize.Number.Parser.parse/2` option `root_separators: true` also reads with the root locale's separators and refuses a string the two read differently; `parse_currency_amount/2` reads the amount of a caller's `:unknown_currency` with it.
+* `Localize.Number.Parser.parse/2` option `root_separators: true` also reads with the root locale's separators and refuses a string the two read differently; `parse_currency_amount/2` reads the amount of a caller's `:caller_currency` with it.
 
 * `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
 

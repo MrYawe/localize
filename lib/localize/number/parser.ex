@@ -683,18 +683,21 @@ defmodule Localize.Number.Parser do
     a currency code, or a name or symbol, resolved as currency text
     in the string would be. Without it, such an amount is an error.
 
-  * `:unknown_currency` is a function of one argument, called with
-    currency text that names no currency of the locale. It returns
-    `{:ok, currency}` to read the text as `currency`, or anything else
-    to leave it unknown. A caller recognises currencies of its own,
-    such as digital tokens, with it. Their amounts are read with the
+  * `:caller_currency` is a function of one argument, called with the
+    currency text, for currencies of the caller's own such as digital
+    tokens. It returns `{:ok, currency}` when the text names one, or
+    anything else. Text that names no currency of the locale is read as
+    the caller's currency; text that names one of the locale's and a
+    different one of the caller's is ambiguous and refused, as `₮` is the
+    tugrik and a digital token's symbol. Pass it only when the caller has
+    such currencies, since it is called for every amount. Their amounts are read with the
     locale's separators and the root locale's (`root_separators: true` of
     `parse/2`), and refused where the two differ.
 
   ### Returns
 
   * `{:ok, {currency, amount}}` where `currency` is a currency code, or
-    what `:unknown_currency` returned, and `amount` is a `t:Decimal.t/0`,
+    what `:caller_currency` returned, and `amount` is a `t:Decimal.t/0`,
     or
 
   * `{:error, %Localize.UnknownCurrencyError{currency: text}}` when the
@@ -1195,7 +1198,7 @@ defmodule Localize.Number.Parser do
   end
 
   # The currency an amount names, and the currency whose separators its
-  # number is read with: none for one the caller's `:unknown_currency`
+  # number is read with: none for one the caller's `:caller_currency`
   # function named, which Localize has no separators for.
   defp amount_currency(%{currency: ""} = parts, string, options) do
     default = Keyword.get(options, :default_currency)
@@ -1321,7 +1324,7 @@ defmodule Localize.Number.Parser do
   defp first_text_currency([candidate | rest], text, filters, options) do
     case resolve_currency(candidate, filters) do
       [currency] when is_atom(currency) ->
-        {:ok, currency, currency}
+        unclaimed_currency(currency, candidate, options)
 
       {:error, %Localize.UnknownCurrencyError{}} ->
         first_text_currency(rest, text, filters, options)
@@ -1335,22 +1338,47 @@ defmodule Localize.Number.Parser do
   end
 
   defp first_text_currency([], text, _filters, options) do
-    caller_currency(Keyword.get(options, :unknown_currency), text)
-  end
-
-  defp caller_currency(nil, text) do
-    {:error, Localize.UnknownCurrencyError.exception(currency: text)}
-  end
-
-  defp caller_currency(resolver, text) when is_function(resolver, 1) do
-    case resolver.(text) do
+    case caller_claim(Keyword.get(options, :caller_currency), text) do
       {:ok, currency} -> {:ok, currency, nil}
-      _unknown -> caller_currency(nil, text)
+      :none -> {:error, Localize.UnknownCurrencyError.exception(currency: text)}
+      {:error, _invalid_option} = error -> error
     end
   end
 
-  defp caller_currency(resolver, _text) do
+  # Text that names a CLDR currency names it only if the caller's
+  # `:caller_currency` does not name another for the same text: `₮` is the
+  # tugrik in CLDR and Tether's symbol as a digital token, so "₮5" is
+  # refused rather than read as either.
+  defp unclaimed_currency(currency, text, options) do
+    case caller_claim(Keyword.get(options, :caller_currency), text) do
+      {:ok, ^currency} -> {:ok, currency, currency}
+      {:ok, other} -> {:error, ambiguous_currency(text, currency, other)}
+      :none -> {:ok, currency, currency}
+      {:error, _invalid_option} = error -> error
+    end
+  end
+
+  defp caller_claim(nil, _text) do
+    :none
+  end
+
+  defp caller_claim(resolver, text) when is_function(resolver, 1) do
+    case resolver.(text) do
+      {:ok, currency} -> {:ok, currency}
+      _not_the_callers -> :none
+    end
+  end
+
+  defp caller_claim(resolver, _text) do
     {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of one argument")}
+  end
+
+  defp ambiguous_currency(text, currency, other) do
+    Localize.ParseError.exception(
+      input: text,
+      reason: :unexpected_input,
+      detail: "it names two currencies, #{inspect(currency)} and #{inspect(other)}"
+    )
   end
 
   defp amount_number(%{number: number}, currency, separators_of, options) do
@@ -1367,7 +1395,7 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # A currency the caller's `:unknown_currency` named has no separators in
+  # A currency the caller's `:caller_currency` named has no separators in
   # CLDR, so its amount is read with the locale's plain-number ones and the
   # root locale's, and refused where they differ.
   defp put_separators_currency(options, nil) do
