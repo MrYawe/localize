@@ -1,6 +1,6 @@
 # TR35 audit of what follows ICU
 
-**Status:** implemented (v1.4.0), 2026-10-06
+**Status:** implemented (v1.4.0), 2026-10-28
 
 Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user, 2026-10-06: "You must follow TR35 and use ICU ONlY when it's clear it follows TR35"). This document is the check of the code against that rule: every comment and doc in `lib` that names ICU, read against TR35's text at CLDR `6198cae999` (`docs/ldml/` in the CLDR repository), and given one of these standings.
 
@@ -12,7 +12,7 @@ Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user
 
 * **TR35 is silent, decided on recommendation** — fourteen choices that followed ICU, or were mine, and had never been put to the user, who settled them on 2026-10-06.
 
-* **Departs from TR35 by the user's decision** — two behaviours of dates the user decided with TR35's text in the question, and three of numbers where TR35's sentence and CLDR's own test data differ. They are listed so that every place Localize does not do as TR35 says is in one document.
+* **Departs from TR35 by the user's decision** — two behaviours of dates the user decided with TR35's text in the question, and three of numbers where TR35's sentence and CLDR's own test data differ, and one of number parsing the user decided on 2026-10-28. They are listed so that every place Localize does not do as TR35 says is in one document.
 
 Every module is checked: the 64 mentions of ICU the 11 files of the date, time, time zone, interval and calendar modules held before the audit, and the 44 places in 15 files of the number, unit, RBNF, plural-rule, locale-matching and message modules that gave ICU as the reason for a behaviour. Each behaviour is in a table below.
 
@@ -164,6 +164,14 @@ The number, unit, RBNF, plural-rule, locale-matching and message modules gave IC
 | RBNF's optional text is always written in a rule whose base value is no positive multiple of its divisor | "When the number is an even multiple of the rule's divisor ... omit the text" | `af` 1100 is "elf honderd nul" | Done |
 
 CLDR publishes test data under `common/testData`, generated from ICU, and Localize is held to it by its conformance tests (8,900 decimal rows, every locale's RBNF rows). In these three places the test data and TR35's sentence give different text, so no implementation can do both. They stay as the test data has them (user, 2026-10-06, on recommendation), which is the ground of the user's decision the same day on `availableFormats`: CLDR's conformance data over the sentence. The other reading of each writes "1000K" for 999999.9, "5.000" for German's compact 5000, and "elf honderd" for the Afrikaans year 1100; the last looks like what the rule's author meant. A report to CLDR is drafted in `tmp/cldr-reports/16-compact-steps-and-rbnf-brackets-against-the-test-data.md`, for the user to file.
+
+### Departs from TR35's sentence by the user's decision
+
+| Behaviour | TR35 | Decided | Status |
+|---|---|---|---|
+| A space between digits is refused where the locale does not group with a space | Loose Matching: "Ignore all characters in [:Zs:] unless they occur between letters." | User, 2026-10-28 | Done |
+
+**A space between digits.** Read as it is written, Loose Matching ignores a space between two digits, so `en` "1 2" would be 12, and `parse/2` read it so from `b69d935b` (2026-08-16), which made every `[:Zs:]` character a grouping space. TR35 states the goal of lenient parsing as "to accept user input whenever it is possible to decipher what the user intended", and its heuristics for parsing a number, which "may be helpful", leave a character that can play more than one role to be told apart by context. Where the locale does not group with a space, a space between digits parts two numbers at least as often as it groups them, and `scan/2` has always read it as parting them, since ignoring it would make "3 4 5" one number. So `parse/2` refuses it, and `parse_currency_amount/2` with it (user, 2026-10-28: "I like that it makes parse and scan more consistent"). A space at either end of a number, or beside its sign, is still ignored, and in a locale that groups with a space every `[:Zs:]` character still groups, as `b69d935b` intended. TR35's text for this was read at unicode.org on 2026-10-28, not at the CLDR commit above.
 
 ### TR35 is silent, decided on recommendation
 

@@ -33,12 +33,20 @@ defmodule Localize.Number.Parser do
   # strict scan puts a pattern in its place that never matches.
   @zero_fraction "[\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}][\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}]?(?![0-9])"
 
-  # TR35's loose matching for lenient parsing says to ignore every character in
-  # `[:Zs:]`, and separately to normalize to NFKC, "thus no-break space will map
-  # to space". Both readings make the whole space category equivalent here, so a
-  # number typed with an ordinary keyboard space parses under a locale that
-  # groups with U+202F, and one copied out of formatted output — carrying
-  # U+00A0, U+2009 or U+202F — parses anywhere.
+  # TR35's loose matching for lenient parsing says to "ignore all characters in
+  # [:Zs:] unless they occur between letters", and separately to normalize to
+  # NFKC, "thus no-break space will map to space". Both make the whole space
+  # category equivalent here, so a number typed with an ordinary keyboard space
+  # parses under a locale that groups with U+202F, and one copied out of
+  # formatted output — carrying U+00A0, U+2009 or U+202F — parses in any locale
+  # that groups with a space.
+  #
+  # One departure: where the locale does not group with a space, a space
+  # between digits is not ignored. There it parts two numbers, as `scan/2`
+  # reads them, so `en` "1 2" is refused rather than read as 12 (user,
+  # 2026-10-28; `plans/tr35-audit.md`, "Departs from TR35's sentence by the
+  # user's decision"). A space at either end of a number, or beside its sign,
+  # is ignored as TR35 says.
   #
   # `[:Zs:]` rather than a full NFKC fold: NFKC also maps superscripts onto
   # digits, so it would silently read "5²" as 52.
@@ -63,6 +71,10 @@ defmodule Localize.Number.Parser do
   @digits_only ~r/^[0-9]+$/
 
   @single_space ~r/^\p{Zs}$/u
+
+  # Spaces at either end of a number, or beside its sign once folded: "_" is
+  # the minus family's sample.
+  @edge_spaces ~r/\A\p{Zs}+|\p{Zs}+\z|(?<=[_+])\p{Zs}+|\p{Zs}+(?=[_+])/u
 
   # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
   # the end of a string.
@@ -1259,9 +1271,9 @@ defmodule Localize.Number.Parser do
   end
 
   # Where the locale groups with a space, every space folds onto that separator
-  # so the grouping check below can see it. Deleting them instead — which is
-  # what makes a stray space harmless in a locale that groups with a comma —
-  # would erase the very characters whose positions are being validated.
+  # so the grouping check below can see it. Deleting them instead would erase
+  # the very characters whose positions are being validated. Elsewhere a space
+  # inside the number is refused by `interior_space?/2`.
   defp normalize_spaces(string, group_sep) do
     if String.match?(group_sep, @single_space) do
       String.replace(string, @spaces, group_sep)
@@ -1301,10 +1313,30 @@ defmodule Localize.Number.Parser do
     # Digits after the decimal mark are never grouped, so a grouping
     # separator there means the text is not a number of this locale: `de`
     # "1,234.56" is not 1.23456, nor `fr` "1,5 6" 1.56.
-    if grouped_fraction?(fraction, group_sep) do
-      {:error, :grouping}
+    cond do
+      interior_space?(string, group_sep) ->
+        {:error, :grouping}
+
+      grouped_fraction?(fraction, group_sep) ->
+        {:error, :grouping}
+
+      true ->
+        validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?)
+    end
+  end
+
+  # A number is digits joined by the locale's separators. Where the locale
+  # groups with a space, `normalize_spaces/2` has already made every space
+  # that separator; anywhere else a space inside the number parts two
+  # numbers, as `scan/2` reads them, so `en` "1 2" is not 12. A space before
+  # or after the number, or beside its sign, is not inside it.
+  defp interior_space?(string, group_sep) do
+    if String.match?(group_sep, @single_space) do
+      false
     else
-      validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?)
+      string
+      |> String.replace(@edge_spaces, "")
+      |> String.match?(@spaces)
     end
   end
 

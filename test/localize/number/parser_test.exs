@@ -48,18 +48,31 @@ defmodule Localize.Number.ParserTest do
       end
     end
 
-    test "any space groups under a locale that groups with a comma" do
+    # A number is digits joined by the locale's separators, so where the
+    # locale does not group with a space, a space parts two numbers, as
+    # `scan/2` reads them (user, 2026-10-28). Until then such a space was
+    # deleted, so `en` "1 2" read as 12.
+    test "no space groups under a locale that groups with a comma" do
       for {name, space} <- @spaces do
-        assert {:ok, 1234.5} = Parser.parse("1#{space}234.5", locale: "en"),
-               "#{name} did not group in en"
+        assert {:error, _} = Parser.parse("1#{space}234.5", locale: "en"),
+               "#{name} grouped in en"
+      end
+
+      assert {:error, _} = Parser.parse("1 2", locale: "en")
+      assert {:error, _} = Parser.parse("1, 234", locale: "en")
+    end
+
+    test "no space groups under a locale that groups with a period" do
+      for {name, space} <- @spaces do
+        assert {:error, _} = Parser.parse("1#{space}234,5", locale: "de"),
+               "#{name} grouped in de"
       end
     end
 
-    test "any space groups under a locale that groups with a period" do
-      for {name, space} <- @spaces do
-        assert {:ok, 1234.5} = Parser.parse("1#{space}234,5", locale: "de"),
-               "#{name} did not group in de"
-      end
+    test "a space before or after a number, or beside its sign, is not inside it" do
+      assert {:ok, 100} = Parser.parse(" 100 ", locale: "en")
+      assert {:ok, -100} = Parser.parse("- 100", locale: "en")
+      assert {:ok, 5} = Parser.parse("+ 5", locale: "en")
     end
 
     test "the locale's own separators still work" do

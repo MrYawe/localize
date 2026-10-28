@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse/2` refuses a grouping separator after the decimal mark, so `de` "1,234.56" is an error rather than 1.23456.
 
+* `Localize.Number.Parser.parse/2` refuses a space inside a number in a locale that does not group with one, as `scan/2` already reads it: `en` "1 2" is an error rather than 12. Spaces at either end, or beside the sign, are still ignored.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed
