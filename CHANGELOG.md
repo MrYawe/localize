@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.scan/2` reads the variants CLDR's `parseLenients` folds, as `parse/2` already did: a U+2212 minus, a U+2019 group in `de-CH` and fullwidth signs and separators no longer split a number. Found from ex_money #208.
 
+* `Localize.Number.Parser.scan/2` reads bidi controls before a number or between its sign and digits as part of it, so an `ar-EG` negative amount keeps its sign. Marks elsewhere in the text are returned as written.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

@@ -300,6 +300,29 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "scan/2 bidi controls" do
+    test "a mark between a sign and its digits keeps the sign" do
+      assert [-1234.56, " ج.م.‏"] =
+               Parser.scan("؜-‏١٬٢٣٤٫٥٦ ج.م.‏", locale: "ar-EG")
+
+      assert [-5] = Parser.scan("-‎5", locale: "en")
+    end
+
+    test "marks before a number are part of it" do
+      assert [-1234.56, " ج.م.‏"] =
+               Parser.scan("‏‎-1,234.56 ج.م.‏", locale: "ar")
+
+      assert [1234.56, " ج.م.‏"] =
+               Parser.scan("‏1,234.56 ج.م.‏", locale: "ar")
+    end
+
+    test "marks and joiners elsewhere stay in the text" do
+      assert ["abc‏def ", 5] = Parser.scan("abc‏def 5", locale: "en")
+      assert ["👨‍👩 ", 2] = Parser.scan("👨‍👩 2", locale: "en")
+      assert ["‏"] = Parser.scan("‏", locale: "ar")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

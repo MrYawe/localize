@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.Number.Parser.parse_currency_amount/2`** (next release) — reads a whole currency amount such as `-CHF 1'234.56` or `(1 234,56 €)` into `{:ok, {currency, decimal}}`, wherever the currency, sign and accounting parentheses sit, with the currency's own separators and an error for surrounding text. It replaces ex_money's own grammar in ex_money 6.3.0, and an unknown currency's error carries its text so ex_money can still try digital tokens; decided 2026-10-28. It must read everything ex_money's `test/money_parse_test.exs` reads, unchanged, including a trailing minus (`€ 127,54-`), a sign between currency and amount (`kr-127,54`) and `($-127.54)` as positive.
 
-* [ ] **`scan/2` ignores bidi marks** (next release) — U+200E, U+200F and U+061C come back as text, and between a sign and its digits they detach the sign, so an `ar-EG` negative amount reads as positive. Found 2026-10-28.
-
 * [ ] **A currency symbol ending in a period is matched whole** (next release) — `resolve_currencies/2` reads `da` `kr.` and `ar` `ج.م.` as the currency with the `.` left over as text. Found 2026-10-28.
 
 * [ ] **A dash after the decimal mark reads as a zero fraction** (next release) — Swiss `CHF 5.–` and Dutch `€ 5,-` are whole amounts, but `parse/2` refuses them and `scan/2` leaves `".–"` unread; CLDR has no data for it (CLDR-3394), so it is a lenient rule. Found from ex_money #209, 2026-09-27.
@@ -75,6 +73,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`scan/2` ignores bidi marks** — Bidi_Control runs before a number or between its sign and digits are part of the number, so `ar-EG` "\u061C-\u200F١٬٢٣٤" reads as negative; marks elsewhere stay in the text. 2026-10-28, unreleased.
 
 * [x] **`scan/2` applies the `parseLenients` folds** — the scanner's sign, group and decimal classes take every character `parse/2` folds onto them, so `sv` "−1 234,56" and `de-CH` "1’234.56" read as one number. 2026-10-28, unreleased.
 

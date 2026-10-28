@@ -13,7 +13,20 @@ defmodule Localize.Number.Parser do
 
   @type per :: :percent | :permille
 
-  @number_format "[-+]?[0-9]([0-9_]|[,](?=[0-9]))*(\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
+  # Unicode's Bidi_Control characters: ALM, LRM, RLM, the embeddings and
+  # overrides, and the isolates. CLDR writes them into the signs and currency
+  # formats of the right-to-left locales, so `ar-EG` puts an RLM between a
+  # minus and its digits. The scanner takes any run of them before a number,
+  # or between its sign and digits, as part of the number, which `parse/2`
+  # then drops with the other format characters. Elsewhere they stay in the
+  # text as written. Not all of `\p{Cf}`: that includes the zero-width joiner
+  # that emoji sequences in the surrounding text are built with.
+  @bidi_controls "[\\x{061C}\\x{200E}\\x{200F}\\x{202A}-\\x{202E}\\x{2066}-\\x{2069}]*"
+
+  @number_format @bidi_controls <>
+                   "([-+]" <>
+                   @bidi_controls <>
+                   ")?[0-9]([0-9_]|[,](?=[0-9]))*(\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
 
   # TR35's loose matching for lenient parsing says to ignore every character in
   # `[:Zs:]`, and separately to normalize to NFKC, "thus no-break space will map
