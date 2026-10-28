@@ -17,8 +17,14 @@
 #                 icu:TestParseCurrencyInUCurr  ICU4C's currency name
 #                                  strings, en; ICU checks only that a
 #                                  prefix reads as 1.0, not the currency
+#                 icu4j:<test>, icu4c:<test>  ICU's round-trip and
+#                                  currency parse tables
+#                 bojanz:<test>    bojanz/currency (Go, MIT) format and
+#                                  parse tests, read back
 #   their_result  the source's own answer
 #   note          why the expected result differs from the source's
+#   given_currency  optional: the currency the caller supplies, passed as
+#                 `:default_currency`, for text that names none
 #
 en	53.45	refuse		icu:parse currency fail	refuse	
 en-GB	53.45	refuse		icu:parse currency ISO	refuse	
@@ -2468,3 +2474,189 @@ en-US	AR1.00	MGA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching fold
 en-US	BS1.00	BOB 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case; Bs is the boliviano's, and otherwise only a historic currency's
 en-US	KZ1.00	AOA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so KZ matches the kwanza's Kz
 en-US	LT1.00	LTL 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so LT matches the litas's Lt
+en-US	$2.00	USD 2		icu4j:TestParseCurrency	USD 2		
+en-US	$4	USD 4		icu4j:TestParseCurrency	USD 4		
+en-US	9\u{00A0}$	USD 9		icu4j:TestParseCurrency	USD 9		
+en-US	£3.00	GBP 3		icu4j:TestParseCurrency	GBP 3		
+en-US	£5	GBP 5		icu4j:TestParseCurrency	GBP 5		
+en-US	7\u{00A0}£	GBP 7		icu4j:TestParseCurrency	GBP 7		
+en-US	€8	EUR 8		icu4j:TestParseCurrency	EUR 8		
+en-GB	£3.00	GBP 3		icu4j:TestParseCurrency	GBP 3		
+en-GB	£5	GBP 5		icu4j:TestParseCurrency	GBP 5		
+en-GB	7\u{00A0}£	GBP 7		icu4j:TestParseCurrency	GBP 7		
+en-GB	4,00\u{00A0}€	refuse		icu4j:TestParseCurrency	EUR 400	en-GB groups with a comma, and a group is three digits	
+en-GB	6\u{00A0}€	EUR 6		icu4j:TestParseCurrency	EUR 6		
+en-GB	€8	EUR 8		icu4j:TestParseCurrency	EUR 8		
+en-GB	US$4	USD 4		icu4j:TestParseCurrency	USD 4		
+fr-FR	4,00\u{00A0}€	EUR 4		icu4j:TestParseCurrency	EUR 4		
+fr-FR	6\u{00A0}€	EUR 6		icu4j:TestParseCurrency	EUR 6		
+fr-FR	€8	EUR 8		icu4j:TestParseCurrency	EUR 8		
+en-US	$1.00	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+en-US	USD\u{00A0}1.00	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+en-US	1.00 US dollars	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+en-US	$1,234.56	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+en-US	USD\u{00A0}1,234.56	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+en-US	1,234.56 US dollars	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+en-US	-$1,234.56	USD -1234.56		icu4j:TestCurrencyIsoPluralFormat	USD -1234.56		
+en-US	-USD\u{00A0}1,234.56	USD -1234.56		icu4j:TestCurrencyIsoPluralFormat	USD -1234.56		
+en-US	-1,234.56 US dollars	USD -1234.56		icu4j:TestCurrencyIsoPluralFormat	USD -1234.56		
+zh-CN	US$1.00	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+zh-CN	USD\u{00A0}1.00	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+zh-CN	1.00\u{00A0}美元	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+zh-CN	US$1,234.56	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+zh-CN	USD\u{00A0}1,234.56	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+zh-CN	1,234.56\u{00A0}美元	USD 1234.56		icu4j:TestCurrencyIsoPluralFormat	USD 1234.56		
+zh-CN	¥1.00	CNY 1		icu4j:TestCurrencyIsoPluralFormat	CNY 1		
+zh-CN	CNY\u{00A0}1.00	CNY 1		icu4j:TestCurrencyIsoPluralFormat	CNY 1		
+zh-CN	1.00\u{00A0}人民币	CNY 1		icu4j:TestCurrencyIsoPluralFormat	CNY 1		
+zh-CN	¥1,234.56	CNY 1234.56		icu4j:TestCurrencyIsoPluralFormat	CNY 1234.56		
+zh-CN	CNY\u{00A0}1,234.56	CNY 1234.56		icu4j:TestCurrencyIsoPluralFormat	CNY 1234.56		
+zh-CN	1,234.56\u{00A0}人民币	CNY 1234.56		icu4j:TestCurrencyIsoPluralFormat	CNY 1234.56		
+ru-RU	1,00\u{00A0}₽	RUB 1		icu4j:TestCurrencyIsoPluralFormat	RUB 1		
+ru-RU	1,00\u{00A0}RUB	RUB 1		icu4j:TestCurrencyIsoPluralFormat	RUB 1		
+ru-RU	1,00 российского рубля	RUB 1		icu4j:TestCurrencyIsoPluralFormat	RUB 1		
+ru-RU	2,00\u{00A0}₽	RUB 2		icu4j:TestCurrencyIsoPluralFormat	RUB 2		
+ru-RU	2,00\u{00A0}RUB	RUB 2		icu4j:TestCurrencyIsoPluralFormat	RUB 2		
+ru-RU	2,00 российского рубля	RUB 2		icu4j:TestCurrencyIsoPluralFormat	RUB 2		
+ru-RU	5,00\u{00A0}₽	RUB 5		icu4j:TestCurrencyIsoPluralFormat	RUB 5		
+ru-RU	5,00\u{00A0}RUB	RUB 5		icu4j:TestCurrencyIsoPluralFormat	RUB 5		
+ru-RU	5,00 российского рубля	RUB 5		icu4j:TestCurrencyIsoPluralFormat	RUB 5		
+und	-US$\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und	-USD\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und	-1.23 USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und-u-nu-latn	-US$\u{00A0}1.23	USD -1.23	gap	icu4j:TestCurrencyIsoPluralFormat	USD -1.23	Localize resolves und with a -u- extension to en, not to root, and en has no US$	
+und-u-nu-latn	-USD\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und-u-nu-latn	-1.23 USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und-u-nu-arab	\u{061C}-١٫٢٣\u{00A0}US$	USD -1.23	gap	icu4j:TestCurrencyIsoPluralFormat	USD -1.23	Localize resolves und with a -u- extension to en, not to root, and en has no US$	
+und-u-nu-arab	\u{061C}-١٫٢٣\u{00A0}USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+und-u-nu-arab	\u{061C}-١٫٢٣ USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
+es-AR	INR\u{00A0}1,00	INR 1		icu4j:TestCurrencyIsoPluralFormat	INR 1		
+es-AR	1,00 rupia india	INR 1		icu4j:TestCurrencyIsoPluralFormat	INR 1		
+ar-EG	\u{200F}١٫٠٠\u{00A0}US$	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+ar-EG	\u{200F}١٫٠٠\u{00A0}USD	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+ar-EG	١٫٠٠ دولار أمريكي	USD 1		icu4j:TestCurrencyIsoPluralFormat	USD 1		
+pa-IN	US$\u{00A0}1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+pa-IN	USD\u{00A0}1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+pa-IN	1.00 ਯੂ.ਐਸ. ਡਾਲਰ	USD 1		icu4c:TestCurrencyParsing	USD 1		
+es-AR	US$\u{00A0}1,00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+es-AR	USD\u{00A0}1,00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+es-AR	1,00 dólar estadounidense	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ar-EG	١٫٠٠\u{00A0}US$	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ar-EG	١٫٠٠\u{00A0}USD	USD 1		icu4c:TestCurrencyParsing	USD 1		
+fa-CA	\u{200E}$۱٫۰۰	USD 1		icu4c:TestCurrencyParsing	USD 1		
+fa-CA	\u{200E}USD۱٫۰۰	USD 1		icu4c:TestCurrencyParsing	USD 1		
+fa-CA	۱٫۰۰ دلار آمریکا	USD 1		icu4c:TestCurrencyParsing	USD 1		
+he-IL	\u{200F}1.00\u{00A0}$	USD 1		icu4c:TestCurrencyParsing	USD 1		
+he-IL	\u{200F}1.00\u{00A0}USD	USD 1		icu4c:TestCurrencyParsing	USD 1		
+he-IL	1.00 דולר אמריקאי	USD 1		icu4c:TestCurrencyParsing	USD 1		
+hr-HR	1,00\u{00A0}USD	USD 1		icu4c:TestCurrencyParsing	USD 1		
+hr-HR	1,00 američkih dolara	USD 1		icu4c:TestCurrencyParsing	USD 1		
+id-ID	US$\u{00A0}1,00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+id-ID	USD\u{00A0}1,00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+id-ID	1,00 Dolar Amerika Serikat	USD 1		icu4c:TestCurrencyParsing	USD 1		
+it-IT	1,00\u{00A0}USD	USD 1		icu4c:TestCurrencyParsing	USD 1		
+it-IT	1,00 dollari statunitensi	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ko-KR	US$\u{00A0}1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ko-KR	USD\u{00A0}1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ko-KR	1.00 미국 달러	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ja-JP	$1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ja-JP	USD\u{00A0}1.00	USD 1		icu4c:TestCurrencyParsing	USD 1		
+ja-JP	1.00\u{00A0}米ドル	USD 1		icu4c:TestCurrencyParsing	USD 1		
+zh-CN	CNY\u{00A0}01.00	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-TW	CN¥1.00	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-TW	CNY\u{00A0}1.00	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-TW	1.00 人民幣	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-Hant	CN¥1.00	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-Hant	CNY\u{00A0}1.00	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-Hant	1.00 人民幣	CNY 1		icu4c:TestCurrencyParsing	CNY 1		
+zh-Hant	¥1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+zh-Hant	JPY\u{00A0}1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+zh-Hant	1 日圓	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+ja-JP	￥1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+ja-JP	JPY\u{00A0}1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+ja-JP	1\u{00A0}円	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
+ja-JP	¥1.00	JPY 1	gap	icu4c:TestCurrencyParsing	JPY 1	ja writes the yen ￥ (U+FFE5); TR35 loose matching's NFKC would fold it to ¥	
+ru-RU	1,00\u{00A0}\u{00A0}₽	RUB 1		icu4c:TestCurrencyParsing	RUB 1		
+ru-RU	1,00\u{00A0}\u{00A0}RUB	RUB 1		icu4c:TestCurrencyParsing	RUB 1		
+en	$1,234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
+en	USD\u{00A0}1,234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
+en	1,234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
+en	1234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
+en	+1234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
+en	1234	USD 1234		bojanz:TestFormatter_Parse	USD 1234		USD
+en	-$1,234.59	USD -1234.59		bojanz:TestFormatter_Parse	USD -1234.59		USD
+en	-USD\u{00A0}1,234.59	USD -1234.59		bojanz:TestFormatter_Parse	USD -1234.59		USD
+en	-1,234.59	USD -1234.59		bojanz:TestFormatter_Parse	USD -1234.59		USD
+en	-1234.59	USD -1234.59		bojanz:TestFormatter_Parse	USD -1234.59		USD
+en	(1234.59)	USD -1234.59		bojanz:TestFormatter_Parse	USD -1234.59		USD
+de-AT	€\u{00A0}1.234,00	EUR 1234		bojanz:TestFormatter_Parse	EUR 1234		EUR
+de-AT	EUR\u{00A0}1.234,00	EUR 1234		bojanz:TestFormatter_Parse	EUR 1234		EUR
+de-AT	1.234,00	EUR 1234		bojanz:TestFormatter_Parse	EUR 1234		EUR
+de-AT	1234,00	EUR 1234		bojanz:TestFormatter_Parse	EUR 1234		EUR
+ar-EG	١٢٬٣٤٥٬٦٧٨٫٩٠\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Parse	USD 12345678.9		USD
+fa	\u{200E}$۱۲٬۳۴۵٬۶۷۸٫۹۰	USD 12345678.9		bojanz:TestFormatter_Parse	USD 12345678.9		USD
+bn	১,২৩,৪৫,৬৭৮.৯০\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Parse	USD 12345678.9		USD
+ne	US$\u{00A0}१,२३,४५,६७८.९०	USD 12345678.9		bojanz:TestFormatter_Parse	USD 12345678.9		USD
+my	၁၂,၃၄၅,၆၇၈.၉၀\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Parse	USD 12345678.9		USD
+en-US	$1,234.59	USD 1234.59		bojanz:TestFormatter_Format	USD 1234.59		
+en-CA	US$1,234.59	USD 1234.59		bojanz:TestFormatter_Format	USD 1234.59		
+de-CH	$\u{00A0}1'234.59	USD 1234.59		bojanz:TestFormatter_Format	USD 1234.59		
+sr	1.234,59\u{00A0}US$	USD 1234.59		bojanz:TestFormatter_Format	USD 1234.59		
+en-US	-$1,234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
+en-CA	-US$1,234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
+de-CH	$-1'234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
+sr	-1.234,59\u{00A0}US$	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
+en	€1,234.00	EUR 1234		bojanz:TestFormatter_Format	EUR 1234		
+de-CH	€\u{00A0}1'234.00	EUR 1234	gap	bojanz:TestFormatter_Format	EUR 1234	CLDR de-CH writes the euro EUR, so € is not in its data	
+sr	1.234,00\u{00A0}€	EUR 1234		bojanz:TestFormatter_Format	EUR 1234		
+en	CHF\u{00A0}1,234.00	CHF 1234		bojanz:TestFormatter_Format	CHF 1234		
+de-CH	CHF\u{00A0}1'234.00	CHF 1234		bojanz:TestFormatter_Format	CHF 1234		
+sr	1.234,00\u{00A0}CHF	CHF 1234		bojanz:TestFormatter_Format	CHF 1234		
+en	$1,234.59	USD 1234.59		bojanz:TestFormatter_Format	USD 1234.59		
+en	-$1,234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
+ar-EG	\u{200F}١٢٬٣٤٥٬٦٧٨٫٩٠\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Format	USD 12345678.9		
+fa	\u{200E}$۱۲٬۳۴۵٬۶۷۸٫۹۰	USD 12345678.9		bojanz:TestFormatter_Format	USD 12345678.9		
+bn	১,২৩,৪৫,৬৭৮.৯০\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Format	USD 12345678.9		
+ne	US$\u{00A0}१,२३,४५,६७८.९०	USD 12345678.9		bojanz:TestFormatter_Format	USD 12345678.9		
+my	၁၂,၃၄၅,၆၇၈.၉၀\u{00A0}US$	USD 12345678.9		bojanz:TestFormatter_Format	USD 12345678.9		
+en	($1,234.59)	USD -1234.59		bojanz:TestFormatter_AccountingStyle	USD -1234.59		
+en	+$1,234.59	USD 1234.59		bojanz:TestFormatter_AccountingStyle	USD 1234.59		
+es	1234,59\u{00A0}€	EUR 1234.59		bojanz:TestFormatter_AccountingStyle	EUR 1234.59		
+es	-1234,59\u{00A0}€	EUR -1234.59		bojanz:TestFormatter_AccountingStyle	EUR -1234.59		
+es	+1234,59\u{00A0}€	EUR 1234.59		bojanz:TestFormatter_AccountingStyle	EUR 1234.59		
+en	$123.99	USD 123.99		bojanz:TestFormatter_Grouping	USD 123.99		
+en	$1,234.99	USD 1234.99		bojanz:TestFormatter_Grouping	USD 1234.99		
+en	$1,234,567.99	USD 1234567.99		bojanz:TestFormatter_Grouping	USD 1234567.99		
+en	$1234.99	USD 1234.99		bojanz:TestFormatter_Grouping	USD 1234.99		
+en	$1234567.99	USD 1234567.99		bojanz:TestFormatter_Grouping	USD 1234567.99		
+es	123,99\u{00A0}US$	USD 123.99		bojanz:TestFormatter_Grouping	USD 123.99		
+es	1234,99\u{00A0}US$	USD 1234.99		bojanz:TestFormatter_Grouping	USD 1234.99		
+es	12.345,99\u{00A0}US$	USD 12345.99		bojanz:TestFormatter_Grouping	USD 12345.99		
+es	1.234.567,99\u{00A0}US$	USD 1234567.99		bojanz:TestFormatter_Grouping	USD 1234567.99		
+hi	$123.99	USD 123.99		bojanz:TestFormatter_Grouping	USD 123.99		
+hi	$1,234.99	USD 1234.99		bojanz:TestFormatter_Grouping	USD 1234.99		
+hi	$12,34,567.99	USD 1234567.99		bojanz:TestFormatter_Grouping	USD 1234567.99		
+hi	$1,23,45,678.99	USD 12345678.99		bojanz:TestFormatter_Grouping	USD 12345678.99		
+en	₩59	KRW 59		bojanz:TestFormatter_Digits	KRW 59		
+en	$59.00	USD 59		bojanz:TestFormatter_Digits	USD 59		
+en	OMR\u{00A0}59.000	OMR 59		bojanz:TestFormatter_Digits	OMR 59		
+en	₩60	KRW 60		bojanz:TestFormatter_Digits	KRW 59.6789	the source formats the amount rounded, so the text shows this amount	
+en	$59.68	USD 59.68		bojanz:TestFormatter_Digits	USD 59.6789	the source formats the amount rounded, so the text shows this amount	
+en	OMR\u{00A0}59.679	OMR 59.679		bojanz:TestFormatter_Digits	OMR 59.6789	the source formats the amount rounded, so the text shows this amount	
+en	$59	USD 59		bojanz:TestFormatter_Digits	USD 59		
+en	$59.5	USD 59.5		bojanz:TestFormatter_Digits	USD 59.5		
+en	$59.56	USD 59.56		bojanz:TestFormatter_Digits	USD 59.56		
+en	$59.50	USD 59.5		bojanz:TestFormatter_Digits	USD 59.5		
+en	$59.57	USD 59.57		bojanz:TestFormatter_Digits	USD 59.567	the source formats the amount rounded, so the text shows this amount	
+en	$59.567	USD 59.567		bojanz:TestFormatter_Digits	USD 59.567		
+en	$59.568	USD 59.568		bojanz:TestFormatter_Digits	USD 59.5678	the source formats the amount rounded, so the text shows this amount	
+en	USD\u{00A0}1,234.59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
+de-AT	$\u{00A0}1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
+de-AT	USD\u{00A0}1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
+de-AT	1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		USD
+sr-Latn	1.234,59\u{00A0}US$	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
+sr-Latn	1.234,59\u{00A0}USD	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
+sr-Latn	1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		USD
+en	(1,234.59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD
+en-NL	(1.234,59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD
+sr-Latn	(1.234,59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD

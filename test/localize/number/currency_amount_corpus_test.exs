@@ -37,11 +37,19 @@ defmodule Localize.Number.CurrencyAmountCorpusTest do
     {currency, Decimal.new(amount)}
   end
 
-  defp read(locale, input) do
-    case Parser.parse_currency_amount(unescape(input), locale: locale) do
+  defp read(locale, input, given_currency) do
+    case Parser.parse_currency_amount(unescape(input), read_options(locale, given_currency)) do
       {:ok, {currency, amount}} -> {Atom.to_string(currency), amount}
       {:error, _reason} -> :refuse
     end
+  end
+
+  defp read_options(locale, "") do
+    [locale: locale]
+  end
+
+  defp read_options(locale, given_currency) do
+    [locale: locale, default_currency: given_currency]
   end
 
   defp same?(:refuse, :refuse) do
@@ -56,10 +64,12 @@ defmodule Localize.Number.CurrencyAmountCorpusTest do
     false
   end
 
-  for [locale, input, expected, status, source | _rest] <- @rows do
-    test "#{locale} #{inspect(input)} (#{source})" do
+  for [locale, input, expected, status, source | rest] <- @rows do
+    given_currency = Enum.at(rest, 2, "")
+
+    test "#{locale} #{inspect(input)} #{given_currency} (#{source})" do
       expected = expected(unquote(expected))
-      result = read(unquote(locale), unquote(input))
+      result = read(unquote(locale), unquote(input), unquote(given_currency))
 
       if unquote(status) == "gap" do
         assert result == :refuse,
