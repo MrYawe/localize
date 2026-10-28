@@ -303,9 +303,6 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
-  # `de-AT` and `fr-CH` write a currency amount with other separators than a
-  # plain number. Either may be typed, so both are read; where both readings
-  # are valid and differ, the text is ambiguous and refused.
   describe "parse/2 with root_separators: true" do
     test "reads what either the locale or the root locale reads" do
       options = [locale: "de", number: :decimal, grouping: :sizes, root_separators: true]
@@ -322,6 +319,8 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # `de-AT` and `fr-CH` write a currency amount with other separators than a
+  # plain number. Either may be typed, so both are read.
   describe "parse/2 with :currency in a locale whose currency separators differ" do
     defp amount_of(string, locale, currency) do
       Parser.parse(string, locale: locale, currency: currency, number: :decimal, grouping: :sizes)
@@ -332,17 +331,66 @@ defmodule Localize.Number.ParserTest do
       assert Decimal.equal?(d1, "1234.56")
       assert {:ok, %Decimal{} = d2} = amount_of("1\u00A0234,56", "de-AT", :EUR)
       assert Decimal.equal?(d2, "1234.56")
-      assert {:ok, %Decimal{} = d3} = amount_of("1234.56", "de-AT", :EUR)
-      assert Decimal.equal?(d3, "1234.56")
       assert {:ok, %Decimal{} = d4} = amount_of("1'234,56", "fr-CH", :CHF)
       assert Decimal.equal?(d4, "1234.56")
       assert {:ok, %Decimal{} = d5} = amount_of("1'234.56", "fr-CH", :CHF)
       assert Decimal.equal?(d5, "1234.56")
     end
 
-    test "refuses what the two sets read as different numbers" do
-      assert {:error, %Localize.ParseError{detail: detail}} = amount_of("1.234", "de-AT", :EUR)
-      assert detail =~ "ambiguous"
+    # Both of `de-AT`'s sets mark the fraction with a comma, so a period is
+    # the euro's group, or a decimal point only where it can be no group.
+    test "reads a period as de-AT's currency group where it can be one" do
+      assert {:ok, %Decimal{} = amount} = amount_of("1.234", "de-AT", :EUR)
+      assert Decimal.equal?(amount, "1234")
+      assert {:ok, %Decimal{} = amount} = amount_of("100.00", "de-AT", :EUR)
+      assert Decimal.equal?(amount, "100.00")
+      assert {:error, _} = amount_of("1.234,5.6", "de-AT", :EUR)
+    end
+
+    test "reads fr-CH's whole-franc price with the franc's decimal mark" do
+      assert {:ok, %Decimal{} = amount} = amount_of("5.–", "fr-CH", :CHF)
+      assert Decimal.equal?(amount, "5")
+      assert {:ok, %Decimal{} = amount} = amount_of("5.-", "fr-CH", :CHF)
+      assert Decimal.equal?(amount, "5")
+    end
+  end
+
+  # The number is handed to Elixir with "." as its decimal point, so a
+  # period the locale does not write is read as one only where it can be
+  # nothing else.
+  describe "a period that is neither of the locale's separators" do
+    test "is refused where it could group thousands, or is not between digits" do
+      for locale <- ["fr", "sv", "pl", "ru", "cs", "fr-CH"],
+          string <- ["1.234", "12.345", "1.000.000", "5.", ".5", "5.-", "1,5.3"],
+          options <- [[], [number: :decimal], [grouping: :sizes]] do
+        assert {:error, _} = Parser.parse(string, [locale: locale] ++ options),
+               inspect({locale, string, options})
+      end
+    end
+
+    test "is the decimal point where it can be nothing else" do
+      for locale <- ["fr", "sv", "pl", "ru", "cs"],
+          {string, expected} <- [
+            {"100.00", "100.00"},
+            {"0.5", "0.5"},
+            {"1234.56", "1234.56"},
+            {"1234.567", "1234.567"},
+            {"-100.00", "-100.00"},
+            {"(0.5)", "-0.5"}
+          ] do
+        assert {:ok, %Decimal{} = value} = Parser.parse(string, locale: locale, number: :decimal),
+               inspect({locale, string})
+
+        assert Decimal.equal?(value, expected), inspect({locale, string})
+      end
+    end
+
+    test "is read where it is one of them" do
+      assert {:ok, 1.5} = Parser.parse("1,5", locale: "fr")
+      assert {:ok, 1.5} = Parser.parse("1.5", locale: "en")
+      assert {:ok, 1234} = Parser.parse("1.234", locale: "de")
+      assert {:ok, 1.234} = Parser.parse("1.234", locale: "fr", root_separators: true)
+      assert {:ok, 1.234} = Parser.parse("1.234", locale: "fr-CH", currency: :CHF)
     end
   end
 
@@ -491,8 +539,6 @@ defmodule Localize.Number.ParserTest do
     test "parentheses negate what they hold" do
       assert {:ok, -5} = Parser.parse("(5)", locale: "en")
       assert {:ok, -5} = Parser.parse("( 5 )", locale: "en")
-      assert {:ok, 5} = Parser.parse("(-5)", locale: "en")
-      assert {:ok, 5} = Parser.parse("-(5)", locale: "en")
       assert {:ok, -1234.56} = Parser.parse("(1 234,56)", locale: "fr")
       assert {:ok, -5} = Parser.parse("(5.–)", locale: "de-CH")
     end
@@ -500,6 +546,14 @@ defmodule Localize.Number.ParserTest do
     test "two signs, or a parenthesis without its pair, are refused" do
       for string <- ["--5", "-5-", "+-5", "(5", "5)", "((5))", ")5(", "-", "()"] do
         assert {:error, _} = Parser.parse(string, locale: "en"), inspect(string)
+      end
+    end
+
+    # Some read "(-5)" as -5, a negative marked twice, and others as 5.
+    test "a sign and parentheses together are refused" do
+      for string <- ["(-5)", "-(5)", "(5-)", "(5)-", "(+5)", "+(5)", "(\u22125)"] do
+        assert {:error, _} = Parser.parse(string, locale: "en"), inspect(string)
+        assert {:error, _} = Parser.parse(string, locale: "en", number: :decimal), inspect(string)
       end
     end
   end

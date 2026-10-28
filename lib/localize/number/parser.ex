@@ -93,6 +93,12 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
+  # A number with one period, between digits, and the shape of a thousands
+  # group written with a period: one to three digits, the period, three
+  # digits. Digits are ASCII by the time these are matched.
+  @foreign_decimal_point ~r/\A[^.]*[0-9]\.[0-9][^.]*\z/
+  @period_group ~r/\A[0-9]{1,3}\.[0-9]{3}(?![0-9])/
+
   # A folded number as its sign before an opening parenthesis, the
   # parenthesis, a sign after it, the digits, a sign before the closing
   # parenthesis, the parenthesis and a sign after it. Every part but the
@@ -215,9 +221,9 @@ defmodule Localize.Number.Parser do
     currency amount differently from a plain number, `de-AT`, which formats
     `€ 1.234,56` but writes `1 234,56` plain, and `fr-CH`, which writes a
     franc amount `1'234.56` but a plain number `1'234,56`. There the string
-    is read with both, and refused where both readings are valid and give
-    different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
-    `nil`, a plain number.
+    is read with both, and refused should both readings be valid and give
+    different numbers. `de-AT` groups the euro with a period, so `"1.234"`
+    is 1234 euros. The default is `nil`, a plain number.
 
   * `:root_separators` set to `true` also reads the string with the root
     locale's separators, the locale-neutral `1,234.56`, for an amount of
@@ -356,9 +362,9 @@ defmodule Localize.Number.Parser do
     currency amount differently from a plain number, `de-AT`, which formats
     `€ 1.234,56` but writes `1 234,56` plain, and `fr-CH`, which writes a
     franc amount `1'234.56` but a plain number `1'234,56`. There the string
-    is read with both, and refused where both readings are valid and give
-    different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
-    `nil`, a plain number.
+    is read with both, and refused should both readings be valid and give
+    different numbers. `de-AT` groups the euro with a period, so `"1.234"`
+    is 1234 euros. The default is `nil`, a plain number.
 
   * `:root_separators` set to `true` also reads the string with the root
     locale's separators, the locale-neutral `1,234.56`, for an amount of
@@ -490,8 +496,8 @@ defmodule Localize.Number.Parser do
 
   # A number is the one every valid reading gives. Where two readings are
   # valid and differ, the text is ambiguous and refused rather than one
-  # guessed: `de-AT` "1.234" is 1234 with the euro's separators and 1.234
-  # with the plain-number ones.
+  # guessed: with `root_separators: true`, `de` "1.234" is 1234 with the
+  # locale's separators and 1.234 with the root locale's.
   defp agreed_reading(readings, string) do
     values = for {:ok, value} <- readings, do: value
 
@@ -677,15 +683,17 @@ defmodule Localize.Number.Parser do
   The currency, a code, symbol or name, may come before or after the
   amount, with or without a space between them. A sign may stand
   before the currency, between the currency and the amount, or after
-  the amount, and the parentheses of an accounting format negate it.
-  The amount is read with the separators the locale uses for that
-  currency, so `fr-CH` "1’234.56 CHF" reads as it is written, and in
-  `de-AT` and `fr-CH`, which write plain numbers otherwise, with those too.
-  Its groups must be the sizes the locale writes (`grouping: :sizes` of
-  `parse/2`). Where the text could be two amounts it is refused rather
-  than one guessed: `de` "1.23 EUR" is not €123, and `de-AT` "1.234 EUR"
-  could be 1234 or 1.234. Bidi controls are ignored. Nothing else may
-  surround the amount.
+  the amount, or the parentheses of an accounting format may hold it,
+  but not both. The amount is read with the separators the locale uses
+  for that currency, so `fr-CH` "1’234.56 CHF" reads as it is written,
+  and in `de-AT` and `fr-CH`, which write plain numbers otherwise, with
+  those too. Its groups must be the sizes the locale writes
+  (`grouping: :sizes` of `parse/2`), and a period that is none of its
+  separators is read only where it can be nothing but a decimal point.
+  Where the text could be two amounts it is
+  refused rather than one guessed: `de` "1.23 EUR" is not €123, `fr`
+  "1.234 €" is not €1.234, and "($-5)" is neither -5 nor 5 dollars.
+  Bidi controls are ignored. Nothing else may surround the amount.
 
   ### Arguments
 
@@ -1537,7 +1545,8 @@ defmodule Localize.Number.Parser do
     with {:ok, body, negative?} <- signed_body(folded),
          body = normalize_spaces(body, group_sep),
          :ok <-
-           validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping) do
+           validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping),
+         :ok <- no_stray_period(body, group_sep, decimal_sep) do
       number =
         body
         |> String.replace(group_sep, "")
@@ -1552,11 +1561,32 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # A number's sign and accounting parentheses, as a money amount writes
-  # them: one sign at most, before or after the digits, inside or outside
-  # the parentheses, which negate what they hold, so "(5)" is -5 and "(-5)"
-  # is 5. TR35's heuristics for parsing a number take a sign as a prefix or
-  # a suffix. Spaces between them and the digits are not part of the number.
+  # The number is handed to Elixir with "." as its decimal point, so a period
+  # that is neither of the locale's separators would pass for one. It is read
+  # as one only where it can be nothing else: a single period between digits,
+  # in text without the locale's own decimal mark, and not in the shape of a
+  # thousands group. `fr` "100.00" is 100, but "1.234" is refused, since one
+  # who groups with a period means 1234 by it.
+  defp no_stray_period(body, group_sep, decimal_sep) do
+    cond do
+      "." in [group_sep, decimal_sep] -> :ok
+      not String.contains?(body, ".") -> :ok
+      foreign_decimal_point?(body, decimal_sep) -> :ok
+      true -> {:error, :stray_period}
+    end
+  end
+
+  defp foreign_decimal_point?(body, decimal_sep) do
+    not String.contains?(body, decimal_sep) and String.match?(body, @foreign_decimal_point) and
+      not String.match?(body, @period_group)
+  end
+
+  # A number's sign or accounting parentheses, as a money amount writes
+  # them: one sign at most, before or after the digits, or parentheses,
+  # which make it negative, so "(5)" is -5. TR35's heuristics for parsing a
+  # number take a sign as a prefix or a suffix. A sign and parentheses
+  # together are refused: "(-5)" is read as -5 by some and as 5 by others.
+  # Spaces between them and the digits are not part of the number.
   defp signed_body(folded) do
     [_whole, before_open, open, after_open, body, before_close, close, after_close] =
       Regex.run(@signed_number, folded)
@@ -1567,7 +1597,8 @@ defmodule Localize.Number.Parser do
       body == "" -> {:error, :no_digits}
       match?([_, _ | _], signs) -> {:error, :signs}
       open == "(" != (close == ")") -> {:error, :parentheses}
-      true -> {:ok, body, signs == ["_"] != (open == "(")}
+      open == "(" and match?([_ | _], signs) -> {:error, :signs}
+      true -> {:ok, body, signs == ["_"] or open == "("}
     end
   end
 

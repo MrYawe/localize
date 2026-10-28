@@ -558,7 +558,7 @@ iex> Localize.Number.scan("The price is $1,234.56 per unit")
 
 Parsing respects locale-specific separators and can resolve embedded currency symbols and percent signs. See `Localize.Number.parse/2` and `Localize.Number.scan/2` for details.
 
-A number is digits joined by the locale's separators, read leniently: CLDR's look-alike characters fold onto the locale's own, so a Unicode minus or a typographic apostrophe reads, bidi marks are ignored, and a trailing sign or accounting parentheses negate the number. Text that is not a number of the locale is refused rather than guessed: a space between digits in `en`, or a grouping separator after the decimal mark.
+A number is digits joined by the locale's separators, read leniently: CLDR's look-alike characters fold onto the locale's own, so a Unicode minus or a typographic apostrophe reads, bidi marks are ignored, and a trailing sign or accounting parentheses negate the number, though not both at once. Text that is not a number of the locale is refused rather than guessed: a space between digits in `en`, a grouping separator after the decimal mark, or a period in `fr` that could group thousands, as in `1.234`. A period the locale does not write reads as the decimal point only where it can be nothing else, so `fr` `100.00` is 100.
 
 ```elixir
 iex> Localize.Number.parse("1’234.56", locale: :"de-CH")
@@ -591,7 +591,9 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **Groups the locale does not write** — `de` `1.23 EUR` is refused, where a lenient reading of the grouping would make it 123 euros.
 
-* **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two read as different numbers, such as `de-AT` `1.234 EUR`, is refused.
+* **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two would read as different numbers is refused. `de-AT` groups the euro with a period, so `1.234 EUR` is 1234 euros.
+
+* **A sign and parentheses together** — `($-5)` is refused, where some would read it as -5 dollars and others as 5.
 
 * **A mark between currency and digits** — it is the currency's where CLDR writes the currency with it, as `da` writes `kr.`, and the number's where it is the decimal mark, so `$.50` is fifty cents; otherwise the amount is refused.
 

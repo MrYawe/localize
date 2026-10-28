@@ -65,9 +65,11 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:DKK, "-127.54"} = amount("kr -127,54", locale: :da)
     end
 
+    # ex_money read "($-127.54)" as 127.54 dollars, where others read it as
+    # -127.54: it is refused.
     test "accounting parentheses negate the amount inside them" do
       assert {:USD, "-127.54"} = amount("($127.54)")
-      assert {:USD, "127.54"} = amount("($-127.54)")
+      assert %Localize.InvalidAmountError{amount: "(-127.54)"} = amount("($-127.54)")
     end
 
     test "currency filters and fuzzy matching" do
@@ -230,7 +232,20 @@ defmodule Localize.Number.CurrencyAmountTest do
     end
 
     test "a zero fraction written as a dash" do
-      assert {:CHF, "5"} = amount("CHF 5.–", locale: :"de-CH")
+      for locale <- [:"de-CH", :"fr-CH", :"it-CH"],
+          {string, expected} <- [
+            {"CHF 5.-", "5"},
+            {"CHF 5.–", "5"},
+            {"5.– CHF", "5"},
+            {"Fr. 5.-", "5"},
+            {"Fr. 5.--", "5"},
+            {"CHF 1'234.–", "1234"},
+            {"CHF -5.-", "-5"},
+            {"(CHF 5.-)", "-5"}
+          ] do
+        assert {:CHF, ^expected} = amount(string, locale: locale), "#{locale} #{inspect(string)}"
+      end
+
       assert {:CHF, "5"} = amount("Fr. 5.—", locale: :"de-CH")
       assert {:EUR, "5"} = amount("€ 5,-", locale: :nl)
       assert {:EUR, "-5"} = amount("-€ 5,-", locale: :nl)
@@ -247,16 +262,34 @@ defmodule Localize.Number.CurrencyAmountTest do
 
     test "de-AT and fr-CH amounts read with either set of separators" do
       assert {:EUR, "1234.56"} = amount("€ 1.234,56", locale: :"de-AT")
-      assert {:EUR, "100.00"} = amount("100.00 EUR", locale: :"de-AT")
+      assert {:EUR, "1234.56"} = amount("1\u00A0234,56 EUR", locale: :"de-AT")
       assert {:CHF, "1234.56"} = amount("1'234,56 CHF", locale: :"fr-CH")
       assert {:CHF, "1234.56"} = amount("1'234.56 CHF", locale: :"fr-CH")
       assert {:CHF, "100.00"} = amount("100,00 CHF", locale: :"fr-CH")
       assert {:CHF, "0.5"} = amount("CHF,5", locale: :"fr-CH")
+    end
 
-      assert %Localize.InvalidAmountError{cause: %Localize.ParseError{detail: detail}} =
-               amount("1.234 EUR", locale: :"de-AT")
+    # Both of `de-AT`'s sets mark the fraction with a comma, so a period is
+    # the euro's group, or a decimal point only where it can be no group.
+    test "a period is de-AT's currency group where it can be one" do
+      assert {:EUR, "1234"} = amount("1.234 EUR", locale: :"de-AT")
+      assert {:EUR, "100.00"} = amount("100.00 EUR", locale: :"de-AT")
+    end
 
-      assert detail =~ "ambiguous"
+    test "a period that is neither of the locale's separators" do
+      assert {:EUR, "100.00"} = amount("100.00 €", locale: :fr)
+      assert {:EUR, "1.5"} = amount("€ 1.5", locale: :fr)
+      assert {:SEK, "-0.50"} = amount("-0.50 kr", locale: :sv)
+
+      for {string, locale} <- [
+            {"1.234 €", :fr},
+            {"1.234 kr", :sv},
+            {"1.234 zł", :pl},
+            {"€ 1.000.000", :fr}
+          ] do
+        assert %Localize.InvalidAmountError{} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
     end
 
     test "a sentence's closing period after the currency" do
