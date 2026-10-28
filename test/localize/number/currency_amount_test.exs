@@ -203,6 +203,44 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:EUR, "0.5"} = amount("€ ,5", locale: :de)
     end
 
+    # TR35's loose matching normalizes to NFKC. Currency text is matched so,
+    # the text and the locale's strings alike; the number is not, where NFKC
+    # would make the footnote of "$5²" a digit.
+    test "currency text is matched after NFKC normalization, the number is not" do
+      assert {:JPY, "1.00"} = amount("¥1.00", locale: :ja)
+      assert {:JPY, "1.00"} = amount("￥1.00", locale: :ja)
+      assert {:USD, "1.00"} = amount("＄1.00", locale: :en)
+      assert {:KRW, "5"} = amount("￦5", locale: :"zh-Hant")
+      assert {:AED, "5"} = amount("5 ﺩ.ﺇ", locale: :ar)
+      assert {:JPY, "1"} = amount("¥1", locale: :ja, only: [:JPY])
+
+      for string <- ["$5²", "$①", "$½"] do
+        assert %Localize.ParseError{} = amount(string), inspect(string)
+      end
+    end
+
+    # An amount in the wrong currency is wrong money, so a symbol that names
+    # several of the locale's currencies is refused rather than taken as the
+    # nearest locale's: `resolve_currency/2` reads "$" in `fr` as the
+    # Canadian dollar, as in `fr-CA`.
+    test "a symbol several of the locale's currencies share is refused" do
+      for {string, locale} <- [
+            {"$2.00", :fr},
+            {"$2,00", :"pt-PT"},
+            {"$2.00", :es},
+            {"$2.00", :"en-GB"}
+          ] do
+        assert %Localize.UnknownCurrencyError{currency: "$"} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+
+      assert {:USD, "2.00"} = amount("2,00 $US", locale: :fr)
+      assert {:CAD, "2.00"} = amount("2,00 $CA", locale: :fr)
+      assert {:CAD, "2.00"} = amount("$2.00", locale: :"fr-CA")
+      assert {:USD, "2.00"} = amount("$2.00", locale: :en)
+      assert [:CAD] = Parser.resolve_currency("$", locale: :fr)
+    end
+
     # Swiss "Fr. –.15" and Dutch "€ -,50" write a dash for the zero before the
     # decimal mark, where a minus would stand, so the amount could be either.
     test "a minus before a decimal mark with no digit ahead of it is refused" do

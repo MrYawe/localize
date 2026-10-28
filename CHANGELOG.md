@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. An amount that could be read two ways is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
+* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Currency text is matched after NFKC normalization (`ja` "¥1.00"), and an amount that could be read two ways, or whose symbol several currencies share, is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 

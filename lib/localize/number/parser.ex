@@ -676,7 +676,7 @@ defmodule Localize.Number.Parser do
           list(atom() | String.t()) | {:error, Exception.t()}
   def resolve_currency(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options) do
-      find_currency(string, options)
+      find_currency(string, options, :nearest)
     end
   end
 
@@ -696,8 +696,12 @@ defmodule Localize.Number.Parser do
   separators is read only where it can be nothing but a decimal point.
   Where the text could be two amounts it is
   refused rather than one guessed: `de` "1.23 EUR" is not €123, `fr`
-  "1.234 €" is not €1.234, "($-5)" is neither -5 nor 5 dollars, and
-  "-$.50" is refused since Swiss "Fr. –.15" writes a dash for the zero.
+  "1.234 €" is not €1.234, "($-5)" is neither -5 nor 5 dollars,
+  "-$.50" is refused since Swiss "Fr. –.15" writes a dash for the zero,
+  and `fr` "$2.00" is refused since several dollars share "$" there,
+  where `resolve_currency/2` takes the Canadian one. The currency text,
+  but not the number, is matched after NFKC normalization, so `ja`
+  "¥1.00" is the yen, which `ja` writes "￥", while "$5²" is refused.
   Bidi controls are ignored. Nothing else may surround the amount.
 
   ### Arguments
@@ -779,7 +783,15 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp find_currency(string, options) do
+  # `reading` is `:nearest` for `resolve_currency/2`, where a string several
+  # currencies share names the nearest locale's currency. It is `:amount` for
+  # a currency amount, where such a string names none, since an amount in the
+  # wrong currency is wrong money, and where the text and the locale's strings
+  # are matched after NFKC normalization, as TR35's loose matching asks: `ja`
+  # writes the yen "￥", which "¥" then matches. Only currency text is
+  # normalized, never a number, where NFKC would make the footnote of "$5²" a
+  # digit.
+  defp find_currency(string, options, reading) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     only_filter = Keyword.get(options, :only, [:all])
     except_filter = Keyword.get(options, :except, [])
@@ -788,18 +800,31 @@ defmodule Localize.Number.Parser do
     filters = [only: only_filter, except: except_filter]
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, currency_strings} <-
-           Localize.Currency.currency_strings(locale_id(language_tag), filters),
+         {:ok, currency_strings} <- reading_strings(locale_id(language_tag), filters, reading),
          {:ok, currency} <-
-           found_currency(currency_strings, string, fuzzy, language_tag, filters) do
+           found_currency(
+             currency_strings,
+             reading_text(string, reading),
+             fuzzy,
+             language_tag,
+             filters,
+             reading
+           ) do
       currency
     end
   end
 
   # Only finding no currency means the currency is unknown. An invalid
   # `:fuzzy` value is reported as itself.
-  defp found_currency(currency_strings, string, fuzzy, language_tag, filters) do
-    case find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters) do
+  defp found_currency(currency_strings, string, fuzzy, language_tag, filters, reading) do
+    case find_or_resolve_currency(
+           currency_strings,
+           string,
+           fuzzy,
+           language_tag,
+           filters,
+           reading
+         ) do
       {:ok, _currency} = found ->
         found
 
@@ -811,6 +836,69 @@ defmodule Localize.Number.Parser do
     end
   end
 
+  defp reading_strings(locale_id, filters, :nearest) do
+    Localize.Currency.currency_strings(locale_id, filters)
+  end
+
+  # The unfiltered index is normalized once per locale; a filtered one is
+  # built for each call, and so is its normalized form.
+  defp reading_strings(locale_id, [only: only, except: except] = filters, :amount)
+       when only in [:all, [:all]] and except in [nil, []] do
+    key = {__MODULE__, :nfkc_currency_strings, locale_id}
+
+    case :persistent_term.get(key, nil) do
+      nil -> cache_nfkc_strings(key, locale_id, filters)
+      strings -> {:ok, strings}
+    end
+  end
+
+  defp reading_strings(locale_id, filters, :amount) do
+    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters) do
+      {:ok, nfkc_strings(strings)}
+    end
+  end
+
+  defp cache_nfkc_strings(key, locale_id, filters) do
+    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters) do
+      normalized = nfkc_strings(strings)
+      Localize.LiteralMemory.cache(key, normalized)
+      {:ok, normalized}
+    end
+  end
+
+  # Two strings that normalize alike but name different currencies name
+  # neither, as a string two currencies share names neither.
+  defp nfkc_strings(strings) do
+    strings
+    |> Enum.group_by(fn {string, _code} -> nfkc(string) end, fn {_string, code} -> code end)
+    |> Enum.flat_map(fn {string, codes} -> single_claimant(string, Enum.uniq(codes)) end)
+    |> Map.new()
+  end
+
+  defp single_claimant(string, [code]) do
+    [{string, code}]
+  end
+
+  defp single_claimant(_string, _codes) do
+    []
+  end
+
+  defp reading_text(string, :nearest) do
+    string
+  end
+
+  defp reading_text(string, :amount) do
+    nfkc(string)
+  end
+
+  # Text that is not valid Unicode is matched as it is, and found in no index.
+  defp nfkc(string) do
+    case :unicode.characters_to_nfkc_binary(string) do
+      normalized when is_binary(normalized) -> String.downcase(normalized)
+      _invalid -> string
+    end
+  end
+
   # A string several of the locale's currencies share ("$" in `fr`) names
   # the currency used where the locale closest to this one is spoken: of
   # the CLDR locales of each claimant's territories, the one
@@ -818,13 +906,16 @@ defmodule Localize.Number.Parser do
   # fit and no locale of another claimant is as near. So "$" is the
   # Canadian dollar in `fr`, as it is in `fr-CA`, and stays unknown in
   # `es`, which Mexico, the United States and Argentina are as near.
-  defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters) do
+  defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters, reading) do
     case find_and_replace_currency(currency_strings, string, fuzzy, language_tag) do
       {:ok, _found} = found ->
         found
 
-      {:error, _not_found} = error ->
+      {:error, _not_found} = error when reading == :nearest ->
         resolved_claimants(string, fuzzy, language_tag, filters, error)
+
+      {:error, _not_found} = error ->
+        error
     end
   end
 
@@ -1273,7 +1364,7 @@ defmodule Localize.Number.Parser do
   # a currency of its own.
   defp written_with_mark?(text, options) do
     filters = Keyword.take(options, [:locale, :only, :except])
-    match?([currency] when is_atom(currency), resolve_currency(text, filters))
+    match?([currency] when is_atom(currency), amount_currency_text(text, filters))
   end
 
   defp marked_number(parts, unmarked, currency, separators_of, string, options) do
@@ -1339,7 +1430,7 @@ defmodule Localize.Number.Parser do
   end
 
   defp first_text_currency([candidate | rest], text, filters, options) do
-    case resolve_currency(candidate, filters) do
+    case amount_currency_text(candidate, filters) do
       [currency] when is_atom(currency) ->
         unclaimed_currency(currency, candidate, options)
 
@@ -1359,6 +1450,15 @@ defmodule Localize.Number.Parser do
       {:ok, currency} -> {:ok, currency, nil}
       :none -> {:error, Localize.UnknownCurrencyError.exception(currency: text)}
       {:error, _invalid_option} = error -> error
+    end
+  end
+
+  # A currency amount's text names a currency only where one alone takes it:
+  # "$" in `fr`, which the Canadian, US and other dollars share, is refused
+  # rather than read as the Canadian dollar.
+  defp amount_currency_text(text, filters) do
+    with :ok <- validate_arguments(text, :string, filters) do
+      find_currency(text, filters, :amount)
     end
   end
 

@@ -593,6 +593,10 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two would read as different numbers is refused. `de-AT` groups the euro with a period, so `1.234 EUR` is 1234 euros.
 
+* **Compatibility characters** — the currency text is matched after NFKC normalization, as TR35's loose matching asks, so `ja` `¥1.00` is the yen, which `ja` writes `￥`, and a fullwidth `＄` is the dollar. The number is not normalized, since NFKC would turn the footnote of `$5²` into a digit; such text is refused.
+
+* **A symbol several currencies share** — `fr` `$2.00` is refused, since the Canadian, US and other dollars all write `$` there; `resolve_currency/2` takes the nearest locale's, the Canadian dollar, but an amount is not read in a currency that is a guess.
+
 * **A dash for the zero** — Swiss `Fr. –.15` and Dutch `€ -,50` write a dash before the decimal mark for a zero, where a minus would stand, so a minus there is refused: `-$.50` is neither -0.50 nor 0.50 dollars.
 
 * **A sign and parentheses together** — `($-5)` is refused, where some would read it as -5 dollars and others as 5.

@@ -2575,7 +2575,7 @@ zh-Hant	1 日圓	JPY 1		icu4c:TestCurrencyParsing	JPY 1
 ja-JP	￥1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
 ja-JP	JPY\u{00A0}1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
 ja-JP	1\u{00A0}円	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
-ja-JP	¥1.00	JPY 1	gap	icu4c:TestCurrencyParsing	JPY 1	ja writes the yen ￥ (U+FFE5); TR35 loose matching's NFKC would fold it to ¥	
+ja-JP	¥1.00	JPY 1		icu4c:TestCurrencyParsing	JPY 1		
 ru-RU	1,00\u{00A0}\u{00A0}₽	RUB 1		icu4c:TestCurrencyParsing	RUB 1		
 ru-RU	1,00\u{00A0}\u{00A0}RUB	RUB 1		icu4c:TestCurrencyParsing	RUB 1		
 en	$1,234.59	USD 1234.59		bojanz:TestFormatter_Parse	USD 1234.59		USD
@@ -2660,3 +2660,5 @@ sr-Latn	1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
 en	(1,234.59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD
 en-NL	(1.234,59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD
 sr-Latn	(1.234,59)	USD -1234.59		bojanz:TestFormatter_CurrencyDisplay	USD -1234.59		USD
+fr-FR	$2.00	refuse		icu4j:TestParseCurrency	refuse		
+fr-FR	$4	refuse		icu4j:TestParseCurrency	refuse		
