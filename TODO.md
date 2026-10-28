@@ -4,9 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **`Localize.Number.Parser.parse_currency_amount/2`** (next release) — reads a whole currency amount such as `-CHF 1'234.56` or `(1 234,56 €)` into `{:ok, {currency, decimal}}`, wherever the currency, sign and accounting parentheses sit, with the currency's own separators and an error for surrounding text. It replaces ex_money's own grammar in ex_money 6.3.0, and an unknown currency's error carries its text so ex_money can still try digital tokens; decided 2026-10-28.
-
-* [ ] **`scan/2` applies the `parseLenients` folds** (next release) — `parse/2` reads the U+2212 minus and the U+2019 apostrophe, but `scan/2` returns `["−", 1234.56, :SEK]` in `sv` and `[1, "’", 234.56]` in `de-CH`. Found from ex_money #208, 2026-09-27.
+* [ ] **`Localize.Number.Parser.parse_currency_amount/2`** (next release) — reads a whole currency amount such as `-CHF 1'234.56` or `(1 234,56 €)` into `{:ok, {currency, decimal}}`, wherever the currency, sign and accounting parentheses sit, with the currency's own separators and an error for surrounding text. It replaces ex_money's own grammar in ex_money 6.3.0, and an unknown currency's error carries its text so ex_money can still try digital tokens; decided 2026-10-28. It must read everything ex_money's `test/money_parse_test.exs` reads, unchanged, including a trailing minus (`€ 127,54-`), a sign between currency and amount (`kr-127,54`) and `($-127.54)` as positive.
 
 * [ ] **`scan/2` ignores bidi marks** (next release) — U+200E, U+200F and U+061C come back as text, and between a sign and its digits they detach the sign, so an `ar-EG` negative amount reads as positive. Found 2026-10-28.
 
@@ -77,6 +75,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`scan/2` applies the `parseLenients` folds** — the scanner's sign, group and decimal classes take every character `parse/2` folds onto them, so `sv` "−1 234,56" and `de-CH` "1’234.56" read as one number. 2026-10-28, unreleased.
 
 * [x] **Compact formats cost ten times a decimal** — a compact 1234 fell from 1,908 to 721 reductions: a `Decimal`'s plural operands are integer arithmetic on its coefficient and exponent, `Formatter.Short` pluralises once after the rounding carry, and reads the formats once. 2026-10-27, unreleased.
 

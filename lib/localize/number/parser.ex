@@ -46,6 +46,10 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
+  # The three places in `@number_format` that `localize_format_string/3` fills
+  # in with the locale: the sign class, the grouping separator and the decimal.
+  @format_placeholders ~r/-\+|,|\\\./
+
   # Smallest group a lenient parse will accept after a separator: two, the
   # floor that keeps "3 4 5" three numbers (see "Grouping shape" below).
   @lenient_group_floor 2
@@ -151,7 +155,7 @@ defmodule Localize.Number.Parser do
          {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       scanner =
         @number_format
-        |> localize_format_string(symbol, options)
+        |> localize_format_string(symbol, language_tag)
         |> group_lookahead(
           language_tag,
           number_system,
@@ -954,14 +958,41 @@ defmodule Localize.Number.Parser do
   # and the compiled patterns then match without rescanning per character.
   defp lenient_replacements(language_tag) do
     cached({:lenient_parse, language_tag.cldr_locale_id}, fn ->
+      for {sample, characters} <- lenient_sets(language_tag) do
+        {:binary.compile_pattern(characters), sample}
+      end
+    end)
+  end
+
+  # The same folds as {sample, characters} pairs, for building the scanner's
+  # character classes.
+  defp lenient_sets(language_tag) do
+    cached({:lenient_sets, language_tag.cldr_locale_id}, fn ->
       for scope <- [:number, :general],
           {:ok, sets} <-
             [Localize.Locale.get(language_tag, [:lenient_parse, scope], fallback: true)],
           {sample, set} <- sets,
           characters = lenient_characters(set),
-          characters != [],
-          do: {:binary.compile_pattern(characters), sample}
+          match?([_ | _], characters),
+          do: {sample, characters}
     end)
+  end
+
+  # Every character that folds onto the same sample as `character`, itself
+  # included.
+  defp lenient_equivalents("", _sets) do
+    []
+  end
+
+  defp lenient_equivalents(character, sets) do
+    family =
+      Enum.find_value(sets, [], fn {sample, characters} ->
+        if character == sample or character in characters do
+          [sample | characters]
+        end
+      end)
+
+    Enum.uniq([character | family])
   end
 
   defp apply_lenient(string, replacements) do
@@ -1073,13 +1104,48 @@ defmodule Localize.Number.Parser do
   defp currency_for(code, language_tag),
     do: Localize.Currency.currency_for_code(code, locale: language_tag, fallback: true)
 
-  defp localize_format_string(string, symbols, _options) do
+  # `parse/2` folds each piece the scanner hands it with CLDR's `parseLenients`
+  # sets, so the scanner must accept every character those folds would accept.
+  # Matching only the locale's literal symbols splits a number at a folded
+  # variant: `de-CH` text grouped with U+2019 rather than its own ASCII
+  # apostrophe, or `sv` text signed with U+2212, came back in pieces.
+  #
+  # A character that folds onto both separators' families is left to the
+  # separator it is literally, so the classes never overlap.
+  defp localize_format_string(string, symbols, language_tag) do
+    sets = lenient_sets(language_tag)
     group_sep = extract_separator(symbols.group)
     decimal_sep = extract_separator(symbols.decimal)
+    group_family = lenient_equivalents(group_sep, sets)
+    decimal_family = lenient_equivalents(decimal_sep, sets)
 
-    string
-    |> String.replace(",", group_class(group_sep))
-    |> String.replace("\\.", "\\" <> decimal_sep)
+    group = Enum.uniq([group_sep | group_family -- decimal_family])
+    decimal = Enum.uniq([decimal_sep | decimal_family -- group_family])
+
+    replacements = %{
+      "-+" => sign_class(symbols, sets),
+      "," => group_class(group_sep, group),
+      "\\." => "[" <> class_characters(decimal) <> "]"
+    }
+
+    # One pass, so a replacement's own characters are never replaced again.
+    Regex.replace(@format_placeholders, string, &Map.fetch!(replacements, &1))
+  end
+
+  # The signs `parse/2` reads: ASCII, the locale's own, and their folds. The
+  # minus family's sample "_" is left out, because `parse/2` drops an
+  # underscore as a digit separator rather than reading it as a sign. Format
+  # characters in a locale's sign are not part of the sign here.
+  defp sign_class(symbols, sets) do
+    signs =
+      for sign <- ["-", "+", symbols.minus_sign, symbols.plus_sign],
+          sign = sign |> extract_separator() |> String.replace(@format_characters, ""),
+          character <- lenient_equivalents(sign, sets),
+          character != "_",
+          uniq: true,
+          do: character
+
+    class_characters(signs)
   end
 
   # What counts as a grouping separator inside the scanner's character class.
@@ -1087,8 +1153,18 @@ defmodule Localize.Number.Parser do
   # number typed with an ordinary keyboard space is found in text that a locale
   # would format with U+202F. The grouping-shape lookahead below is what keeps
   # that from joining unrelated numbers.
-  defp group_class(group_sep) do
-    if String.match?(group_sep, @single_space), do: "\\p{Zs}", else: group_sep
+  defp group_class(group_sep, group) do
+    if String.match?(group_sep, @single_space) do
+      "\\p{Zs}"
+    else
+      class_characters(group)
+    end
+  end
+
+  defp class_characters(characters) do
+    characters
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.map_join(&Regex.escape/1)
   end
 
   # `@number_format` admits a grouping separator whenever a digit follows. That

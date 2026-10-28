@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — Unreleased
+
+### Fixed
+
+* `Localize.Number.Parser.scan/2` reads the variants CLDR's `parseLenients` folds, as `parse/2` already did: a U+2212 minus, a U+2019 group in `de-CH` and fullwidth signs and separators no longer split a number. Found from ex_money #208.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

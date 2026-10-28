@@ -261,6 +261,45 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "scan/2 lenient folds" do
+    # `parse/2` folds with CLDR's `parseLenients` sets, so whatever it would
+    # read as one number, the scanner must not split.
+    test "a group separator folded onto the locale's" do
+      assert ["CHF ", 1234.56] = Parser.scan("CHF 1’234.56", locale: "de-CH")
+      assert ["CHF ", 1234.56] = Parser.scan("CHF 1'234.56", locale: "de-CH")
+      assert [1234.56] = Parser.scan("1．234,56", locale: "de")
+    end
+
+    test "a group separator folded onto the currency's" do
+      assert [1234.56, " CHF"] = Parser.scan("1’234.56 CHF", locale: "fr-CH", currency: :CHF)
+    end
+
+    test "a decimal separator folded onto the locale's" do
+      assert [1234.56] = Parser.scan("1,234﹒56", locale: "en")
+    end
+
+    test "a minus sign folded onto the locale's" do
+      assert [-1234.56, " kr"] = Parser.scan("−1 234,56 kr", locale: "sv")
+      assert [-1234.56, " kr"] = Parser.scan("-1 234,56 kr", locale: "sv")
+      assert [-1234.56] = Parser.scan("−1,234.56", locale: "en")
+    end
+
+    test "a plus sign folded onto ASCII" do
+      assert [1234.56] = Parser.scan("＋1,234.56", locale: "en")
+    end
+
+    test "folds apply whether or not the scan is lenient" do
+      assert [-1234.56] = Parser.scan("−1 234,56", locale: "sv", lenient: false)
+    end
+
+    test "text around a number is returned as written" do
+      assert ["v", 1.2, ".", 3, " and ", 4, ",", 5] =
+               Parser.scan("v1.2.3 and 4,5", locale: "en")
+
+      assert ["_", 5] = Parser.scan("_5", locale: "en")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")
