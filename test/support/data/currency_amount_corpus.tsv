@@ -2199,7 +2199,7 @@ en-US	Jamaican Dolla1.00	refuse		icu:TestParseCurrencyInUCurr	refuse
 en-US	Japanese Ye1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	Jordanian Dina1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	K S1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
-en-US	K1.00	MMK 1		icu:TestParseCurrencyInUCurr	refuse	K is the kyat's narrow symbol in en, and no other currency's
+en-US	K1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	the narrow symbol of a currency not the locale's own is not read; K is the kyat's
 en-US	KE1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	KG1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	KH1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
@@ -2476,10 +2476,10 @@ en-US	lar1.00	refuse		icu:TestParseCurrencyInUCurr	refuse
 en-US	le1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	man1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
 en-US	so1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	
-en-US	AR1.00	MGA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so AR matches the ariary's Ar
-en-US	BS1.00	BOB 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case; Bs is the boliviano's, and otherwise only a historic currency's
-en-US	KZ1.00	AOA 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so KZ matches the kwanza's Kz
-en-US	LT1.00	LTL 1		icu:TestParseCurrencyInUCurr	refuse	TR35 loose matching folds case, so LT matches the litas's Lt
+en-US	AR1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	the narrow symbol of a currency not the locale's own is not read; Ar is the ariary's
+en-US	BS1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	the narrow symbol of a currency not the locale's own is not read; Bs is the boliviano's
+en-US	KZ1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	the narrow symbol of a currency not the locale's own is not read; Kz is the kwanza's
+en-US	LT1.00	refuse		icu:TestParseCurrencyInUCurr	refuse	the narrow symbol of a currency not the locale's own is not read; Lt is the litas's
 en-US	$2.00	USD 2		icu4j:TestParseCurrency	USD 2		
 en-US	$4	USD 4		icu4j:TestParseCurrency	USD 4		
 en-US	9\u{00A0}$	USD 9		icu4j:TestParseCurrency	USD 9		
@@ -4167,3 +4167,6 @@ de-CH	Fr. 1234.–	CHF 1234		swiss:Schreibweisungen 512	CHF 1234
 de-CH	Fr. 22\u{00A0}333.–	refuse		swiss:Schreibweisungen 512	CHF 22333	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
 de-CH	Fr. 750\u{00A0}000.–	refuse		swiss:Schreibweisungen 512	CHF 750000	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
 de-CH	Fr. 1\u{00A0}222\u{00A0}333.–	refuse		swiss:Schreibweisungen 512	CHF 1222333	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
+de-CH	0,13 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.0013	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	
+de-CH	22,5 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.225	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	
+de-CH	15 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.15	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	

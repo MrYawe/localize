@@ -116,12 +116,17 @@ defmodule Localize.Number.CurrencyAmountTest do
         end
       end
 
-      assert {:MNT, "5"} = amount("₮5")
+      # "₮" is the tugrik's symbol in `mn`, and only its narrow symbol in `en`.
+      assert {:MNT, "5"} = amount("₮5", locale: :mn)
 
       assert %Localize.ParseError{reason: :unexpected_input, detail: detail} =
-               amount("₮5", caller_currency: caller)
+               amount("₮5", locale: :mn, caller_currency: caller)
 
       assert detail =~ "two currencies"
+      # In `en` "₮" is only the tugrik's narrow symbol, which is not read, but
+      # it still names the tugrik, so the caller's Tether does not take it.
+      assert %Localize.ParseError{detail: en_detail} = amount("₮5", caller_currency: caller)
+      assert en_detail =~ "two currencies"
       assert {:MNT, "5"} = amount("MNT 5", caller_currency: caller)
       assert {:USD, "5"} = amount("5 USD", caller_currency: caller)
     end
@@ -201,6 +206,29 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:USD, "5"} = amount("5.USD")
       assert {:USD, "5"} = amount("USD 5.")
       assert {:EUR, "0.5"} = amount("€ ,5", locale: :de)
+    end
+
+    # CLDR writes a narrow symbol where the context makes the currency clear,
+    # so an amount reads one only for the locale's own currency: in Swiss text
+    # "15 Rp." is 15 Rappen, though `de-CH` gives the rupiah the narrow "Rp".
+    test "a narrow symbol is read only for the locale's own currency" do
+      for {string, locale} <- [
+            {"15 Rp.", :"de-CH"},
+            {"Rp 15", :"de-CH"},
+            {"K5", :en},
+            {"Kč 100", :en},
+            {"₮5", :en}
+          ] do
+        assert %Localize.UnknownCurrencyError{} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+
+      assert {:IDR, "15000"} = amount("Rp 15.000", locale: :id)
+      assert {:CZK, "100"} = amount("100 Kč", locale: :cs)
+      assert {:CHF, "5"} = amount("Fr. 5.-", locale: :"de-CH")
+      assert {:GBP, "5"} = amount("£5", locale: :en)
+      assert {:EUR, "5"} = amount("€5", locale: :en)
+      assert [:IDR] = Parser.resolve_currency("Rp", locale: :"de-CH")
     end
 
     # TR35's loose matching normalizes to NFKC. Currency text is matched so,

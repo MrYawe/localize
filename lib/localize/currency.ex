@@ -825,6 +825,38 @@ defmodule Localize.Currency do
     end
   end
 
+  @doc false
+  # The strings of `currency_strings/2` that name their currency only by its
+  # narrow symbol, each with that currency: "rp" for the rupiah in `de-CH`,
+  # which writes the rupiah's symbol "IDR". A narrow symbol is written where
+  # the context makes the currency clear, so a currency amount reads it only
+  # for the locale's own currency.
+  @spec narrow_symbol_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: {:ok, %{String.t() => currency_code()}} | {:error, Exception.t()}
+  def narrow_symbol_strings(locale, options \\ []) do
+    with {:ok, only, except} <- filter_options(options),
+         {:ok, currencies} <- do_currencies_for_locale(locale, only, except),
+         {:ok, strings} <- currency_strings_for(locale, only, except) do
+      {:ok, Map.new(Enum.flat_map(currencies, &narrow_symbol_string(&1, strings)))}
+    end
+  end
+
+  defp narrow_symbol_string({_code, %{narrow_symbol: nil}}, _strings) do
+    []
+  end
+
+  defp narrow_symbol_string({code, currency}, strings) do
+    narrow = String.downcase(currency.narrow_symbol)
+
+    if Map.get(strings, narrow) == code and narrow not in claimed_strings(currency, code) do
+      [{narrow, code}]
+    else
+      []
+    end
+  end
+
   # Every string a currency is named by, its narrow symbol among them,
   # matched downcased as `currency_strings/2` adds it.
   defp currency_claims({code, currency}) do

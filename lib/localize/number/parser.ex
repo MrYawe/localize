@@ -699,7 +699,10 @@ defmodule Localize.Number.Parser do
   "1.234 €" is not €1.234, "($-5)" is neither -5 nor 5 dollars,
   "-$.50" is refused since Swiss "Fr. –.15" writes a dash for the zero,
   and `fr` "$2.00" is refused since several dollars share "$" there,
-  where `resolve_currency/2` takes the Canadian one. The currency text,
+  where `resolve_currency/2` takes the Canadian one. A narrow symbol is
+  read only for the locale's own currency, so Swiss "15 Rp." (15
+  Rappen) is not the rupiah, whose narrow symbol `de-CH` gives as "Rp".
+  The currency text,
   but not the number, is matched after NFKC normalization, so `ja`
   "¥1.00" is the yen, which `ja` writes "￥", while "$5²" is refused.
   Bidi controls are ignored. Nothing else may surround the amount.
@@ -800,7 +803,7 @@ defmodule Localize.Number.Parser do
     filters = [only: only_filter, except: except_filter]
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, currency_strings} <- reading_strings(locale_id(language_tag), filters, reading),
+         {:ok, currency_strings} <- reading_strings(language_tag, filters, reading),
          {:ok, currency} <-
            found_currency(
              currency_strings,
@@ -836,33 +839,52 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp reading_strings(locale_id, filters, :nearest) do
-    Localize.Currency.currency_strings(locale_id, filters)
+  defp reading_strings(language_tag, filters, :nearest) do
+    Localize.Currency.currency_strings(locale_id(language_tag), filters)
   end
 
-  # The unfiltered index is normalized once per locale; a filtered one is
-  # built for each call, and so is its normalized form.
-  defp reading_strings(locale_id, [only: only, except: except] = filters, :amount)
+  # The unfiltered index is built once per locale and currency of the locale;
+  # a filtered one is built for each call, and so is its amount form.
+  defp reading_strings(language_tag, [only: only, except: except] = filters, :amount)
        when only in [:all, [:all]] and except in [nil, []] do
-    key = {__MODULE__, :nfkc_currency_strings, locale_id}
+    own = own_currency(language_tag)
+    key = {__MODULE__, :amount_currency_strings, locale_id(language_tag), own}
 
     case :persistent_term.get(key, nil) do
-      nil -> cache_nfkc_strings(key, locale_id, filters)
+      nil -> cache_amount_strings(key, language_tag, own, filters)
       strings -> {:ok, strings}
     end
   end
 
-  defp reading_strings(locale_id, filters, :amount) do
-    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters) do
-      {:ok, nfkc_strings(strings)}
+  defp reading_strings(language_tag, filters, :amount) do
+    amount_strings(language_tag, own_currency(language_tag), filters)
+  end
+
+  defp cache_amount_strings(key, language_tag, own, filters) do
+    with {:ok, strings} <- amount_strings(language_tag, own, filters) do
+      Localize.LiteralMemory.cache(key, strings)
+      {:ok, strings}
     end
   end
 
-  defp cache_nfkc_strings(key, locale_id, filters) do
-    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters) do
-      normalized = nfkc_strings(strings)
-      Localize.LiteralMemory.cache(key, normalized)
-      {:ok, normalized}
+  # A currency amount reads a narrow symbol only for the locale's own
+  # currency: CLDR writes it where the context makes the currency clear, and
+  # elsewhere it may be an abbreviation of another thing. `de-CH` gives the
+  # rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15 Rappen.
+  defp amount_strings(language_tag, own, filters) do
+    locale_id = locale_id(language_tag)
+
+    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters),
+         {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters) do
+      foreign = for {string, code} <- narrow, code != own, do: string
+      {:ok, strings |> Map.drop(foreign) |> nfkc_strings()}
+    end
+  end
+
+  defp own_currency(language_tag) do
+    case Localize.Currency.currency_from_locale(language_tag) do
+      {:ok, currency} -> currency
+      {:error, _no_currency} -> nil
     end
   end
 
@@ -1447,9 +1469,32 @@ defmodule Localize.Number.Parser do
 
   defp first_text_currency([], text, _filters, options) do
     case caller_claim(Keyword.get(options, :caller_currency), text) do
-      {:ok, currency} -> {:ok, currency, nil}
+      {:ok, currency} -> uncontested_caller_currency(currency, text, options)
       :none -> {:error, Localize.UnknownCurrencyError.exception(currency: text)}
       {:error, _invalid_option} = error -> error
+    end
+  end
+
+  # The narrow symbol of a currency other than the locale's own is not read
+  # as that currency, but it still names it, so a caller's currency that
+  # claims the same text is refused rather than read: `en` "₮5" is neither the
+  # tugrik, whose narrow symbol "₮" is, nor Tether, whose symbol it is too.
+  defp uncontested_caller_currency(currency, text, options) do
+    case narrow_symbol_currency(text, options) do
+      nil -> {:ok, currency, nil}
+      code -> {:error, ambiguous_currency(text, code, currency)}
+    end
+  end
+
+  defp narrow_symbol_currency(text, options) do
+    filters = Keyword.take(options, [:only, :except])
+
+    case Localize.Currency.narrow_symbol_strings(Keyword.get(options, :locale), filters) do
+      {:ok, narrow} ->
+        Map.get(narrow, nfkc(text)) || Map.get(narrow, nfkc(String.trim_trailing(text, ".")))
+
+      {:error, _no_data} ->
+        nil
     end
   end
 
