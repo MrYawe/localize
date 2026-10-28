@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse/2` refuses a space inside a number in a locale that does not group with one, as `scan/2` already reads it: `en` "1 2" is an error rather than 12. Spaces at either end, or beside the sign, are still ignored.
 
+* `Localize.Number.Parser.parse/2` refuses a minus before a decimal mark with no digit ahead of it, "-.5", since Swiss "–.15" and Dutch "-,50" write a dash for the zero there. A mark that opens or closes a number, ".5" or "5.", now reads alike for every `:number` type, where only `:decimal` took it.
+
 * `Localize.Number.Parser.parse/2` with `:currency` in `de-AT` and `fr-CH`, whose currency amounts use other separators than plain numbers, reads the text with both and refuses it should the readings differ.
 
 ### Fixed

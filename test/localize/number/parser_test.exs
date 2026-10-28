@@ -549,6 +549,32 @@ defmodule Localize.Number.ParserTest do
       end
     end
 
+    # Swiss "–.15" and Dutch "-,50" write a dash for the zero, so a minus
+    # before a decimal mark with no digit ahead of it could be either.
+    test "a minus before a bare decimal mark is refused" do
+      for {string, locale} <- [{"-.5", "en"}, {"\u2212.5", "en"}, {"- .5", "en"}, {"-,5", "nl"}],
+          options <- [[], [number: :decimal], [number: :float]] do
+        assert {:error, _} = Parser.parse(string, [locale: locale] ++ options),
+               inspect({locale, string, options})
+      end
+    end
+
+    test "a decimal mark that opens or closes a number reads the same for every number type" do
+      assert {:ok, 0.5} = Parser.parse(".5", locale: "en")
+      assert {:ok, 0.5} = Parser.parse(".5", locale: "en", number: :float)
+      assert {:ok, %Decimal{} = half} = Parser.parse(".5", locale: "en", number: :decimal)
+      assert Decimal.equal?(half, "0.5")
+      assert {:ok, 5} = Parser.parse("5.", locale: "en")
+      assert {:ok, 5} = Parser.parse("5.", locale: "en", number: :integer)
+      assert {:ok, -0.5} = Parser.parse(".5-", locale: "en")
+      assert {:ok, -0.5} = Parser.parse("(.5)", locale: "en")
+      assert {:ok, 0.5} = Parser.parse(",5", locale: "nl")
+
+      for string <- [".", "-.", "..5", "5.."] do
+        assert {:error, _} = Parser.parse(string, locale: "en"), inspect(string)
+      end
+    end
+
     # Some read "(-5)" as -5, a negative marked twice, and others as 5.
     test "a sign and parentheses together are refused" do
       for string <- ["(-5)", "-(5)", "(5-)", "(5)-", "(+5)", "+(5)", "(\u22125)"] do

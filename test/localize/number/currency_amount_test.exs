@@ -195,11 +195,31 @@ defmodule Localize.Number.CurrencyAmountTest do
     test "a decimal mark that opens or closes the number" do
       assert {:USD, "0.5"} = amount(".5 USD")
       assert {:USD, "0.5"} = amount("USD .5")
-      assert {:USD, "-0.5"} = amount("-.5 USD")
+      assert {:USD, "-0.5"} = amount(".5- USD")
+      assert {:USD, "-0.5"} = amount("($.5)")
       assert {:USD, "5"} = amount("5. USD")
       assert {:USD, "5"} = amount("5.USD")
       assert {:USD, "5"} = amount("USD 5.")
       assert {:EUR, "0.5"} = amount("€ ,5", locale: :de)
+    end
+
+    # Swiss "Fr. –.15" and Dutch "€ -,50" write a dash for the zero before the
+    # decimal mark, where a minus would stand, so the amount could be either.
+    test "a minus before a decimal mark with no digit ahead of it is refused" do
+      for {string, locale} <- [
+            {"Fr. –.15", :"fr-CH"},
+            {"Fr. -.15", :"fr-CH"},
+            {"Fr. -.15", :"de-CH"},
+            {"Fr. -.15", :"it-CH"},
+            {"€ -,50", :nl},
+            {"-$.50", :en},
+            {"$-.50", :en},
+            {"-.50 USD", :en},
+            {"USD −.50", :en}
+          ] do
+        assert %Localize.InvalidAmountError{} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
     end
 
     test "a grouping separator that opens or closes the number is refused" do

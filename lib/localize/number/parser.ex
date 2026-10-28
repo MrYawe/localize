@@ -99,6 +99,10 @@ defmodule Localize.Number.Parser do
   @foreign_decimal_point ~r/\A[^.]*[0-9]\.[0-9][^.]*\z/
   @period_group ~r/\A[0-9]{1,3}\.[0-9]{3}(?![0-9])/
 
+  # A decimal point that opens or closes a number, beside a digit.
+  @opening_point ~r/\A\.(?=[0-9])/
+  @closing_point ~r/(?<=[0-9])\.\z/
+
   # A folded number as its sign before an opening parenthesis, the
   # parenthesis, a sign after it, the digits, a sign before the closing
   # parenthesis, the parenthesis and a sign after it. Every part but the
@@ -692,7 +696,8 @@ defmodule Localize.Number.Parser do
   separators is read only where it can be nothing but a decimal point.
   Where the text could be two amounts it is
   refused rather than one guessed: `de` "1.23 EUR" is not €123, `fr`
-  "1.234 €" is not €1.234, and "($-5)" is neither -5 nor 5 dollars.
+  "1.234 €" is not €1.234, "($-5)" is neither -5 nor 5 dollars, and
+  "-$.50" is refused since Swiss "Fr. –.15" writes a dash for the zero.
   Bidi controls are ignored. Nothing else may surround the amount.
 
   ### Arguments
@@ -1542,7 +1547,7 @@ defmodule Localize.Number.Parser do
       # Before the signs are read, so the dash of "5.-" is not a minus.
       |> drop_zero_fraction(decimal_sep, grouping)
 
-    with {:ok, body, negative?} <- signed_body(folded),
+    with {:ok, body, negative?} <- signed_body(folded, decimal_sep),
          body = normalize_spaces(body, group_sep),
          :ok <-
            validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping),
@@ -1552,6 +1557,7 @@ defmodule Localize.Number.Parser do
         |> String.replace(group_sep, "")
         |> String.replace(@spaces, "")
         |> String.replace(decimal_sep, ".")
+        |> complete_decimal_point()
         # CLDR names the minus set by the sample "_", so folding it yields
         # that placeholder rather than a sign. What remains of one here is an
         # exponent's.
@@ -1586,8 +1592,11 @@ defmodule Localize.Number.Parser do
   # which make it negative, so "(5)" is -5. TR35's heuristics for parsing a
   # number take a sign as a prefix or a suffix. A sign and parentheses
   # together are refused: "(-5)" is read as -5 by some and as 5 by others.
-  # Spaces between them and the digits are not part of the number.
-  defp signed_body(folded) do
+  # So is a minus before a decimal mark with no digit ahead of it: Swiss
+  # "Fr. –.15" and Dutch "€ -,50" write a dash for the zero, so "-.15" may be
+  # 0.15 or -0.15. Spaces between them and the digits are not part of the
+  # number.
+  defp signed_body(folded, decimal_sep) do
     [_whole, before_open, open, after_open, body, before_close, close, after_close] =
       Regex.run(@signed_number, folded)
 
@@ -1598,8 +1607,23 @@ defmodule Localize.Number.Parser do
       match?([_, _ | _], signs) -> {:error, :signs}
       open == "(" != (close == ")") -> {:error, :parentheses}
       open == "(" and match?([_ | _], signs) -> {:error, :signs}
+      dash_for_zero?(before_open, after_open, body, decimal_sep) -> {:error, :dash_for_zero}
       true -> {:ok, body, signs == ["_"] or open == "("}
     end
+  end
+
+  defp dash_for_zero?(before_open, after_open, body, decimal_sep) do
+    "_" in [before_open, after_open] and decimal_sep != "" and
+      String.starts_with?(body, decimal_sep)
+  end
+
+  # A decimal mark may open or close a number, ".5" or "5.". Elixir's float
+  # and integer parsers refuse both and its decimal parser takes them, so the
+  # point is completed here and every number type reads them alike.
+  defp complete_decimal_point(number) do
+    number
+    |> String.replace(@opening_point, "0.")
+    |> String.replace(@closing_point, "")
   end
 
   defp signed_number(number, true) do

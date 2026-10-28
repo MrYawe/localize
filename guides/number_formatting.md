@@ -593,6 +593,8 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two would read as different numbers is refused. `de-AT` groups the euro with a period, so `1.234 EUR` is 1234 euros.
 
+* **A dash for the zero** — Swiss `Fr. –.15` and Dutch `€ -,50` write a dash before the decimal mark for a zero, where a minus would stand, so a minus there is refused: `-$.50` is neither -0.50 nor 0.50 dollars.
+
 * **A sign and parentheses together** — `($-5)` is refused, where some would read it as -5 dollars and others as 5.
 
 * **A mark between currency and digits** — it is the currency's where CLDR writes the currency with it, as `da` writes `kr.`, and the number's where it is the decimal mark, so `$.50` is fifty cents; otherwise the amount is refused.
