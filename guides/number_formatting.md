@@ -557,3 +557,48 @@ iex> Localize.Number.scan("The price is $1,234.56 per unit")
 ```
 
 Parsing respects locale-specific separators and can resolve embedded currency symbols and percent signs. See `Localize.Number.parse/2` and `Localize.Number.scan/2` for details.
+
+A number is digits joined by the locale's separators, read leniently: CLDR's look-alike characters fold onto the locale's own, so a Unicode minus or a typographic apostrophe reads, bidi marks are ignored, and a trailing sign or accounting parentheses negate the number. Text that is not a number of the locale is refused rather than guessed: a space between digits in `en`, or a grouping separator after the decimal mark.
+
+```elixir
+iex> Localize.Number.parse("1’234.56", locale: :"de-CH")
+{:ok, 1234.56}
+
+iex> Localize.Number.parse("(1 234,56)", locale: :fr)
+{:ok, -1234.56}
+
+iex> {:error, error} = Localize.Number.parse("1 2", locale: :en)
+iex> Exception.message(error)
+"Expected a parseable number string for Localize.Number.Parser, got: \"1 2\""
+```
+
+### Currency amounts
+
+`Localize.Number.parse_currency_amount/2` reads a whole currency amount into its currency and a `t:Decimal.t/0`. The currency may stand before or after the number, a sign before the currency, between them or after the number, and the number is read with the separators the locale writes that currency with.
+
+```elixir
+iex> Localize.Number.parse_currency_amount("€ 1.234,56", locale: :"de-AT")
+{:ok, {:EUR, Decimal.new("1234.56")}}
+
+iex> Localize.Number.parse_currency_amount("(CHF 1'234.56)", locale: :"de-CH")
+{:ok, {:CHF, Decimal.new("-1234.56")}}
+
+iex> Localize.Number.parse_currency_amount("kr-127,54", locale: :da)
+{:ok, {:DKK, Decimal.new("-127.54")}}
+```
+
+An amount is money, so an amount that could be read as two amounts is refused rather than read as one of them:
+
+* **Groups the locale does not write** — `de` `1.23 EUR` is refused, where a lenient reading of the grouping would make it 123 euros.
+
+* **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two read as different numbers, such as `de-AT` `1.234 EUR`, is refused.
+
+* **A mark between currency and digits** — it is the currency's where CLDR writes the currency with it, as `da` writes `kr.`, and the number's where it is the decimal mark, so `$.50` is fifty cents; otherwise the amount is refused.
+
+* **Currencies of the caller's own** — the `:caller_currency` option names them, such as digital tokens. Their amounts are read with the locale's separators and the root locale's, and text that names both a CLDR currency and one of the caller's, as `₮` names the tugrik and Tether, is refused.
+
+```elixir
+iex> {:error, error} = Localize.Number.parse_currency_amount("1.23 EUR", locale: :de)
+iex> Exception.message(error)
+"The amount \"1.23\" of currency :EUR is not a number."
+```

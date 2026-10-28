@@ -173,6 +173,23 @@ CLDR publishes test data under `common/testData`, generated from ICU, and Locali
 
 **A space between digits.** Read as it is written, Loose Matching ignores a space between two digits, so `en` "1 2" would be 12, and `parse/2` read it so from `b69d935b` (2026-08-16), which made every `[:Zs:]` character a grouping space. TR35 states the goal of lenient parsing as "to accept user input whenever it is possible to decipher what the user intended", and its heuristics for parsing a number, which "may be helpful", leave a character that can play more than one role to be told apart by context. Where the locale does not group with a space, a space between digits parts two numbers at least as often as it groups them, and `scan/2` has always read it as parting them, since ignoring it would make "3 4 5" one number. So `parse/2` refuses it, and `parse_currency_amount/2` with it (user, 2026-10-28: "I like that it makes parse and scan more consistent"). A space at either end of a number, or beside its sign, is still ignored, and in a locale that groups with a space every `[:Zs:]` character still groups, as `b69d935b` intended. TR35's text for this was read at unicode.org on 2026-10-28, not at the CLDR commit above.
 
+### Currency amounts, decided by the user
+
+`parse_currency_amount/2` (new in 1.5.0) reads money, where a misread number is a wrong amount, so an amount that could be read two ways is refused rather than read as one of them (user, 2026-10-28: "We can never create a situation where the returned result is incorrect"). TR35's text for these was read at unicode.org on 2026-10-28.
+
+| Behaviour | TR35 | Standing | Status |
+|---|---|---|---|
+| A sign after the digits, and accounting parentheses, in `parse/2` | Parsing Numbers: "a possible sign prefix or suffix" | TR35 is the rule | Done |
+| An amount's groups are the sizes the locale writes (`grouping: :sizes`) | Silent: its heuristics ignore a grouping separator | Decided, 2026-10-28 | Done |
+| `de-AT` and `fr-CH` amounts read with the currency's and the plain-number separators, refused where they differ | Silent on parsing with two sets | Decided, 2026-10-28 | Done |
+| A caller's currency, such as a digital token, read with the locale's and the root locale's separators, refused where they differ | Silent: CLDR has no data for it | Decided, 2026-10-28 | Done |
+| Text naming a CLDR currency and a different one of the caller's is refused | Silent | Decided, 2026-10-28 | Done |
+| A mark between currency and digits that is neither the currency's in CLDR nor the decimal mark is refused | Loose Matching: remove "." from currency symbols and the input "unless … '.' is in the decimal set, and its position in the input string is immediately before a decimal digit" | Departs, by the user's decision | Done |
+
+**Groups.** With a two-digit lenient floor, `de` "1.23 EUR" read as 123 euros and `en` "1,23 USD" as 123 dollars. An amount's groups are held to the sizes the locale writes, the last of the primary size and the others of the primary or secondary one, so `en-IN` still takes both "12,34,567" and "1,234,567".
+
+**A mark touching the currency.** The sentence gives `$.50` (the period is the decimal mark before a digit: fifty cents) and `da` `kr.5` (`kr.` is the krone, five) as Localize reads them. It also removes the period of `nb` `kr.5`, where CLDR writes the krone `kr` and the decimal mark is a comma, and reads five; but "." is a decimal mark in TR35's broader decimal set for `nb`, as `nb` `1.5` reads 1.5, so the same text is also half a krone. Localize refuses it.
+
 ### TR35 is silent, decided on recommendation
 
 | Behaviour | Where | Decided | Status |

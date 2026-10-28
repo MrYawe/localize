@@ -188,7 +188,8 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | String to number parsing | Implemented | `Localize.Number.Parser` with locale-aware digit transliteration. |
-| Lenient parsing | Not implemented | |
+| Lenient parsing | Implemented | CLDR's `parseLenients` folds on both the input and the locale's symbols, format and bidi characters ignored, and any `[:Zs:]` character grouping where the locale groups with a space. A space between digits is refused where the locale does not group with one, which TR35's loose matching would ignore, so that `parse/2` and `scan/2` read a number the same way. |
+| Currency amount parsing | Implemented | `Localize.Number.Parser.parse_currency_amount/2`, with the currency's own separators and an amount that could be read two ways refused. |
 
 ### Number Ranges
 

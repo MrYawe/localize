@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — Unreleased
+## [1.5.0] — October 28th, 2026
 
 ### Added
 
-* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Options include `:default_currency` and `:caller_currency`, a function for currencies of a caller's own; text that names a CLDR currency and a different one of the caller's, as `₮` names the tugrik and Tether, is refused.
+* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. An amount that could be read two ways is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
@@ -19,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.Number.Parser.parse/2` option `root_separators: true` also reads with the root locale's separators and refuses a string the two read differently; `parse_currency_amount/2` reads the amount of a caller's `:caller_currency` with it.
 
 * `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
+
+### Changed
+
+* `Localize.Number.Parser.parse/2`, `scan/2` and `resolve_per/2` read text written in Latin digits with the locale's Latin separators where its own digits are not Latin, so `ar-EG` "1,234.56" is 1234.56 rather than refused and "100,00" is 10000 rather than 100.00.
+
+* `Localize.Number.Parser.parse/2` refuses a space inside a number in a locale that does not group with one, as `scan/2` already reads it: `en` "1 2" is an error rather than 12. Spaces at either end, or beside the sign, are still ignored.
+
+* `Localize.Number.Parser.parse/2` with `:currency` in `de-AT` and `fr-CH`, whose currency amounts use other separators than plain numbers, reads the text with both and refuses it where the readings differ: `de-AT` "1.234" could be 1234 or 1.234.
 
 ### Fixed
 
@@ -32,13 +40,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Lenient `Localize.Number.Parser.parse/2` refuses a group longer than the locale's longest, so `de` "1234.56" is an error rather than 123456, and `de-AT` "1234.56" read as a euro amount likewise.
 
-* `Localize.Number.Parser.parse/2`, `scan/2` and `resolve_per/2` read text written in Latin digits with the locale's Latin separators where its own digits are not Latin, so `ar-EG` "1,234.56" is 1234.56 rather than refused and "100,00" is 10000 rather than 100.00.
-
 * `Localize.Number.Parser.parse/2` refuses a grouping separator after the decimal mark, so `de` "1,234.56" is an error rather than 1.23456.
-
-* `Localize.Number.Parser.parse/2` refuses a space inside a number in a locale that does not group with one, as `scan/2` already reads it: `en` "1 2" is an error rather than 12. Spaces at either end, or beside the sign, are still ignored.
-
-* `Localize.Number.Parser.parse/2` with `:currency` in `de-AT` and `fr-CH`, whose currency amounts use other separators than plain numbers, reads the text with both and refuses it where the readings differ: `de-AT` "1.234" could be 1234 or 1.234.
 
 ## [1.4.3] — October 27th, 2026
 

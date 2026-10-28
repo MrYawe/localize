@@ -4,7 +4,11 @@ defmodule Localize.Number.OptionsLocaleDataTest do
   # locale and number system and keeps them in `Localize.FormatCache`
   # (#67). A cached resolution must be the same as a fresh one, and the
   # same as the lookups it replaces.
-  use ExUnit.Case, async: true
+  #
+  # async: false because these tests assert what the global cache holds,
+  # which other tests fill, evict from and clear while they run, as
+  # `format_cache_test.exs` does.
+  use ExUnit.Case, async: false
 
   alias Localize.FormatCache
   alias Localize.Number.Format
