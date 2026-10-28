@@ -32,6 +32,10 @@
 #                                  own digits, currency-amount separators and
 #                                  currency code (a malformed group, two
 #                                  decimal marks, a range, two currencies, ...)
+#                 price-parser:<list>  real-world price strings from
+#                                  scrapinghub/price-parser's tests (BSD-3-
+#                                  Clause), each in the locale its currency
+#                                  text points to; their_result is its amount
 #   their_result  the source's own answer
 #   note          why the expected result differs from the source's
 #   given_currency  optional: the currency the caller supplies, passed as
@@ -6023,3 +6027,835 @@ zu	-5- ZAR	refuse		generated:two signs
 zu	1 2 ZAR	refuse		generated:space between digits			
 zu	,5 ZAR	refuse		generated:group opens			
 zu	5, ZAR	refuse		generated:group closes			
+en-GB	34.992001	GBP 34.992001		price-parser:examples_bugs_caught	34.992001		GBP
+en-GB	29.1583	GBP 29.1583		price-parser:examples_bugs_caught	29.1583		GBP
+en	 423.923 KD	KWD 423.923	gap	price-parser:examples_bugs_caught	423.923	KD, the Kuwaiti dinar's Latin abbreviation, is not in CLDR	
+en	 123,456.789 OMR	OMR 123456.789		price-parser:examples_bugs_caught	123456.789		
+pt-PT	PTE 120 000 000	PTE 120000000		price-parser:examples_new	120000000		
+de	DEM 170 000	refuse		price-parser:examples_new	170000	not a number of the locale	
+en	$ 1.144.000	refuse		price-parser:examples_new	1144000	not a number of the locale	
+en	A$190.00	AUD 190		price-parser:examples_new	190		
+fr	13800 ₶	refuse		price-parser:examples_new	13800	the livre tournois has no ISO currency	
+ko	12,000원	KRW 12000	gap	price-parser:examples_new	12000	원, the won, is not in CLDR ko on its own	
+ja	3,500円	JPY 3500		price-parser:examples_new	3500		
+ar-EG	644.00 جنيه	refuse		price-parser:examples_new	644	the word for pound names several pounds	
+ar-AE	3,439.00 درهم	refuse		price-parser:examples_new	3439	the word for dirham names several dirhams	
+ar-SA	106.61 ريال	refuse		price-parser:examples_new	106.61	the word for riyal names several riyals	
+pl	45,00 zł	PLN 45		price-parser:examples	45		
+en	$ 22.00	USD 22		price-parser:examples	22		
+en	$14.99	USD 14.99		price-parser:examples	14.99		
+en	$11.95	USD 11.95		price-parser:examples	11.95		
+en	$19.95	USD 19.95		price-parser:examples	19.95		
+en-GB	39.95	GBP 39.95		price-parser:examples	39.95		GBP
+pt-BR	R$260,00	BRL 260		price-parser:examples	260		
+en	$79.00	USD 79		price-parser:examples	79		
+de	35,70 €	EUR 35.7		price-parser:examples	35.7		
+en	$147.44	USD 147.44		price-parser:examples	147.44		
+en	$4.70	USD 4.7		price-parser:examples	4.7		
+en	$924.99	USD 924.99		price-parser:examples	924.99		
+de	690,00	EUR 690		price-parser:examples	690		EUR
+de	479,00 €	EUR 479		price-parser:examples	479		
+de	249,00 EUR	EUR 249		price-parser:examples	249		
+en-IE	€13.95	EUR 13.95		price-parser:examples	13.95		
+de	€89	EUR 89		price-parser:examples	89		
+ru	171900 руб.	RUB 171900	gap	price-parser:examples	171900	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$0.31	USD 0.31		price-parser:examples	0.31		
+en	$45.49	USD 45.49		price-parser:examples	45.49		
+en	28	USD 28		price-parser:examples	28		USD
+ru	419 руб.	RUB 419	gap	price-parser:examples	419	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	129,99 €	EUR 129.99		price-parser:examples	129.99		
+de	1,10 €	EUR 1.1		price-parser:examples	1.1		
+en	$559.00	USD 559		price-parser:examples	559		
+en	$49.99	USD 49.99		price-parser:examples	49.99		
+en	$32.00	USD 32		price-parser:examples	32		
+en	$699,000	USD 699000		price-parser:examples	699000		
+en-IE	€ 11.69	EUR 11.69		price-parser:examples	11.69		
+ru	100,00	RUB 100		price-parser:examples	100		RUB
+de	17,35	EUR 17.35		price-parser:examples	17.35		EUR
+en-GB	£11.95	GBP 11.95		price-parser:examples	11.95		
+uk	5 870	UAH 5870		price-parser:examples	5870		UAH
+cs	80 Kč	CZK 80		price-parser:examples	80		
+cs	299 Kč	CZK 299		price-parser:examples	299		
+en-GB	£9.99	GBP 9.99		price-parser:examples	9.99		
+de	49,96€	EUR 49.96		price-parser:examples	49.96		
+en	$9.00	USD 9		price-parser:examples	9		
+en-GB	8.29	GBP 8.29		price-parser:examples	8.29		GBP
+de	99,99 EUR	EUR 99.99		price-parser:examples	99.99		
+de	15,95 €	EUR 15.95		price-parser:examples	15.95		
+pl	16.00	PLN 16		price-parser:examples	16		PLN
+en-GB	4.99	GBP 4.99		price-parser:examples	4.99		GBP
+en	$119. 95	refuse		price-parser:examples	119.95	not a number of the locale	
+cs	269 Kč	CZK 269		price-parser:examples	269		
+de	13,30 €	EUR 13.3		price-parser:examples	13.3		
+he	₪98	ILS 98		price-parser:examples	98		
+de	80,00 €	EUR 80		price-parser:examples	80		
+de	29,95 €	EUR 29.95		price-parser:examples	29.95		
+en-GB	80.00	GBP 80		price-parser:examples	80		GBP
+en-IE	€16.95	EUR 16.95		price-parser:examples	16.95		
+da	23,40	DKK 23.4		price-parser:examples	23.4		DKK
+en	34.44	USD 34.44		price-parser:examples	34.44		USD
+id	Rp 31.500	IDR 31500		price-parser:examples	31500		
+de	19,59	EUR 19.59		price-parser:examples	19.59		EUR
+uk	2 285,81 грн.	UAH 2285.81	gap	price-parser:examples	2285.81	грн., the common abbreviation of the hryvnia, is not in CLDR uk	
+en	$ 119,999	USD 119999		price-parser:examples	119999		
+de	1,20 €	EUR 1.2		price-parser:examples	1.2		
+en-IE	1.99	EUR 1.99		price-parser:examples	1.99		EUR
+en	$ 979.00	USD 979		price-parser:examples	979		
+cs	169,00 Kč	CZK 169		price-parser:examples	169		
+de	180	EUR 180		price-parser:examples	180		EUR
+en	2.85	USD 2.85		price-parser:examples	2.85		USD
+th	฿ 3.3900	THB 3.39		price-parser:examples	3.39		
+de	5,90 €	EUR 5.9		price-parser:examples	5.9		
+hu	39900	HUF 39900		price-parser:examples	39900		HUF
+de	79,00 €	EUR 79		price-parser:examples	79		
+de	429,00 EUR	EUR 429		price-parser:examples	429		
+de	302,44€	EUR 302.44		price-parser:examples	302.44		
+en-GB	£54.17	GBP 54.17		price-parser:examples	54.17		
+en	$3.00	USD 3		price-parser:examples	3		
+de	59,90 EUR	EUR 59.9		price-parser:examples	59.9		
+en	$299.00	USD 299		price-parser:examples	299		
+en	$59.99	USD 59.99		price-parser:examples	59.99		
+de	2800	EUR 2800		price-parser:examples	2800		EUR
+ru	17 940,00 руб	RUB 17940	gap	price-parser:examples	17940	руб, the common abbreviation of the ruble, is not in CLDR ru	
+de	159,50 €	EUR 159.5		price-parser:examples	159.5		
+en-GB	£18.99	GBP 18.99		price-parser:examples	18.99		
+de	699,00 EUR	EUR 699		price-parser:examples	699		
+en	45.33	USD 45.33		price-parser:examples	45.33		USD
+uk	33	UAH 33		price-parser:examples	33		UAH
+de	16,50 €	EUR 16.5		price-parser:examples	16.5		
+ru	13.50	RUB 13.5		price-parser:examples	13.5		RUB
+en	$860.00	USD 860		price-parser:examples	860		
+de	10 €	EUR 10		price-parser:examples	10		
+de	13	EUR 13		price-parser:examples	13		EUR
+da	60,00 DKK	DKK 60		price-parser:examples	60		
+de	63,90 EUR	EUR 63.9		price-parser:examples	63.9		
+en	$ 11.99	USD 11.99		price-parser:examples	11.99		
+de	25,00 €	EUR 25		price-parser:examples	25		
+de	106,40 €	EUR 106.4		price-parser:examples	106.4		
+pl	5.76	PLN 5.76		price-parser:examples	5.76		PLN
+en	$4.50	USD 4.5		price-parser:examples	4.5		
+ru	2 660 руб	RUB 2660	gap	price-parser:examples	2660	руб, the common abbreviation of the ruble, is not in CLDR ru	
+en	$4.60	USD 4.6		price-parser:examples	4.6		
+en-GB	£14.99	GBP 14.99		price-parser:examples	14.99		
+en	$150.00	USD 150		price-parser:examples	150		
+de	70,31	EUR 70.31		price-parser:examples	70.31		EUR
+en	$379	USD 379		price-parser:examples	379		
+de	139,95	EUR 139.95		price-parser:examples	139.95		EUR
+de	22,90 €	EUR 22.9		price-parser:examples	22.9		
+pl	94,99 zł	PLN 94.99		price-parser:examples	94.99		
+en	$4.00	USD 4		price-parser:examples	4		
+en	$892.00	USD 892		price-parser:examples	892		
+uk	60800	UAH 60800		price-parser:examples	60800		UAH
+pl	1849.00	PLN 1849		price-parser:examples	1849		PLN
+de	0,00 EUR	EUR 0		price-parser:examples	0		
+ru	5 450 руб.	RUB 5450	gap	price-parser:examples	5450	руб., the common abbreviation of the ruble, is not in CLDR ru	
+ru	850 руб.	RUB 850	gap	price-parser:examples	850	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	9.990,00 €	EUR 9990		price-parser:examples	9990		
+en	$175.00	USD 175		price-parser:examples	175		
+en	$99.99	USD 99.99		price-parser:examples	99.99		
+de	119,00	EUR 119		price-parser:examples	119		EUR
+en	$ 11.96	USD 11.96		price-parser:examples	11.96		
+de	9,94	EUR 9.94		price-parser:examples	9.94		EUR
+en	$69.00	USD 69		price-parser:examples	69		
+en-GB	£50.00	GBP 50		price-parser:examples	50		
+en	$39.99	USD 39.99		price-parser:examples	39.99		
+ru	75 000 руб.	RUB 75000	gap	price-parser:examples	75000	руб., the common abbreviation of the ruble, is not in CLDR ru	
+da	17,95	DKK 17.95		price-parser:examples	17.95		DKK
+en	$ 18.95	USD 18.95		price-parser:examples	18.95		
+en-GB	£21.00	GBP 21		price-parser:examples	21		
+de	19,90 €	EUR 19.9		price-parser:examples	19.9		
+ru	30 руб	RUB 30	gap	price-parser:examples	30	руб, the common abbreviation of the ruble, is not in CLDR ru	
+de	684,25	EUR 684.25		price-parser:examples	684.25		EUR
+en-IE	€ 45.00	EUR 45		price-parser:examples	45		
+en	$0.00	USD 0		price-parser:examples	0		
+cs	49 Kč	CZK 49		price-parser:examples	49		
+cs	1 995,00 Kč	CZK 1995		price-parser:examples	1995		
+de	€ 2,99	EUR 2.99		price-parser:examples	2.99		
+ru	475 руб.	RUB 475	gap	price-parser:examples	475	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	11,76	EUR 11.76		price-parser:examples	11.76		EUR
+en-IE	.75 €	EUR 0.75		price-parser:examples	0.75		
+en	$.75	USD 0.75		price-parser:examples	0.75		
+en	$.75,333	refuse		price-parser:examples	75333	not a number of the locale	
+de	7,99 €	EUR 7.99		price-parser:examples_2	7.99		
+en	$6.75	USD 6.75		price-parser:examples_2	6.75		
+en-GB	£24.99	GBP 24.99		price-parser:examples_2	24.99		
+de	23,00 €	EUR 23		price-parser:examples_2	23		
+de	3,20 €	EUR 3.2		price-parser:examples_2	3.2		
+de	€ 2.109,00	EUR 2109		price-parser:examples_2	2109		
+ru	32690	RUB 32690		price-parser:examples_2	32690		RUB
+en	$20.00	USD 20		price-parser:examples_2	20		
+uk	950 грн.	UAH 950	gap	price-parser:examples_2	950	грн., the common abbreviation of the hryvnia, is not in CLDR uk	
+en-IE	679.00	EUR 679		price-parser:examples_2	679		EUR
+de	10,50 €	EUR 10.5		price-parser:examples_2	10.5		
+de	€16,95	EUR 16.95		price-parser:examples_2	16.95		
+en	$ 95.00	USD 95		price-parser:examples_2	95		
+en-GB	£ 15.00	GBP 15		price-parser:examples_2	15		
+en	$119.00	USD 119		price-parser:examples_2	119		
+en	$25.95	USD 25.95		price-parser:examples_2	25.95		
+en	$29.99	USD 29.99		price-parser:examples_2	29.99		
+pl	125,00 zł	PLN 125		price-parser:examples_2	125		
+en-IN	Rs 3,600.00	INR 3600	gap	price-parser:examples_2	3600	Rs is not in CLDR en-IN, which writes the rupee ₹	
+ro	29 RON	RON 29		price-parser:examples_2	29		
+en	$134.96	USD 134.96		price-parser:examples_2	134.96		
+de	449,72 €	EUR 449.72		price-parser:examples_2	449.72		
+en	499.80	USD 499.8		price-parser:examples_2	499.8		USD
+en-IE	15.00 €	EUR 15		price-parser:examples_2	15		
+ru	2 750 руб.	RUB 2750	gap	price-parser:examples_2	2750	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$40.00	USD 40		price-parser:examples_2	40		
+de	2,90	EUR 2.9		price-parser:examples_2	2.9		EUR
+ru	1 849 руб.	RUB 1849	gap	price-parser:examples_2	1849	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	12,00	EUR 12		price-parser:examples_2	12		EUR
+en-GB	205.99	GBP 205.99		price-parser:examples_2	205.99		GBP
+en-IE	€69.90	EUR 69.9		price-parser:examples_2	69.9		
+ru	876 руб.	RUB 876	gap	price-parser:examples_2	876	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$79.95	USD 79.95		price-parser:examples_2	79.95		
+cs	288,00 Kč	CZK 288		price-parser:examples_2	288		
+nb	899,00	NOK 899		price-parser:examples_2	899		NOK
+de	50,00 €	EUR 50		price-parser:examples_2	50		
+de	54,99 €	EUR 54.99		price-parser:examples_2	54.99		
+en	$119.99	USD 119.99		price-parser:examples_2	119.99		
+en	$ 99.95	USD 99.95		price-parser:examples_2	99.95		
+ru	150	RUB 150		price-parser:examples_2	150		RUB
+pt-BR	R$ 528,00	BRL 528		price-parser:examples_2	528		
+de	14,90	EUR 14.9		price-parser:examples_2	14.9		EUR
+cs	5 290 Kč	CZK 5290		price-parser:examples_2	5290		
+he	₪370	ILS 370		price-parser:examples_2	370		
+hu	39000	HUF 39000		price-parser:examples_2	39000		HUF
+cs	1 995 Kč	CZK 1995		price-parser:examples_2	1995		
+en-CA	C$5.95	refuse		price-parser:examples_2	5.95	C$ is the córdoba's in CLDR; its Canadian use is not	
+ru	22800.00	RUB 22800		price-parser:examples_2	22800		RUB
+cs	359 Kč	CZK 359		price-parser:examples_2	359		
+de	189,00 €	EUR 189		price-parser:examples_2	189		
+pl	179.62	PLN 179.62		price-parser:examples_2	179.62		PLN
+de	145,79	EUR 145.79		price-parser:examples_2	145.79		EUR
+en	$ 695.00	USD 695		price-parser:examples_2	695		
+de	6,50	EUR 6.5		price-parser:examples_2	6.5		EUR
+en	$61.00	USD 61		price-parser:examples_2	61		
+nb	5 799,00	NOK 5799		price-parser:examples_2	5799		NOK
+de	7,31 €	EUR 7.31		price-parser:examples_2	7.31		
+de	53,20 €	EUR 53.2		price-parser:examples_2	53.2		
+cs	668 Kč	CZK 668		price-parser:examples_2	668		
+de	€ 27,95	EUR 27.95		price-parser:examples_2	27.95		
+en	$4.75	USD 4.75		price-parser:examples_2	4.75		
+pl	14,90 zł	PLN 14.9		price-parser:examples_2	14.9		
+en	$23.00	USD 23		price-parser:examples_2	23		
+en-IE	€ 33.00	EUR 33		price-parser:examples_2	33		
+de	78 €	EUR 78		price-parser:examples_2	78		
+en-GB	5.00	GBP 5		price-parser:examples_2	5		GBP
+de	29,90	EUR 29.9		price-parser:examples_2	29.9		EUR
+de	60,55 €	EUR 60.55		price-parser:examples_2	60.55		
+en-IE	129.00	EUR 129		price-parser:examples_2	129		EUR
+en-GB	£13.50	GBP 13.5		price-parser:examples_2	13.5		
+pt-BR	R$60,00	BRL 60		price-parser:examples_2	60		
+de	64,59 €	EUR 64.59		price-parser:examples_2	64.59		
+de	€ 13,50	EUR 13.5		price-parser:examples_2	13.5		
+en-IE	€ 139.00	EUR 139		price-parser:examples_2	139		
+nb	139,00	NOK 139		price-parser:examples_2	139		NOK
+en	$4.95	USD 4.95		price-parser:examples_2	4.95		
+en	$12	USD 12		price-parser:examples_2	12		
+en-IE	4.10	EUR 4.1		price-parser:examples_2	4.1		EUR
+ru	590	RUB 590		price-parser:examples_2	590		RUB
+de	99,90	EUR 99.9		price-parser:examples_2	99.9		EUR
+de	9,50 EUR	EUR 9.5		price-parser:examples_2	9.5		
+en	$74.99	USD 74.99		price-parser:examples_2	74.99		
+en	$ 3.22	USD 3.22		price-parser:examples_2	3.22		
+en-GB	3,301.00 £	GBP 3301		price-parser:examples_2	3301		
+de	41,78 EUR	EUR 41.78		price-parser:examples_2	41.78		
+de	44,50 EUR	EUR 44.5		price-parser:examples_2	44.5		
+en-GB	£4.00	GBP 4		price-parser:examples_2	4		
+en-IE	34.99€	EUR 34.99		price-parser:examples_2	34.99		
+de	12,99	EUR 12.99		price-parser:examples_2	12.99		EUR
+en-GB	149.00	GBP 149		price-parser:examples_2	149		GBP
+ru	27.00 руб.	RUB 27	gap	price-parser:examples_2	27	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$7.95	USD 7.95		price-parser:examples_2	7.95		
+en	$16,500	USD 16500		price-parser:examples_2	16500		
+en	349.95	USD 349.95		price-parser:examples_2	349.95		USD
+de	5,72 €	EUR 5.72		price-parser:examples_2	5.72		
+uk	199,00 грн.	UAH 199	gap	price-parser:examples_2	199	грн., the common abbreviation of the hryvnia, is not in CLDR uk	
+en-GB	£4.07	GBP 4.07		price-parser:examples_2	4.07		
+en	$15.00	USD 15		price-parser:examples_2	15		
+en-IE	20.00	EUR 20		price-parser:examples_2	20		EUR
+en-IE	14.50	EUR 14.5		price-parser:examples_2	14.5		EUR
+da	59,00	DKK 59		price-parser:examples_2	59		DKK
+hu	9 472 Ft	HUF 9472		price-parser:examples_2	9472		
+cs	95 Kč	CZK 95		price-parser:examples_2	95		
+de	€ 0,00	EUR 0		price-parser:examples_2	0		
+tr	69,50	TRY 69.5		price-parser:examples_2	69.5		TRY
+id	Rp 169.000	IDR 169000		price-parser:examples_2	169000		
+de	4,50 €	EUR 4.5		price-parser:examples_2	4.5		
+en	$145.00	USD 145		price-parser:examples_2	145		
+en-GB	11.70	GBP 11.7		price-parser:examples_2	11.7		GBP
+de	25,13 €	EUR 25.13		price-parser:examples_2	25.13		
+pl	58,00 zł	PLN 58		price-parser:examples_2	58		
+de	15,55	EUR 15.55		price-parser:examples_2	15.55		EUR
+en	$185.00	USD 185		price-parser:examples_2	185		
+de	18 €	EUR 18		price-parser:examples_2	18		
+de	0 €	EUR 0		price-parser:examples_2	0		
+de	9,41 €	EUR 9.41		price-parser:examples_2	9.41		
+uk	1 075	UAH 1075		price-parser:examples_2	1075		UAH
+en	$22.99	USD 22.99		price-parser:examples_2	22.99		
+ms	RM50	MYR 50		price-parser:examples_2	50		
+de	7,60 €	EUR 7.6		price-parser:examples_2	7.6		
+en	0.00	USD 0		price-parser:examples_2	0		USD
+pt-BR	R$ 6,00	BRL 6		price-parser:examples_2	6		
+fr	5 833,00 €	EUR 5833		price-parser:examples_2	5833		
+de	€ 26,95	EUR 26.95		price-parser:examples_2	26.95		
+de	35,00 €	EUR 35		price-parser:examples_2	35		
+de	499,00 €	EUR 499		price-parser:examples_2	499		
+ru	1 120 900	RUB 1120900		price-parser:examples_2	1120900		RUB
+de	125,00	EUR 125		price-parser:examples_2	125		EUR
+ru	7362	RUB 7362		price-parser:examples_2	7362		RUB
+en-IE	€12.99	EUR 12.99		price-parser:examples_2	12.99		
+ru	600	RUB 600		price-parser:examples_2	600		RUB
+de	29,90€	EUR 29.9		price-parser:examples_2	29.9		
+en-IE	€69.00	EUR 69		price-parser:examples_2	69		
+en	280	USD 280		price-parser:examples_2	280		USD
+en	$178.00	USD 178		price-parser:examples_2	178		
+en	$ 300.00	USD 300		price-parser:examples_2	300		
+de	19,1€	EUR 19.1		price-parser:examples_2	19.1		
+pt-BR	R$49,90	BRL 49.9		price-parser:examples_2	49.9		
+en	$395,000	USD 395000		price-parser:examples_2	395000		
+en-IE	10.14	EUR 10.14		price-parser:examples_2	10.14		EUR
+en	549.00	USD 549		price-parser:examples_2	549		USD
+en	$19	USD 19		price-parser:examples_2	19		
+en	$210	USD 210		price-parser:examples_2	210		
+en	$ 79.95	USD 79.95		price-parser:examples_2	79.95		
+ru	279 000	RUB 279000		price-parser:examples_2	279000		RUB
+de	2 390 €	refuse		price-parser:examples_2	2390	not a number of the locale	
+en	$999.00	USD 999		price-parser:examples_2	999		
+cs	15,00 Kč	CZK 15		price-parser:examples_2	15		
+en-IE	€ 20.70	EUR 20.7		price-parser:examples_2	20.7		
+de	398,00 €	EUR 398		price-parser:examples_2	398		
+cs	5 427 Kč	CZK 5427		price-parser:examples_2	5427		
+en	$ 24.99	USD 24.99		price-parser:examples_2	24.99		
+en-GB	2.00	GBP 2		price-parser:examples_2	2		GBP
+de	10,00 €	EUR 10		price-parser:examples_2	10		
+de	32,50 EUR	EUR 32.5		price-parser:examples_2	32.5		
+en-IN	Rs1,599.00	INR 1599	gap	price-parser:examples_2	1599	Rs is not in CLDR en-IN, which writes the rupee ₹	
+en	14.95	USD 14.95		price-parser:examples_2	14.95		USD
+en-GB	42.90	GBP 42.9		price-parser:examples_2	42.9		GBP
+en-IN	Rs164.00	INR 164	gap	price-parser:examples_2	164	Rs is not in CLDR en-IN, which writes the rupee ₹	
+en	$6,200.00	USD 6200		price-parser:examples_2	6200		
+pl	69.99	PLN 69.99		price-parser:examples_2	69.99		PLN
+de	48,39	EUR 48.39		price-parser:examples_2	48.39		EUR
+de	2.130,00 €	EUR 2130		price-parser:examples_2	2130		
+en-GB	£179.00	GBP 179		price-parser:examples_2	179		
+de	17,00 €	EUR 17		price-parser:examples_no_currency	17		
+de	39,00 €	EUR 39		price-parser:examples_no_currency	39		
+cs	24,00 Kč	CZK 24		price-parser:examples_no_currency	24		
+en	$46.00	USD 46		price-parser:examples_no_currency	46		
+en	$60.00	USD 60		price-parser:examples_no_currency	60		
+de	0,82 €	EUR 0.82		price-parser:examples_no_currency	0.82		
+cs	599 Kč	CZK 599		price-parser:examples_no_currency	599		
+en-IE	€10.90	EUR 10.9		price-parser:examples_no_currency	10.9		
+de	299,00 EUR	EUR 299		price-parser:examples_no_currency	299		
+de	343,05 €	EUR 343.05		price-parser:examples_no_currency	343.05		
+fr	1 139,00 €	EUR 1139		price-parser:examples_no_currency	1139		
+fa	157,000 تومان	refuse		price-parser:examples_no_currency	157000	a toman is ten rials, so it is not the rial	
+vi	8.000.000 ₫	VND 8000000		price-parser:examples_no_currency	8000000		
+sr-Latn	6790 Dinara	RSD 6790	gap	price-parser:examples_no_currency	6790	an inflected currency name is not in CLDR	
+en-GB	£ 165.00	GBP 165		price-parser:examples_no_currency	165		
+en	$844,900	USD 844900		price-parser:examples_no_currency	844900		
+pl	140,00 pln	PLN 140		price-parser:examples_no_currency	140		
+de	2,99 €	EUR 2.99		price-parser:examples_no_currency	2.99		
+ro	145,00 lei	RON 145		price-parser:examples_no_currency	145		
+de	3,90 €	EUR 3.9		price-parser:examples_no_currency	3.9		
+en	$149.99	USD 149.99		price-parser:examples_no_currency	149.99		
+de	4,30 €	EUR 4.3		price-parser:examples_no_currency	4.3		
+en	$36.95	USD 36.95		price-parser:examples_no_currency	36.95		
+pl	2 499,00 zł	PLN 2499		price-parser:examples_no_currency	2499		
+ru	800 руб.	RUB 800	gap	price-parser:examples_no_currency	800	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	0,85 €	EUR 0.85		price-parser:examples_no_currency	0.85		
+de	35,95 €	EUR 35.95		price-parser:examples_no_currency	35.95		
+en	$0.42	USD 0.42		price-parser:examples_no_currency	0.42		
+fa	80,000 تومان	refuse		price-parser:examples_no_currency	80000	a toman is ten rials, so it is not the rial	
+pl	25,00 zł	PLN 25		price-parser:examples_no_currency	25		
+de	17,45 EUR	EUR 17.45		price-parser:examples_no_currency	17.45		
+de	49,00 €	EUR 49		price-parser:examples_no_currency	49		
+de	8,99 €	EUR 8.99		price-parser:examples_no_currency	8.99		
+cs	1 099 Kč	CZK 1099		price-parser:examples_no_currency	1099		
+en	$274.95	USD 274.95		price-parser:examples_no_currency	274.95		
+de	70,20 €	EUR 70.2		price-parser:examples_no_currency	70.2		
+pl	289,00 zł	PLN 289		price-parser:examples_no_currency	289		
+de	18,00 €	EUR 18		price-parser:examples_no_currency	18		
+de	12,00 €	EUR 12		price-parser:examples_no_currency	12		
+en	$19.97	USD 19.97		price-parser:examples_no_currency	19.97		
+it	749,00 euro	EUR 749		price-parser:examples_no_currency	749		
+en	$48.25	USD 48.25		price-parser:examples_no_currency	48.25		
+de	1,85 EUR	EUR 1.85		price-parser:examples_no_currency	1.85		
+en-GB	£1.20	GBP 1.2		price-parser:examples_no_currency	1.2		
+en	$196.50	USD 196.5		price-parser:examples_no_currency	196.5		
+de	179,00 €	EUR 179		price-parser:examples_no_currency	179		
+en	$80.00	USD 80		price-parser:examples_no_currency	80		
+en	$5.11	USD 5.11		price-parser:examples_no_currency	5.11		
+de	EUR 6,99	EUR 6.99		price-parser:examples_no_currency	6.99		
+en-IE	14.00€	EUR 14		price-parser:examples_no_currency	14		
+en	$1000.00	USD 1000		price-parser:examples_no_currency	1000		
+en	$12.95	USD 12.95		price-parser:examples_no_currency	12.95		
+pl	104,64 zł	PLN 104.64		price-parser:examples_no_currency	104.64		
+de	163,80 €	EUR 163.8		price-parser:examples_no_currency	163.8		
+en	$89.00	USD 89		price-parser:examples_no_currency	89		
+ru	1 600 руб.	RUB 1600	gap	price-parser:examples_no_currency	1600	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	9,50 €	EUR 9.5		price-parser:examples_no_currency	9.5		
+de	170,00 €	EUR 170		price-parser:examples_no_currency	170		
+de	170,00€	EUR 170		price-parser:examples_no_currency	170		
+en	$24.00	USD 24		price-parser:examples_no_currency	24		
+id	Rp 350.000	IDR 350000		price-parser:examples_no_currency	350000		
+en	$55.00	USD 55		price-parser:examples_no_currency	55		
+en	$595.00	USD 595		price-parser:examples_no_currency	595		
+de	7,00 €	EUR 7		price-parser:examples_no_currency	7		
+de	390,00 €	EUR 390		price-parser:examples_no_currency	390		
+cs	12 590 Kč	CZK 12590		price-parser:examples_no_currency	12590		
+cs	330 Kč	CZK 330		price-parser:examples_no_currency	330		
+ru	8 500 руб.	RUB 8500	gap	price-parser:examples_no_currency	8500	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	589,00 €	EUR 589		price-parser:examples_no_currency	589		
+cs	870 Kč	CZK 870		price-parser:examples_no_currency	870		
+de	59,00 €	EUR 59		price-parser:examples_no_currency	59		
+cs	1 573 Kč	CZK 1573		price-parser:examples_no_currency	1573		
+en	$2.99	USD 2.99		price-parser:examples_no_currency	2.99		
+de	13,90 €	EUR 13.9		price-parser:examples_no_currency	13.9		
+de	16,90 €	EUR 16.9		price-parser:examples_no_currency	16.9		
+en	$50.00	USD 50		price-parser:examples_no_currency	50		
+fr	3 291,00 €	EUR 3291		price-parser:examples_no_currency	3291		
+de	13,00 €	EUR 13		price-parser:examples_no_currency	13		
+da	DKK 449,00	DKK 449		price-parser:examples_no_currency	449		
+en	$154	USD 154		price-parser:examples_no_currency	154		
+de	20,00 EUR	EUR 20		price-parser:examples_no_currency	20		
+ru	850 руб	RUB 850	gap	price-parser:examples_no_currency	850	руб, the common abbreviation of the ruble, is not in CLDR ru	
+de	40,00 €	EUR 40		price-parser:examples_no_currency	40		
+de	149,98 €	EUR 149.98		price-parser:examples_no_currency	149.98		
+uk	1 150 грн.	UAH 1150	gap	price-parser:examples_no_currency	1150	грн., the common abbreviation of the hryvnia, is not in CLDR uk	
+de	33,90 €	EUR 33.9		price-parser:examples_no_currency	33.9		
+de	79,50 €	EUR 79.5		price-parser:examples_no_currency	79.5		
+en	$69.99	USD 69.99		price-parser:examples_no_currency	69.99		
+cs	1 090 Kč	CZK 1090		price-parser:examples_no_currency	1090		
+cs	395 Kč	CZK 395		price-parser:examples_no_currency	395		
+de	53,95 €	EUR 53.95		price-parser:examples_no_currency	53.95		
+en-GB	£0.99	GBP 0.99		price-parser:examples_no_currency	0.99		
+pl	29,50 zł	PLN 29.5		price-parser:examples_no_currency	29.5		
+de	18,00€	EUR 18		price-parser:examples_no_currency	18		
+de	€600,00	EUR 600		price-parser:examples_no_currency	600		
+de	8,55 €	EUR 8.55		price-parser:examples_no_currency	8.55		
+de	244,00 €	EUR 244		price-parser:examples_no_currency	244		
+de	12,90 €	EUR 12.9		price-parser:examples_no_currency	12.9		
+ru	12 900,00 руб	RUB 12900	gap	price-parser:examples_no_currency	12900	руб, the common abbreviation of the ruble, is not in CLDR ru	
+hu	1.727 Ft	refuse		price-parser:examples_no_currency	1727	not a number of the locale	
+en	$ 69.00	USD 69		price-parser:examples_no_currency	69		
+de	135,00 €	EUR 135		price-parser:examples_no_currency	135		
+de	94,90 €	EUR 94.9		price-parser:examples_no_currency	94.9		
+de	44,00 €	EUR 44		price-parser:examples_no_currency	44		
+en	$24.99	USD 24.99		price-parser:examples_no_currency	24.99		
+de	22,00 EUR	EUR 22		price-parser:examples_no_currency	22		
+de	89,90 €	EUR 89.9		price-parser:examples_no_currency	89.9		
+en	$24.95	USD 24.95		price-parser:examples_no_currency	24.95		
+en-GB	£ 1.99	GBP 1.99		price-parser:examples_no_currency	1.99		
+pl	1 099,00 zł	PLN 1099		price-parser:examples_no_currency	1099		
+en	$15.95	USD 15.95		price-parser:examples_no_currency	15.95		
+fa	تومان56,000	refuse		price-parser:examples_no_currency	56000	a toman is ten rials, so it is not the rial	
+en	$1,695.00	USD 1695		price-parser:examples_no_currency	1695		
+en-GB	£595.00	GBP 595		price-parser:examples_no_currency	595		
+cs	290,00 Kč	CZK 290		price-parser:examples_no_currency	290		
+de-CH	199.90 Fr.	CHF 199.9		price-parser:examples_no_currency	199.9		
+pl	197 PLN	PLN 197		price-parser:examples_no_currency	197		
+en	$56.00	USD 56		price-parser:examples_no_currency	56		
+cs	4 980 Kč	CZK 4980		price-parser:examples_no_currency	4980		
+de	124,00 €	EUR 124		price-parser:examples_no_currency	124		
+en	$104.99	USD 104.99		price-parser:examples_no_currency	104.99		
+fr	1 029,00 €	EUR 1029		price-parser:examples_no_currency	1029		
+de	745,00 €	EUR 745		price-parser:examples_no_currency	745		
+en	$29.95	USD 29.95		price-parser:examples_no_currency	29.95		
+cs	1 499 Kč	CZK 1499		price-parser:examples_no_currency	1499		
+de	199,95 €	EUR 199.95		price-parser:examples_no_currency	199.95		
+de	6,00 €	EUR 6		price-parser:examples_no_currency	6		
+en	$28.49	USD 28.49		price-parser:examples_no_currency	28.49		
+vi	200.000 đ	VND 200000	gap	price-parser:examples_no_currency	200000	đ is not in CLDR vi, which writes the dong ₫	
+de	9,24 €	EUR 9.24		price-parser:examples_no_currency	9.24		
+de	48,00 €	EUR 48		price-parser:examples_no_currency	48		
+ru	17 260 руб.	RUB 17260	gap	price-parser:examples_no_currency	17260	руб., the common abbreviation of the ruble, is not in CLDR ru	
+fa	227,000 تومان	refuse		price-parser:examples_no_currency	227000	a toman is ten rials, so it is not the rial	
+de	295,88 €	EUR 295.88		price-parser:examples_no_currency	295.88		
+en-GB	£1399	GBP 1399		price-parser:examples_no_currency	1399		
+be	11,33 Br	BYN 11.33		price-parser:examples_no_currency	11.33		
+en	$19.50	USD 19.5		price-parser:examples_no_currency	19.5		
+de	19,00 €	EUR 19		price-parser:examples_no_currency	19		
+fr	2 999,00 €	EUR 2999		price-parser:examples_no_currency	2999		
+ro	99 LEI	RON 99		price-parser:examples_no_currency	99		
+cs	249 Kč	CZK 249		price-parser:examples_no_currency	249		
+en	$809,000	USD 809000		price-parser:examples_no_currency	809000		
+vi	450 000 ₫	refuse		price-parser:examples_no_currency	450000	not a number of the locale	
+de	30,00 €	EUR 30		price-parser:examples_no_currency	30		
+en-IE	12.34 €	EUR 12.34		price-parser:examples_no_currency	12.34		
+de	€799,00	EUR 799		price-parser:examples_no_currency	799		
+bg	230 лв.	BGN 230		price-parser:examples_no_currency	230		
+en-IE	14.55 €	EUR 14.55		price-parser:examples_no_currency	14.55		
+ro	133,86 LEI	RON 133.86		price-parser:examples_no_currency	133.86		
+cs	7 990,00 Kč	CZK 7990		price-parser:examples_no_currency	7990		
+de	0,15 €	EUR 0.15		price-parser:examples_no_currency	0.15		
+de	430,00 €	EUR 430		price-parser:examples_no_currency	430		
+en	$29.00	USD 29		price-parser:examples_no_currency	29		
+ro	21,00 Lei	RON 21		price-parser:examples_no_currency	21		
+de	39,60 EUR	EUR 39.6		price-parser:examples_no_currency	39.6		
+de	10,75 €	EUR 10.75		price-parser:examples_no_currency	10.75		
+ru	219 руб.	RUB 219	gap	price-parser:examples_no_currency	219	руб., the common abbreviation of the ruble, is not in CLDR ru	
+fa	151,200 تومان	refuse		price-parser:examples_no_currency	151200	a toman is ten rials, so it is not the rial	
+en	$159.99	USD 159.99		price-parser:examples_no_currency	159.99		
+pl	62,00 zł	PLN 62		price-parser:examples_no_currency	62		
+en	$ 50.00	USD 50		price-parser:examples_no_currency	50		
+de	318,00 €	EUR 318		price-parser:examples_no_currency	318		
+de	11.499,00 EUR	EUR 11499		price-parser:examples_no_currency	11499		
+en-IE	€ 75.00	EUR 75		price-parser:examples_no_currency	75		
+en-IE	€0.51	EUR 0.51		price-parser:examples_no_currency	0.51		
+de	6,50 €	EUR 6.5		price-parser:examples_no_currency	6.5		
+cs	790 Kč	CZK 790		price-parser:examples_no_currency	790		
+ro	135 lei	RON 135		price-parser:examples_no_currency	135		
+en	$9.99	USD 9.99		price-parser:examples_no_currency	9.99		
+de	2.950,00 €	EUR 2950		price-parser:examples_no_currency	2950		
+ro	49 lei	RON 49		price-parser:examples_no_currency	49		
+en	$ 80.00	USD 80		price-parser:examples_no_currency	80		
+en	$39.00	USD 39		price-parser:examples_no_currency	39		
+id	Rp 221.000	IDR 221000		price-parser:examples_no_currency	221000		
+de	35,90 EUR	EUR 35.9		price-parser:examples_no_currency	35.9		
+fr	4 835,50 €	EUR 4835.5		price-parser:examples_no_currency	4835.5		
+de	75,00€	EUR 75		price-parser:examples_no_currency	75		
+en	$21.95	USD 21.95		price-parser:examples_no_currency	21.95		
+cs	2 399 Kč	CZK 2399		price-parser:examples_no_currency	2399		
+ru	430 руб	RUB 430	gap	price-parser:examples_no_currency	430	руб, the common abbreviation of the ruble, is not in CLDR ru	
+cs	145,00 Kč	CZK 145		price-parser:examples_no_currency	145		
+ro	99,00 lei	RON 99		price-parser:examples_no_currency	99		
+en	$750,000	USD 750000		price-parser:examples_no_currency	750000		
+en	$7.20	USD 7.2		price-parser:examples_no_currency	7.2		
+de	469,00 €	EUR 469		price-parser:examples_no_currency	469		
+de	24,35 €	EUR 24.35		price-parser:examples_no_currency	24.35		
+cs	295 Kč	CZK 295		price-parser:examples_no_currency	295		
+sv	7 990 kr	SEK 7990		price-parser:examples_no_currency	7990		
+de	14,00 €	EUR 14		price-parser:examples_no_currency	14		
+en-GB	£39.95	GBP 39.95		price-parser:examples_no_currency	39.95		
+tr	10,75 TL	TRY 10.75	gap	price-parser:examples_no_currency	10.75	TL, the common abbreviation of the lira, is not in CLDR tr	
+en	$25.00	USD 25		price-parser:examples_no_currency	25		
+pl	1 720,00 zł	PLN 1720		price-parser:examples_no_currency	1720		
+de	425,00 €	EUR 425		price-parser:examples_no_currency	425		
+cs	93 499 Kč	CZK 93499		price-parser:examples_no_currency	93499		
+de	29,90 EUR	EUR 29.9		price-parser:examples_no_currency	29.9		
+en	$3.95	USD 3.95		price-parser:examples_no_currency	3.95		
+bg	3430 лв.	BGN 3430		price-parser:examples_no_currency	3430		
+de	724,00 €	EUR 724		price-parser:examples_no_currency	724		
+de	6,75 €	EUR 6.75		price-parser:examples_no_currency	6.75		
+fa	30,000 تومان	refuse		price-parser:examples_no_currency	30000	a toman is ten rials, so it is not the rial	
+cs	1 500 Kč	CZK 1500		price-parser:examples_no_currency	1500		
+de	349,00 €	EUR 349		price-parser:examples_no_currency	349		
+en	$250.00	USD 250		price-parser:examples_no_currency	250		
+en	$22.75	USD 22.75		price-parser:examples_no_currency	22.75		
+de	250,00 €	EUR 250		price-parser:examples_no_currency	250		
+en-IE	14.96 €	EUR 14.96		price-parser:examples_no_currency	14.96		
+en	$4,350.00	USD 4350		price-parser:examples_no_currency	4350		
+cs	379 Kč	CZK 379		price-parser:examples_no_currency	379		
+de	19,50 EUR	EUR 19.5		price-parser:examples_no_currency	19.5		
+pl	33,68 zł	PLN 33.68		price-parser:examples_no_currency	33.68		
+en-IE	6.70€	EUR 6.7		price-parser:examples_no_currency	6.7		
+en-GB	£ 34.99	GBP 34.99		price-parser:examples_3	34.99		
+en	$7.65	USD 7.65		price-parser:examples_3	7.65		
+de	75,00	EUR 75		price-parser:examples_3	75		EUR
+de	34,90 €	EUR 34.9		price-parser:examples_3	34.9		
+ru	47700 руб.	RUB 47700	gap	price-parser:examples_3	47700	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	174,00 €	EUR 174		price-parser:examples_3	174		
+ru	8 390 руб.	RUB 8390	gap	price-parser:examples_3	8390	руб., the common abbreviation of the ruble, is not in CLDR ru	
+de	55,00 €	EUR 55		price-parser:examples_3	55		
+en-IE	€299.71	EUR 299.71		price-parser:examples_3	299.71		
+de	384,00 €	EUR 384		price-parser:examples_3	384		
+de	0,00 €	EUR 0		price-parser:examples_3	0		
+de	€ 280,00	EUR 280		price-parser:examples_3	280		
+cs	11 450 Kč	CZK 11450		price-parser:examples_3	11450		
+en	$118.15	USD 118.15		price-parser:examples_3	118.15		
+en-IE	49.99	EUR 49.99		price-parser:examples_3	49.99		EUR
+de	1,15 €	EUR 1.15		price-parser:examples_3	1.15		
+de	31,93 €	EUR 31.93		price-parser:examples_3	31.93		
+en	र24,401	refuse		price-parser:examples_3	24401	no CLDR locale writes it as its own currency	
+de	12,15 €	EUR 12.15		price-parser:examples_3	12.15		
+en-GB	163.95	GBP 163.95		price-parser:examples_3	163.95		GBP
+pl	165,00 zł	PLN 165		price-parser:examples_3	165		
+pl	469.00zł	PLN 469		price-parser:examples_3	469		
+en	MX$3,179.00	MXN 3179		price-parser:examples_3	3179		
+de	21,33 €	EUR 21.33		price-parser:examples_3	21.33		
+en-IE	16.00 €	EUR 16		price-parser:examples_3	16		
+en-GB	£ 30.84	GBP 30.84		price-parser:examples_3	30.84		
+de	259,00 €	EUR 259		price-parser:examples_3	259		
+de	1540 €	EUR 1540		price-parser:examples_3	1540		
+de	95 €	EUR 95		price-parser:examples_3	95		
+zh-TW	NT$ 1,160	TWD 1160	gap	price-parser:examples_3	1160	NT$ is not in CLDR zh-Hant, which writes the dollar $	
+en	$69,900	USD 69900		price-parser:examples_3	69900		
+en	$14.95	USD 14.95		price-parser:examples_3	14.95		
+en-IN	₹ 4649	INR 4649		price-parser:examples_3	4649		
+uk	25 грн	UAH 25	gap	price-parser:examples_3	25	грн, the common abbreviation of the hryvnia, is not in CLDR uk	
+de	16,40	EUR 16.4		price-parser:examples_3	16.4		EUR
+pl	0,46	PLN 0.46		price-parser:examples_3	0.46		PLN
+en-GB	£ 261.25	GBP 261.25		price-parser:examples_3	261.25		
+uk	27.00	UAH 27		price-parser:examples_3	27		UAH
+en	$189,900	USD 189900		price-parser:examples_3	189900		
+en	$269	USD 269		price-parser:examples_3	269		
+en	$189	USD 189		price-parser:examples_3	189		
+pl	160,00 zł	PLN 160		price-parser:examples_3	160		
+ru	2 400	RUB 2400		price-parser:examples_3	2400		RUB
+en	$4.59	USD 4.59		price-parser:examples_3	4.59		
+ru	542 руб.	RUB 542	gap	price-parser:examples_3	542	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$19.99	USD 19.99		price-parser:examples_3	19.99		
+en	$6.45	USD 6.45		price-parser:examples_3	6.45		
+en	$86.44	USD 86.44		price-parser:examples_3	86.44		
+en-IE	25.00€	EUR 25		price-parser:examples_3	25		
+de	99,00 €	EUR 99		price-parser:examples_3	99		
+en	$6.49	USD 6.49		price-parser:examples_3	6.49		
+de	€ 59,95	EUR 59.95		price-parser:examples_3	59.95		
+id	Rp 1.550.000	IDR 1550000		price-parser:examples_3	1550000		
+uk	1 430	UAH 1430		price-parser:examples_3	1430		UAH
+de	960,00 €	EUR 960		price-parser:examples_3	960		
+ro	184,35 lei	RON 184.35		price-parser:examples_3	184.35		
+cs	1 505 Kč	CZK 1505		price-parser:examples_3	1505		
+de	58,19 €	EUR 58.19		price-parser:examples_3	58.19		
+bg	27.00 лв.	BGN 27		price-parser:examples_3	27		
+de	3,85 €	EUR 3.85		price-parser:examples_3	3.85		
+de	10,90 €	EUR 10.9		price-parser:examples_3	10.9		
+en	$ 879.0	USD 879		price-parser:examples_3	879		
+en-IE	25.88	EUR 25.88		price-parser:examples_3	25.88		EUR
+pt-BR	R$215,10	BRL 215.1		price-parser:examples_3	215.1		
+en-GB	£ 12.50	GBP 12.5		price-parser:examples_3	12.5		
+fr	3 173,00 €	EUR 3173		price-parser:examples_3	3173		
+de	213,62	EUR 213.62		price-parser:examples_3	213.62		EUR
+de	3,00 €	EUR 3		price-parser:examples_3	3		
+en-GB	£0.00	GBP 0		price-parser:examples_3	0		
+fr	10 990,00	EUR 10990		price-parser:examples_3	10990		EUR
+de	€ 24,95	EUR 24.95		price-parser:examples_3	24.95		
+en	$5.95	USD 5.95		price-parser:examples_3	5.95		
+de	199,99 €	EUR 199.99		price-parser:examples_3	199.99		
+en-GB	£23.40	GBP 23.4		price-parser:examples_3	23.4		
+en	$119.95	USD 119.95		price-parser:examples_3	119.95		
+uk	339 грн	UAH 339	gap	price-parser:examples_3	339	грн, the common abbreviation of the hryvnia, is not in CLDR uk	
+de	79,00	EUR 79		price-parser:examples_3	79		EUR
+en	$356.03	USD 356.03		price-parser:examples_3	356.03		
+cs	5 550 Kč	CZK 5550		price-parser:examples_3	5550		
+cs	5 770 Kč	CZK 5770		price-parser:examples_3	5770		
+en-IN	199 ₹	INR 199		price-parser:examples_3	199		
+en	$42.95	USD 42.95		price-parser:examples_3	42.95		
+de	1.837, 32 €	refuse		price-parser:examples_3	1837.32	not a number of the locale	
+en	$69.30	USD 69.3		price-parser:examples_3	69.3		
+en	$163,900	USD 163900		price-parser:examples_3	163900		
+id	Rp 235.000	IDR 235000		price-parser:examples_3	235000		
+de	11,13 €	EUR 11.13		price-parser:examples_3	11.13		
+ro	160,00 lei	RON 160		price-parser:examples_3	160		
+ru	3 300 руб	RUB 3300	gap	price-parser:examples_3	3300	руб, the common abbreviation of the ruble, is not in CLDR ru	
+en	$ 30.00	USD 30		price-parser:examples_3	30		
+en	$ 5.95	USD 5.95		price-parser:examples_3	5.95		
+en-GB	£74.00	GBP 74		price-parser:examples_3	74		
+de	158,24 €	EUR 158.24		price-parser:examples_3	158.24		
+bg	550,00 лв	BGN 550		price-parser:examples_3	550		
+fa	94,000 تومان	refuse		price-parser:examples_3	94000	a toman is ten rials, so it is not the rial	
+en	$8.27	USD 8.27		price-parser:examples_3	8.27		
+vi	12.500 ₫	VND 12500		price-parser:examples_3	12500		
+de	48,96 €	EUR 48.96		price-parser:examples_3	48.96		
+da	199 DKK	DKK 199		price-parser:examples_3	199		
+cs	100,00 Kč	CZK 100		price-parser:examples_3	100		
+de	18,25 €	EUR 18.25		price-parser:examples_3	18.25		
+de	29,00 €	EUR 29		price-parser:examples_3	29		
+de	€ 39,95	EUR 39.95		price-parser:examples_3	39.95		
+fa	850,000 ریال	IRR 850000		price-parser:examples_3	850000	the locale is one whose own currency the text names	
+de	24,00 €	EUR 24		price-parser:examples_3	24		
+rm	CHF 19.90	CHF 19.9		price-parser:examples_3	19.9	the locale is one whose own currency the text names	
+pl	530,42 Zł	PLN 530.42		price-parser:examples_3	530.42	the locale is one whose own currency the text names	
+vi	1.800.000₫	VND 1800000		price-parser:examples_3	1800000		
+ro	0,40 LEI	RON 0.4		price-parser:examples_3	0.4		
+pt-BR	R$ 1.500,00	BRL 1500		price-parser:examples_3	1500		
+en	$ 8. 94	refuse		price-parser:examples_3	8.94	not a number of the locale	
+ar-AE	AED 26.30	AED 26.3		price-parser:examples_3	26.3	the locale is one whose own currency the text names	
+ru	15,000 руб.	RUB 15000	gap	price-parser:examples_3	15000	руб., the common abbreviation of the ruble, is not in CLDR ru	
+en	$5,246.58	USD 5246.58		price-parser:examples_3	5246.58		
+tr	118, 99 TL	TRY 118.99	gap	price-parser:examples_3	118.99	TL, the common abbreviation of the lira, is not in CLDR tr	
+sv	150 kr	SEK 150		price-parser:examples_3	150		
+ro	253,89 lei	RON 253.89		price-parser:examples_3	253.89		
+da	1.890,00 DKK	DKK 1890		price-parser:examples_3	1890		
+en-IN	₹397.00	INR 397		price-parser:examples_3	397		
+en	AU$ 1,175	refuse		price-parser:examples_3	1175	no CLDR locale writes it as its own currency	
+pl	130, 38 zł	refuse		price-parser:examples_3	130.38	not a number of the locale	
+en-CA	C$1.23	refuse		price-parser:examples_3	1.23	C$ is the córdoba's in CLDR; its Canadian use is not	
+csw	CA$1.23	CAD 1.23		price-parser:examples_3	1.23	the locale is one whose own currency the text names	
+ps	1 ؋	AFN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 Lek	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+hy	1 ֏	AMD 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 ƒ	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+az	1 ₼	AZN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+bn	1 ৳	BDT 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+be	1 Br	BYN 1		price-parser:examples_3	1		
+en	1 BZ$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+dz	1 Nu.	BTN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+bs	1 KM	BAM 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+pt-BR	1 R$	BRL 1		price-parser:examples_3	1		
+bg	1 лв	BGN 1		price-parser:examples_3	1		
+rn	1 FBu	BIF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 BD	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+km	1 ៛	KHR 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 CFA	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+sg	1 FCFA	XAF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ar-KM	1 KMF	KMF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 ₣	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+es-CR	1 ₡	CRC 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 kn	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+en	1 CUC$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+ceb	1 ₱	PHP 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+cs	1 Kč	CZK 1		price-parser:examples_3	1		
+ar-DJ	1 Fdj	DJF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+es-DO	1 RD$	DOP 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ar-ER	1 Nfk	ERN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ak	1 GH₵	GHS 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+hu	1 Ft	HUF 1		price-parser:examples_3	1		
+id	1 Rp	IDR 1		price-parser:examples_3	1		
+fa	1 ﷼	IRR 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+he	1 ₪	ILS 1		price-parser:examples_3	1		
+en	1 J$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+en	1 KD	KWD 1	gap	price-parser:examples_3	1	KD, the Kuwaiti dinar's Latin abbreviation, is not in CLDR	
+lo	1 ₭	LAK 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 LD	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+en-MO	1 MOP$	MOP 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en-MW	1 MK	MWK 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ms	1 RM	MYR 1		price-parser:examples_3	1		
+rw	1 Rf	RWF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+fr-MR	1 UM	MRU 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+sd	1 ₨	PKR 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+mn	1 ₮	MNT 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en-CA	1 C$	refuse		price-parser:examples_3	1	C$ is the córdoba's in CLDR; its Canadian use is not	
+ha	1 ₦	NGN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+es-PA	1 B/.	PAB 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+qu	1 S/.	PEN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ru	1 ₽	RUB 1		price-parser:examples_3	1		
+pt-ST	1 Db	STN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+zh-TW	1 NT$	TWD 1	gap	price-parser:examples_3	1	NT$ is not in CLDR zh-Hant, which writes the dollar $	
+asa	1 TSh	TZS 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en-TO	1 T$	TOP 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 TT$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+fr-TN	1 DT	TND 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+ku	1 ₺	TRY 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+lg	1 USh	UGX 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en-UA	1 ₴	UAH 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 $U	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+en-VU	1 VT	VUV 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+es-BO	1 Bs	BOB 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+bem	1 ZK	ZMW 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en	1 Z$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+en	1 ₿	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
+ka	1 GEL	GEL 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+fr-GN	1 FG	GNF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
+en-ZA	R273.00	ZAR 273		price-parser:examples_xfail	273		
+en	2963yen	refuse		price-parser:examples_xfail_currencies_to_be_added	2963	no CLDR locale writes it as its own currency	
+en	1 บาท	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-SA	1 ر.س	SAR 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar	45 ج.م	EGP 45		price-parser:examples_xfail_currencies_to_be_added	45	the locale is one whose own currency the text names	
+ar	45 E£	EGP 45		price-parser:examples_xfail_currencies_to_be_added	45	the locale is one whose own currency the text names	
+en	2000 zl	refuse		price-parser:examples_xfail_currencies_to_be_added	2000	no CLDR locale writes it as its own currency	
+en	CAN$1.23	refuse		price-parser:examples_xfail_currencies_to_be_added	1.23	no CLDR locale writes it as its own currency	
+kek	200q	GTQ 200		price-parser:examples_xfail_currencies_to_be_added	200	the locale is one whose own currency the text names	
+kek	200Q	GTQ 200		price-parser:examples_xfail_currencies_to_be_added	200	the locale is one whose own currency the text names	
+en	1 دج	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 .د.ب	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 $b	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en-BW	1 P	BWP 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 franc	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	2 francs	refuse		price-parser:examples_xfail_currencies_to_be_added	2	no CLDR locale writes it as its own currency	
+en	1 ናቕፋ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 نافكا	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en-SZ	1 E	SZL 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+am	1 ብር	ETB 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en-GM	1 D	GMD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ლ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 ¢	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 ₵	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 GFr	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+es-HN	1 L	HNL 1		price-parser:examples_xfail_currencies_to_be_added	1		
+en	1 ع.د	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 د.	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ki	1 KSh	KES 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-KW	1 د.ك	KWD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ل.د	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+mk	1 ден	MKD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+mk	1 ДЕН	MKD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+mg	1 Ar	MGA 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-AE	1 د.إ	AED 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 MT	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+my	1 K	MMK 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 FRw	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+rw	1 RF	RWF 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 R₣	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Дин	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 SPL	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-SD	1 ج.س.	SDG 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-TN	1 د.ت	TND 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	AU $59.95	refuse		price-parser:examples_xfail_currencies_to_be_added	59.95	no CLDR locale writes it as its own currency	
+en	US $1.23	refuse		price-parser:examples_xfail_currencies_to_be_added	1.23	no CLDR locale writes it as its own currency	
+en	CAD$1.23	refuse		price-parser:examples_xfail_currencies_to_be_added	1.23	no CLDR locale writes it as its own currency	
+en	1 G$	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 GY$	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 BTC	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+rm	1 CHf	CHF 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 Dh	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Dhs	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Esc	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+rn	1 Fbu	BIF 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ID	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Ks	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 NT	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+dz	1 Nu	BTN 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 Rbl	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Re	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+qu	1 S/	PEN 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 SFr	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Sl	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 VNĐ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en-VU	1 Vt	VUV 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 din	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 hrn	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 kwz	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 lari	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 nis	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 pound	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Sʻ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 S'	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+uz	1 so'm	UZS 1	gap	price-parser:examples_xfail_currencies_to_be_added	1	CLDR uz writes the som soʻm, with U+02BB	
+en	1 som	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 stg	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 yuan	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 Ƀ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 дин	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+bs-Cyrl	1 км	BAM 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 с	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 ש״ח	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-SD	1 ج.س	SDG 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-JO	1 د.أ	JOD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 د.ا	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-DZ	1 د.ج	DZD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-EH	1 د.م	MAD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 دينار	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-JO	1 دينار أردني	JOD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-KW	1 دينار كويتي	KWD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-OM	1 ر.ع	OMR 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-QA	1 ر.ق	QAR 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ش.ج	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+ar-SY	1 ل.س	SYP 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+ar-LB	1 ل.ل	LBP 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ரூ	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+si	1 රු	LKR 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	1 ლარი	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 人民币	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 圆	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	1 圓	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+cy	1 GBp	GBP 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+cy	1 ￡	GBP 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+mi	1 nzd	NZD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+mk	1 mkd	MKD 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+en	CND	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	KShs	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	chf	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+uz	so'm	UZS 1	gap	price-parser:examples_xfail_currencies_to_be_added	1	CLDR uz writes the som soʻm, with U+02BB	
+en	тг	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	ש"ח	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	ש'ח	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	د.ع	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	د.ل	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	ر.ي	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+en	ش.ص	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
+fr-HT	1 G	HTG 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
+de	1250€600	refuse		price-parser:decimal_separator_examples	1250.6	not one currency amount	
