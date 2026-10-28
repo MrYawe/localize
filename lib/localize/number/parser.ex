@@ -21,17 +21,38 @@ defmodule Localize.Number.Parser do
   # then drops with the other format characters. Elsewhere they stay in the
   # text as written. Not all of `\p{Cf}`: that includes the zero-width joiner
   # that emoji sequences in the surrounding text are built with.
-  @bidi_controls "[\\x{061C}\\x{200E}\\x{200F}\\x{202A}-\\x{202E}\\x{2066}-\\x{2069}]*"
+  @bidi_control_class "\\x{061C}\\x{200E}\\x{200F}\\x{202A}-\\x{202E}\\x{2066}-\\x{2069}"
+  @bidi_controls "[" <> @bidi_control_class <> "]*"
 
   @number_format @bidi_controls <>
                    "([-+]" <>
                    @bidi_controls <>
                    ")?[0-9]([0-9_]|[,](?=[0-9]))*(\\.ZERO_FRACTION|\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
 
-  # A zero fraction written as a dash, "5.–", for a lenient scan: one or two of
-  # the dashes `@zero_fraction_dashes` reads, with no digit after them. A
-  # strict scan puts a pattern in its place that never matches.
-  @zero_fraction "[\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}][\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}]?(?![0-9])"
+  # The dashes that may stand for a zero fraction, "5.–": the hyphen-minus,
+  # U+2010 to U+2015 (the hyphens, figure dash, en and em dashes and the
+  # horizontal bar), the minus sign and the small and fullwidth forms. The
+  # scanner, the currency amount splitter and `parse/2` all read this one
+  # list, so they cannot disagree about which dash is which.
+  @zero_fraction_dash_characters [
+    "-",
+    "\u2010",
+    "\u2011",
+    "\u2012",
+    "\u2013",
+    "\u2014",
+    "\u2015",
+    "\u2212",
+    "\uFE58",
+    "\uFE63",
+    "\uFF0D"
+  ]
+  @dash_class Enum.map_join(@zero_fraction_dash_characters, &Regex.escape/1)
+
+  # A zero fraction for a lenient scan: one or two of those dashes, with no
+  # digit after them. A strict scan puts a pattern in its place that never
+  # matches.
+  @zero_fraction "[" <> @dash_class <> "][" <> @dash_class <> "]?(?![0-9])"
 
   # TR35's loose matching for lenient parsing says to "ignore all characters in
   # [:Zs:] unless they occur between letters", and separately to normalize to
@@ -72,39 +93,41 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
+  # A folded number as its sign before an opening parenthesis, the
+  # parenthesis, a sign after it, the digits, a sign before the closing
+  # parenthesis, the parenthesis and a sign after it. Every part but the
+  # digits may be empty, so it matches any string.
+  @signed_number ~r/\A\p{Zs}*([_+]?)\p{Zs}*(\(?)\p{Zs}*([_+]?)\p{Zs}*(.*?)\p{Zs}*([_+]?)\p{Zs}*(\)?)\p{Zs}*([_+]?)\p{Zs}*\z/us
+
+  # Whatever follows the last digit of a number in an accounting format:
+  # spaces and a closing parenthesis, all optional, so it matches any string.
+  @closing_parenthesis ~r/\p{Zs}*\)?\p{Zs}*\z/u
+
   # Spaces at either end of a number, or beside its sign once folded: "_" is
   # the minus family's sample.
   @edge_spaces ~r/\A\p{Zs}+|\p{Zs}+\z|(?<=[_+])\p{Zs}+|\p{Zs}+(?=[_+])/u
 
   # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
   # the end of a string.
-  @leading_bidi_controls ~r/\A[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+/u
-  @trailing_bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+\z/u
-  @any_bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u
+  @leading_bidi_controls Regex.compile!("\\A[" <> @bidi_control_class <> "]+", "u")
+  @trailing_bidi_controls Regex.compile!("[" <> @bidi_control_class <> "]+\\z", "u")
+  @any_bidi_controls Regex.compile!("[" <> @bidi_control_class <> "]", "u")
 
-  # The number in a currency amount: digits, with any separator a locale or
-  # currency writes between them. Which separator groups and which marks the
-  # decimal is left to `parse/2` once the currency is known. A separator
-  # counts only between digits, so the period of `da` "kr.5" stays with the
-  # currency, or before a zero fraction written as a dash, "5.–", which
-  # `parse/2` reads as a whole amount.
-  #
-  # A mark may also open or close the number, as in ".5 USD" or "USD 5.",
-  # where `parse/2` reads it only if it is the decimal mark: `en` ".5" is 0.5
-  # and `de` ".5", whose "." groups, is refused. It opens the number only at
-  # the start or after a space, sign or "(", so the period of `de-CH` "Fr.5"
-  # stays with the currency. It may close the number before anything but a
-  # digit, as in "5.USD", since no currency's text begins with one.
-  @amount_number ~r/(?:(?<![^\s\p{Zs}(+\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0B}\x{FF0D}])\p{Po}(?=\p{Nd}))?\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*(?:[\p{Po}\p{Pf}][\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0D}]{1,2}(?!\p{Nd})|\p{Po}(?!\p{Nd}))?/u
+  # The digits of a currency amount, from the first to the last, and what may
+  # stand between them: spaces and the punctuation of separators, which
+  # `parse/2` judges.
+  @digit_run ~r/\p{Nd}(?:.*\p{Nd})?/us
+  @number_core ~r/\A[\p{Nd}\p{Zs}\p{Po}\p{Pf}]*\z/u
 
-  @any_digit ~r/\p{Nd}/u
-  @closing_mark ~r/\p{Po}\z/u
+  # A currency text's closing punctuation mark, split from the rest.
+  @closing_mark_split ~r/\A(.*?)(\p{Po})\z/us
+
   @ends_in_digit ~r/\p{Nd}\z/u
 
-  # The dashes that stand for a zero fraction, one or two of them, after
-  # folding: "_" is CLDR's minus family, which has neither the hyphen U+2010
-  # nor the en dash U+2013 that Swiss text writes most.
-  @zero_fraction_dashes for dash <- ["_", "\u2010", "\u2013", "\u2014", "\u2015", "\uFE58"],
+  # The same dashes as `parse/2` sees them, one or two, once folded: the
+  # minus family folds to its sample "_", and the dashes CLDR leaves out of
+  # it for a locale stay as they are.
+  @zero_fraction_dashes for dash <- ["_" | @zero_fraction_dash_characters],
                             count <- [2, 1],
                             do: String.duplicate(dash, count)
 
@@ -739,7 +762,7 @@ defmodule Localize.Number.Parser do
          {:ok, parts} <- amount_parts(string, language_tag),
          {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
          {:ok, number} <- amount_number(parts, currency, separators_of, options) do
-      {:ok, {currency, signed_amount(number, parts)}}
+      {:ok, {currency, number}}
     end
   end
 
@@ -1092,77 +1115,65 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # Splits an amount into its number, its currency text and its sign. The
-  # text either side of the number is its decorations (spaces, signs and
-  # parentheses) around at most one currency text.
+  # Splits an amount into its currency text and the text of its number,
+  # which is everything else: the digits from the first to the last, with
+  # the signs, parentheses, spaces and marks around them, all of which
+  # `parse/2` reads. The currency text stands before the number or after
+  # it, inside those.
   defp amount_parts(string, language_tag) do
     text = String.replace(string, @any_bidi_controls, "")
 
-    case Regex.run(@amount_number, text, return: :index) do
+    case Regex.run(@digit_run, text, return: :index) do
       [{start, length}] ->
         before = binary_part(text, 0, start)
-        number = binary_part(text, start, length)
+        digits = binary_part(text, start, length)
         rest = binary_part(text, start + length, byte_size(text) - start - length)
-        decorated_parts(before, number, rest, language_tag, string)
+        split_amount(before, digits, rest, language_tag, string)
 
       nil ->
         {:error, not_an_amount(string)}
     end
   end
 
-  defp decorated_parts(before, number, rest, language_tag, string) do
-    pattern = decoration_pattern(language_tag)
-    {leading, prefix, before_number} = decorations(pattern, before)
-    {after_number, suffix, trailing} = decorations(pattern, rest)
-    opening = leading <> before_number
-    closing = after_number <> trailing
-    signs = sign_counts(opening <> closing, language_tag)
+  defp split_amount(before, digits, rest, language_tag, string) do
+    {prefix_pattern, suffix_pattern} = amount_patterns(language_tag)
+    {lead, prefix, between, mark} = prefix_parts(prefix_pattern, before)
+    {after_digits, suffix, trailing} = decorations(suffix_pattern, rest)
 
-    if valid_amount?(prefix, suffix, opening, closing, signs) do
-      # Parentheses negate whatever sign is inside them, so "($-127.54)" is
-      # positive, as ex_money has always read it.
-      minus? = signs.minus == 1
-      parenthesised? = String.contains?(opening, "(")
-
+    if String.match?(digits, @number_core) and (prefix == "" or suffix == "") do
       {:ok,
        %{
          currency: prefix <> suffix,
-         mark: touching_mark(prefix, before_number),
-         number: number,
-         negative?: minus? != parenthesised?
+         mark: mark,
+         lead: lead,
+         rest: between <> digits <> after_digits <> trailing
        }}
     else
       {:error, not_an_amount(string)}
     end
   end
 
-  # The punctuation mark that ends the currency text where nothing stands
-  # between it and the digits.
-  defp touching_mark(prefix, "") do
-    case Regex.run(@closing_mark, prefix) do
-      [mark] -> mark
-      nil -> ""
+  # The text before the digits as its leading decorations, the currency
+  # text, the decorations between it and the digits, and a mark the
+  # currency text ends in where nothing stands between it and the digits.
+  # A mark after a space, a sign or "(" is the number's, as in "USD .5".
+  defp prefix_parts(pattern, before) do
+    {lead, prefix, between} = decorations(pattern, before)
+
+    case Regex.run(@closing_mark_split, prefix) do
+      [_prefix, unmarked, mark] when between == "" ->
+        prefix_mark(pattern, lead, prefix, unmarked, mark)
+
+      _no_touching_mark ->
+        {lead, prefix, between, ""}
     end
   end
 
-  defp touching_mark(_prefix, _decorations) do
-    ""
-  end
-
-  # One currency text at most, on one side; no second number; a sign of one
-  # kind at most; and parentheses only as a pair around the whole amount.
-  defp valid_amount?(prefix, suffix, opening, closing, signs) do
-    (prefix == "" or suffix == "") and
-      not String.match?(prefix <> suffix, @any_digit) and
-      signs.minus + signs.plus <= 1 and
-      parentheses(opening, "(") == parentheses(closing, ")") and
-      parentheses(opening, "(") <= 1 and
-      parentheses(opening, ")") == 0 and
-      parentheses(closing, "(") == 0
-  end
-
-  defp parentheses(text, parenthesis) do
-    length(:binary.matches(text, parenthesis))
+  defp prefix_mark(pattern, lead, prefix, unmarked, mark) do
+    case decorations(pattern, unmarked) do
+      {_lead, currency, ""} when currency != "" -> {lead, prefix, "", mark}
+      {_lead, currency, spacing} -> {lead, currency, spacing <> mark, ""}
+    end
   end
 
   # `text` as its leading decorations, the text between them and its
@@ -1174,27 +1185,20 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp decoration_pattern(language_tag) do
-    {minus, plus} = amount_signs(language_tag)
-    decoration = "[\\p{Zs}\\t()" <> class_characters(minus ++ plus) <> "]*"
-    Regex.compile!("\\A(" <> decoration <> ")(.*?)(" <> decoration <> ")\\z", "us")
-  end
+  # The decorations around a currency text: spaces, the locale's signs and
+  # parentheses, and after the digits the marks that may close a number, as
+  # in "5.USD" and "5.– CHF".
+  defp amount_patterns(language_tag) do
+    cached({:amount_patterns, language_tag.cldr_locale_id}, fn ->
+      signs = sign_characters(lenient_sets(language_tag))
+      decoration = "\\p{Zs}\\t()" <> class_characters(signs)
+      closing = decoration <> "\\p{Po}\\p{Pf}" <> @dash_class
 
-  # The minus and plus signs `parse/2` folds, without the minus family's
-  # sample "_", which `parse/2` reads as a digit separator.
-  defp amount_signs(language_tag) do
-    sets = lenient_sets(language_tag)
-    {lenient_equivalents("-", sets) -- ["_"], lenient_equivalents("+", sets)}
-  end
-
-  defp sign_counts(decorations, language_tag) do
-    {minus, plus} = amount_signs(language_tag)
-    characters = String.graphemes(decorations)
-
-    %{
-      minus: Enum.count(characters, &(&1 in minus)),
-      plus: Enum.count(characters, &(&1 in plus))
-    }
+      {
+        Regex.compile!("\\A([" <> decoration <> "]*)(.*?)([" <> decoration <> "]*)\\z", "us"),
+        Regex.compile!("\\A([" <> closing <> "]*)(.*?)([" <> decoration <> "]*)\\z", "us")
+      }
+    end)
   end
 
   # The currency an amount names, and the currency whose separators its
@@ -1260,10 +1264,10 @@ defmodule Localize.Number.Parser do
   end
 
   defp marked_number(parts, unmarked, currency, separators_of, string, options) do
-    %{mark: mark, number: number} = parts
+    %{mark: mark, lead: lead, rest: rest} = parts
 
-    if decimal_mark?(mark, number, separators_of, options) do
-      {:ok, currency, separators_of, %{parts | currency: unmarked, number: mark <> number}}
+    if decimal_mark?(mark, rest, separators_of, options) do
+      {:ok, currency, separators_of, %{parts | currency: unmarked, lead: lead <> mark}}
     else
       {:error, not_an_amount(string)}
     end
@@ -1381,7 +1385,9 @@ defmodule Localize.Number.Parser do
     )
   end
 
-  defp amount_number(%{number: number}, currency, separators_of, options) do
+  defp amount_number(%{lead: lead, rest: rest}, currency, separators_of, options) do
+    number = String.trim(lead <> rest)
+
     parse_options =
       options
       |> Keyword.take([:locale, :number_system, :separators])
@@ -1404,14 +1410,6 @@ defmodule Localize.Number.Parser do
 
   defp put_separators_currency(options, currency) do
     Keyword.put(options, :currency, currency)
-  end
-
-  defp signed_amount(decimal, %{negative?: true}) do
-    Decimal.negate(decimal)
-  end
-
-  defp signed_amount(decimal, %{negative?: false}) do
-    decimal
   end
 
   defp not_an_amount(string) do
@@ -1533,28 +1531,52 @@ defmodule Localize.Number.Parser do
       |> String.replace("_", "")
       |> String.replace(@format_characters, "")
       |> apply_lenient(lenient)
-      |> normalize_spaces(group_sep)
+      # Before the signs are read, so the dash of "5.-" is not a minus.
       |> drop_zero_fraction(decimal_sep, grouping)
 
-    with :ok <-
-           validate_grouping(
-             folded,
-             group_sep,
-             decimal_sep,
-             language_tag,
-             number_system,
-             grouping
-           ) do
-      {:ok,
-       folded
-       |> String.replace(group_sep, "")
-       |> String.replace(@spaces, "")
-       |> String.replace(decimal_sep, ".")
-       # CLDR names the minus set by the sample "_", so folding it yields that
-       # placeholder rather than a sign. Restoring it last keeps a minus from
-       # being mistaken for a separator while the separators are being removed.
-       |> String.replace("_", "-")}
+    with {:ok, body, negative?} <- signed_body(folded),
+         body = normalize_spaces(body, group_sep),
+         :ok <-
+           validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping) do
+      number =
+        body
+        |> String.replace(group_sep, "")
+        |> String.replace(@spaces, "")
+        |> String.replace(decimal_sep, ".")
+        # CLDR names the minus set by the sample "_", so folding it yields
+        # that placeholder rather than a sign. What remains of one here is an
+        # exponent's.
+        |> String.replace("_", "-")
+
+      {:ok, signed_number(number, negative?)}
     end
+  end
+
+  # A number's sign and accounting parentheses, as a money amount writes
+  # them: one sign at most, before or after the digits, inside or outside
+  # the parentheses, which negate what they hold, so "(5)" is -5 and "(-5)"
+  # is 5. TR35's heuristics for parsing a number take a sign as a prefix or
+  # a suffix. Spaces between them and the digits are not part of the number.
+  defp signed_body(folded) do
+    [_whole, before_open, open, after_open, body, before_close, close, after_close] =
+      Regex.run(@signed_number, folded)
+
+    signs = Enum.reject([before_open, after_open, before_close, after_close], &(&1 == ""))
+
+    cond do
+      body == "" -> {:error, :no_digits}
+      match?([_, _ | _], signs) -> {:error, :signs}
+      open == "(" != (close == ")") -> {:error, :parentheses}
+      true -> {:ok, body, signs == ["_"] != (open == "(")}
+    end
+  end
+
+  defp signed_number(number, true) do
+    "-" <> number
+  end
+
+  defp signed_number(number, false) do
+    number
   end
 
   # Swiss "5.–" and Dutch "5,-" write a whole amount with a dash for its
@@ -1562,11 +1584,17 @@ defmodule Localize.Number.Parser do
   # only leniently, after the folds.
   defp drop_zero_fraction(string, decimal_sep, grouping)
        when grouping in [:lenient, :sizes] and decimal_sep != "" do
-    Enum.find_value(@zero_fraction_dashes, string, fn dashes ->
-      whole = String.replace_suffix(string, decimal_sep <> dashes, "")
+    # The dash ends the number, which may be followed by the closing
+    # parenthesis of an accounting format: "(CHF 5.–)".
+    [{start, _length}] = Regex.run(@closing_parenthesis, string, return: :index)
+    number = binary_part(string, 0, start)
+    closing = binary_part(string, start, byte_size(string) - start)
 
-      if whole != string and String.match?(whole, @ends_in_digit) do
-        whole
+    Enum.find_value(@zero_fraction_dashes, string, fn dashes ->
+      whole = String.replace_suffix(number, decimal_sep <> dashes, "")
+
+      if whole != number and String.match?(whole, @ends_in_digit) do
+        whole <> closing
       end
     end)
   end
@@ -1960,15 +1988,24 @@ defmodule Localize.Number.Parser do
   # underscore as a digit separator rather than reading it as a sign. Format
   # characters in a locale's sign are not part of the sign here.
   defp sign_class(symbols, sets) do
-    signs =
-      for sign <- ["-", "+", symbols.minus_sign, symbols.plus_sign],
-          sign = String.replace(extract_separator(sign), @format_characters, ""),
-          character <- lenient_equivalents(sign, sets),
-          character != "_",
-          uniq: true,
-          do: character
+    sets
+    |> sign_characters([symbols.minus_sign, symbols.plus_sign])
+    |> class_characters()
+  end
 
-    class_characters(signs)
+  # The signs `parse/2` folds: ASCII's, any `extra_signs` such as the
+  # locale's own, and their folds. The minus family's sample "_" is left
+  # out, because `parse/2` drops an underscore as a digit separator rather
+  # than reading it as a sign. Format characters in a locale's sign are not
+  # part of the sign here. The scanner and the currency amount splitter both
+  # take their signs from here.
+  defp sign_characters(sets, extra_signs \\ []) do
+    for sign <- ["-", "+" | extra_signs],
+        sign = String.replace(extract_separator(sign), @format_characters, ""),
+        character <- lenient_equivalents(sign, sets),
+        character != "_",
+        uniq: true,
+        do: character
   end
 
   # What counts as a grouping separator inside the scanner's character class.

@@ -476,6 +476,34 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  # TR35's heuristics take a sign as a prefix or a suffix, and CLDR's
+  # accounting formats write a negative amount in parentheses.
+  describe "parse/2 signs and accounting parentheses" do
+    test "a sign before or after the digits, with or without a space" do
+      for string <- ["-5", "5-", "- 5", "5 -"] do
+        assert {:ok, -5} = Parser.parse(string, locale: "en"), inspect(string)
+      end
+
+      assert {:ok, 5} = Parser.parse("+5", locale: "en")
+      assert {:ok, -127.54} = Parser.parse("127,54-", locale: "nl")
+    end
+
+    test "parentheses negate what they hold" do
+      assert {:ok, -5} = Parser.parse("(5)", locale: "en")
+      assert {:ok, -5} = Parser.parse("( 5 )", locale: "en")
+      assert {:ok, 5} = Parser.parse("(-5)", locale: "en")
+      assert {:ok, 5} = Parser.parse("-(5)", locale: "en")
+      assert {:ok, -1234.56} = Parser.parse("(1 234,56)", locale: "fr")
+      assert {:ok, -5} = Parser.parse("(5.–)", locale: "de-CH")
+    end
+
+    test "two signs, or a parenthesis without its pair, are refused" do
+      for string <- ["--5", "-5-", "+-5", "(5", "5)", "((5))", ")5(", "-", "()"] do
+        assert {:error, _} = Parser.parse(string, locale: "en"), inspect(string)
+      end
+    end
+  end
+
   describe "zero fraction written as a dash" do
     test "parse/2 reads it as a whole amount" do
       assert {:ok, 5} = Parser.parse("5.–", locale: "de-CH")
@@ -490,7 +518,8 @@ defmodule Localize.Number.ParserTest do
       assert {:error, _} = Parser.parse("5.–", locale: "de-CH", lenient: false)
       assert {:error, _} = Parser.parse(".–", locale: "de-CH")
       assert {:error, _} = Parser.parse("5.---", locale: "de-CH")
-      assert {:error, _} = Parser.parse("5-", locale: "en")
+      # A dash after the digits with no decimal mark is a trailing minus.
+      assert {:ok, -5} = Parser.parse("5-", locale: "en")
     end
 
     test "scan/2 reads it as part of the number" do

@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
+* `Localize.Number.Parser.parse/2` reads a trailing sign and accounting parentheses, which negate what they hold: "127,54-" and "(5)" are negative, "(-5)" positive. `parse_currency_amount/2` hands it everything but the currency text, so the two read a number the same way.
+
 * `Localize.Number.Parser.parse/2` option `grouping: :sizes` takes only groups of the sizes the locale writes, so `de` "1.23" is refused rather than read as 123; `parse_currency_amount/2` reads amounts with it.
 
 * `Localize.Number.Parser.parse/2` option `root_separators: true` also reads with the root locale's separators and refuses a string the two read differently; `parse_currency_amount/2` reads the amount of a caller's `:caller_currency` with it.

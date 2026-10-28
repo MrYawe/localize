@@ -283,22 +283,16 @@ defmodule Localize.Number.CurrencyAmountTest do
     end
 
     test "text that is not one currency amount" do
-      for string <- [
-            "USD 100 with trailing text",
-            "USD 100 EUR",
-            "--5 USD",
-            "-+5 USD",
-            "(5 USD",
-            "5 USD)",
-            ")5 USD(",
-            "((5 USD))",
-            "5 USD 6",
-            "USD",
-            "",
-            "   "
-          ] do
+      for string <- ["USD 100 with trailing text", "USD 100 EUR", "5 USD 6", "USD", "", "   "] do
         assert %Localize.ParseError{reason: :unexpected_input} = amount(string),
                inspect(string)
+      end
+    end
+
+    # The number, signs and parentheses included, is read by `parse/2`.
+    test "a currency whose signs or parentheses are malformed" do
+      for string <- ["--5 USD", "-+5 USD", "(5 USD", "5 USD)", ")5 USD(", "((5 USD))"] do
+        assert %Localize.InvalidAmountError{currency: :USD} = amount(string), inspect(string)
       end
     end
 
