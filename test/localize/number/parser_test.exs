@@ -238,6 +238,27 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "lenient grouping" do
+    test "refuses a group longer than the locale's longest" do
+      # A separator after four digits is no grouping any locale writes, and
+      # reading it as one turned "1234.56" into 123456.
+      assert {:error, _} = Parser.parse("1234.56", locale: "de", number: :decimal)
+      assert {:error, _} = Parser.parse("1.2345", locale: "de", number: :decimal)
+      assert {:error, _} = Parser.parse("1234,567", locale: "en", number: :decimal)
+
+      assert {:error, _} =
+               Parser.parse("1234.56", locale: "de-AT", currency: :EUR, number: :decimal)
+    end
+
+    test "still takes short groups and either grouping in en-IN" do
+      assert {:ok, 1234} = Parser.parse("1.234", locale: "de")
+      assert {:ok, 123} = Parser.parse("1 23", locale: "fr")
+      assert {:ok, 1_234_567} = Parser.parse("1,234,567", locale: "en-IN")
+      assert {:ok, 1_234_567} = Parser.parse("12,34,567", locale: "en-IN")
+      assert {:ok, 12_345.67} = Parser.parse("12345.67", locale: "en")
+    end
+  end
+
   describe "scan/2 grouping" do
     test "finds a grouped number written with an ordinary space" do
       # The reported case: `fr` formats with U+202F, but people type U+0020.

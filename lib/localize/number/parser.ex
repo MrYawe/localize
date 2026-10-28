@@ -1281,7 +1281,10 @@ defmodule Localize.Number.Parser do
   #     takes "1 234 567" and refuses "1 23".
   #
   #   * lenient — every group is at least two digits, so "1 23" is taken but
-  #     "3 4" is not.
+  #     "3 4" is not, and no longer than the locale's longest group, so `de`
+  #     refuses "1234.56" rather than reading it as 123456. The longest
+  #     rather than each position's own size, so `en-IN` still takes
+  #     "1,234,567" written with Western grouping.
   #
   # The lenient floor of two is what keeps a space usable as a grouping
   # separator without swallowing adjacent small numbers: "3 4 5" is three
@@ -1309,13 +1312,18 @@ defmodule Localize.Number.Parser do
       cond do
         # A group that is not all digits is not a group at all.
         Enum.any?(groups, &(&1 == "" or not String.match?(&1, @digits_only))) -> false
-        lenient? -> Enum.all?(rest, &(String.length(&1) >= @lenient_group_floor))
+        lenient? -> lenient_groups?(leading, rest, max(primary, secondary))
         String.length(last) != primary -> false
         Enum.any?(middle, &(String.length(&1) != secondary)) -> false
         true -> String.length(leading) <= secondary
       end
 
     if valid?, do: :ok, else: {:error, :grouping}
+  end
+
+  defp lenient_groups?(leading, rest, longest) do
+    String.length(leading) <= longest and
+      Enum.all?(rest, &(String.length(&1) in @lenient_group_floor..longest//1))
   end
 
   # The primary group is the rightmost run in the locale's standard pattern and

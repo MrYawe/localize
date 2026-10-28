@@ -4,6 +4,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **ASCII digits read with the Latin separators** (next release) — in a locale whose default digits are not Latin, `ar-EG` "100,00" reads as 100.00 and "1,234.56" is refused, because the `arab` decimal ٫ folds onto ","; with `number_system: :latn` both read as typed. Found comparing ex_money's readings, 2026-10-28.
+
 * [ ] **`localize_mf1` sibling library** (next release) — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60. A separate package, since MF1 is ICU's specification and not TR35's. Port `ex_cldr_messages` 2.0.1's `v1/` parser (NimbleParsec), interpreter, printer and HTML renderer, about 1,700 lines. Its only ex_cldr calls are public formatters with Localize equivalents: `Number`, `Date`, `Time`, `DateTime`, `List`, `Unit` and `PluralRule`. Gettext passes neither a PO entry's flags nor its `msgctxt` to the interpolation module, so a flag cannot pick the format. Instead, a backend's interpolation module chooses it: an MF1 module for an all-MF1 backend, and a mixed module that reads a message as MF2 only when it opens with MF2's own `{{` or `.input`, `.local` or `.match`. Neither opener is valid MF1, so a mixed backend writes its simple MF2 messages quoted. Settle the PO flags too: MF1 keeps `icu-format`, and `Localize.Gettext.Interpolation.message_format/0` also writes `icu-format` for MF2, which tools that key on it read as MF1.
 
 * [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
@@ -67,6 +69,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Lenient grouping accepts a group that is too long** — every group is now at most the locale's longest grouping size, so `de` "1234.56" no longer reads as 123456; found comparing ex_money's old and new readings. 2026-10-28, unreleased.
 
 * [x] **A dash after the decimal mark reads as a zero fraction** — one or two dashes after the decimal mark and no digit, read only leniently, in `parse/2`, `scan/2` and `parse_currency_amount/2`; a dash after the fraction digits is still a trailing minus. 2026-10-28, unreleased.
 

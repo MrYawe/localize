@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse/2`, `scan/2` and `parse_currency_amount/2` read a zero fraction written as a dash, Swiss "5.–" and Dutch "5,-", as a whole amount when lenient. Found from ex_money #209.
 
+* Lenient `Localize.Number.Parser.parse/2` refuses a group longer than the locale's longest, so `de` "1234.56" is an error rather than 123456, and `de-AT` "1234.56" read as a euro amount likewise.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed
