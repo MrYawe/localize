@@ -24,6 +24,9 @@
 #                 cldr:<file>      CLDR's plain decimal test data
 #                                  (test/support/data/<file>_test_data.tsv),
 #                                  read back with the locale's currency given
+#                 swiss:Schreibweisungen <rule>  the Swiss Federal
+#                                  Chancellery's writing rules for amounts,
+#                                  read in de-CH
 #   their_result  the source's own answer
 #   note          why the expected result differs from the source's
 #   given_currency  optional: the currency the caller supplies, passed as
@@ -4120,3 +4123,47 @@ ru	500\u{00A0}000\u{00A0}000\u{00A0}000	RUB 500000000000		cldr:decimal_extended_
 ru	1\u{00A0}000\u{00A0}000\u{00A0}000\u{00A0}000	RUB 1000000000000		cldr:decimal_extended_numbers	1000000000000		RUB
 ru	1\u{00A0}500\u{00A0}000\u{00A0}000\u{00A0}000	RUB 1500000000000		cldr:decimal_extended_numbers	1500000000000		RUB
 ru	5\u{00A0}000\u{00A0}000\u{00A0}000\u{00A0}000	RUB 5000000000000		cldr:decimal_extended_numbers	5000000000000		RUB
+de-CH	Fr. 327.65	CHF 327.65		swiss:Schreibweisungen 539	CHF 327.65		
+de-CH	€ 64.15	EUR 64.15	gap	swiss:Schreibweisungen 539	EUR 64.15	CLDR de-CH writes the euro EUR, so € is not in its data	
+de-CH	EUR 64.15	EUR 64.15		swiss:Schreibweisungen 545	EUR 64.15		
+de-CH	Fr. 1.01	CHF 1.01		swiss:Schreibweisungen 539	CHF 1.01		
+de-CH	Fr. –.98	refuse		swiss:Schreibweisungen 539	CHF 0.98	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
+de-CH	3 Euro	EUR 3		swiss:Schreibweisungen 539	EUR 3		
+de-CH	20 Franken	refuse		swiss:Schreibweisungen 539	CHF 20	Franken names several francs in CLDR de-CH	
+de-CH	15 Rappen	refuse		swiss:Schreibweisungen 539	CHF 0.15	the Rappen, a hundredth of a franc, is no currency of its own	
+de-CH	20 britischen Pfund	GBP 20	gap	swiss:Schreibweisungen 539	GBP 20	an inflected currency name is not in CLDR	
+de-CH	4,16 Mio. Fr.	refuse		swiss:Schreibweisungen 540	CHF 4160000	Mio. and Mrd. multiply the amount, which Localize does not read	
+de-CH	20 Mio. $	refuse		swiss:Schreibweisungen 539	USD 20000000	Mio. and Mrd. multiply the amount, which Localize does not read	
+de-CH	20 Mio. USD	refuse		swiss:Schreibweisungen 539	USD 20000000	Mio. and Mrd. multiply the amount, which Localize does not read	
+de-CH	20 Mrd. $	refuse		swiss:Schreibweisungen 540	USD 20000000000	Mio. and Mrd. multiply the amount, which Localize does not read	
+de-CH	30 Mio. EUR	refuse		swiss:Schreibweisungen 540	EUR 30000000	Mio. and Mrd. multiply the amount, which Localize does not read	
+de-CH	Fr. 20.–	CHF 20		swiss:Schreibweisungen 540	CHF 20		
+de-CH	Fr. –.15	refuse		swiss:Schreibweisungen 540	CHF 0.15	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
+de-CH	€ 15.40	EUR 15.40	gap	swiss:Schreibweisungen 540	EUR 15.40	CLDR de-CH writes the euro EUR, so € is not in its data	
+de-CH	$ 15.40	USD 15.40		swiss:Schreibweisungen 540	USD 15.40		
+de-CH	£ 15.40	GBP 15.40		swiss:Schreibweisungen 540	GBP 15.40		
+de-CH	EUR 15.40	EUR 15.40		swiss:Schreibweisungen 540	EUR 15.40		
+de-CH	USD 15.40	USD 15.40		swiss:Schreibweisungen 540	USD 15.40		
+de-CH	GBP 15.40	GBP 15.40		swiss:Schreibweisungen 540	GBP 15.40		
+de-CH	Fr. 20.–, EUR 30.–	refuse		swiss:Schreibweisungen 541	two amounts	two amounts are not one	
+de-CH	EUR 30.–	EUR 30		swiss:Schreibweisungen 541	EUR 30		
+de-CH	EUR –.35	refuse		swiss:Schreibweisungen 541	EUR 0.35	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
+de-CH	Fr. 40.–.	CHF 40	gap	swiss:Schreibweisungen 542	CHF 40	a sentence's closing period after the dash is not read	
+de-CH	Fr. 1.73.	CHF 1.73		swiss:Schreibweisungen 542	CHF 1.73		
+de-CH	Fr. 15.40	CHF 15.40		swiss:Schreibweisungen 543	CHF 15.40		
+de-CH	Fr. 23.50	CHF 23.50		swiss:Schreibweisungen 543	CHF 23.50		
+de-CH	Fr. 23,50	refuse		swiss:Schreibweisungen 543	refuse	the rule calls the decimal comma wrong, and a comma is no de-CH separator	
+de-CH	EUR 1.–	EUR 1		swiss:Schreibweisungen 545	EUR 1		
+de-CH	CHF 1.66	CHF 1.66		swiss:Schreibweisungen 545	CHF 1.66		
+de-CH	USD 1.38	USD 1.38		swiss:Schreibweisungen 545	USD 1.38		
+de-CH	nKr. 15.40	NOK 15.40	gap	swiss:Schreibweisungen 545	NOK 15.40	the federal abbreviation of the Norwegian krone is not in CLDR	
+de-CH	Fr. 23.–	CHF 23		swiss:Schreibweisungen 236	CHF 23		
+de-CH	Fr. 23.--	CHF 23		swiss:Schreibweisungen 236	CHF 23	the rule calls two hyphens wrong, but the amount is plain	
+de-CH	Fr. 23.—	CHF 23		swiss:Schreibweisungen 236	CHF 23	the rule calls the em dash wrong, but the amount is plain	
+de-CH	Fr. –.75	refuse		swiss:Schreibweisungen 236	CHF 0.75	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
+de-CH	EUR 20.–	EUR 20		swiss:Schreibweisungen 236	EUR 20		
+de-CH	EUR –.25	refuse		swiss:Schreibweisungen 236	EUR 0.25	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
+de-CH	Fr. 1234.–	CHF 1234		swiss:Schreibweisungen 512	CHF 1234		
+de-CH	Fr. 22\u{00A0}333.–	refuse		swiss:Schreibweisungen 512	CHF 22333	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
+de-CH	Fr. 750\u{00A0}000.–	refuse		swiss:Schreibweisungen 512	CHF 750000	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
+de-CH	Fr. 1\u{00A0}222\u{00A0}333.–	refuse		swiss:Schreibweisungen 512	CHF 1222333	the rule groups with a space, CLDR de-CH with ’; refused for now (Swiss usage to be confirmed)	
