@@ -547,6 +547,12 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "message",
+        "Could not parse {$input}: no currency was found"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "message",
         "Could not parse {$input}: {$detail}"
       ),
       Gettext.Macros.dpgettext_noop_with_backend(

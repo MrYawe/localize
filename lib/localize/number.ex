@@ -1229,6 +1229,51 @@ defmodule Localize.Number do
   defdelegate resolve_currency(string, options \\ []), to: Localize.Number.Parser
 
   @doc """
+  Parses a string that holds one currency amount into its currency and
+  its amount.
+
+  Delegates to `Localize.Number.Parser.parse_currency_amount/2`, which
+  describes the forms it reads.
+
+  ### Arguments
+
+  * `string` is the string to parse.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is the locale
+    returned by `Localize.get_locale/0`.
+
+  * `:number_system` and `:separators` are as for
+    `Localize.Number.Parser.parse/2`.
+
+  * `:only`, `:except` and `:fuzzy` are as for `resolve_currency/2`.
+
+  * `:default_currency` is the currency of an amount that names none.
+
+  * `:unknown_currency` is a function called with currency text that
+    names no currency of the locale.
+
+  ### Returns
+
+  * `{:ok, {currency, amount}}` where `amount` is a `t:Decimal.t/0`, or
+
+  * `{:error, exception}` if the string is not one currency amount.
+
+  ### Examples
+
+      iex> Localize.Number.parse_currency_amount("1.234,56 €", locale: :de)
+      {:ok, {:EUR, Decimal.new("1234.56")}}
+
+  """
+  @spec parse_currency_amount(String.t(), Keyword.t()) ::
+          {:ok, {Localize.Currency.currency_code() | term(), Decimal.t()}}
+          | {:error, Exception.t()}
+  defdelegate parse_currency_amount(string, options \\ []), to: Localize.Number.Parser
+
+  @doc """
   Resolves percent and permille symbols from strings within a list.
 
   Delegates to `Localize.Number.Parser.resolve_pers/2`.

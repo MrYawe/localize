@@ -179,6 +179,7 @@ defmodule Localize.Exception.StructuralTest do
       rest: "{"
     ],
     {Localize.ParseError, :incomplete_input} => [input: "Hello {", reason: :incomplete_input],
+    {Localize.ParseError, :missing_currency} => [input: "100", reason: :missing_currency],
     {Localize.ParseError, :invalid_message_format} => [
       input: "bad",
       reason: :invalid_message_format,

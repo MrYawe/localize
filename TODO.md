@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **`Localize.Number.Parser.parse_currency_amount/2`** (next release) — reads a whole currency amount such as `-CHF 1'234.56` or `(1 234,56 €)` into `{:ok, {currency, decimal}}`, wherever the currency, sign and accounting parentheses sit, with the currency's own separators and an error for surrounding text. It replaces ex_money's own grammar in ex_money 6.3.0, and an unknown currency's error carries its text so ex_money can still try digital tokens; decided 2026-10-28. It must read everything ex_money's `test/money_parse_test.exs` reads, unchanged, including a trailing minus (`€ 127,54-`), a sign between currency and amount (`kr-127,54`) and `($-127.54)` as positive.
-
 * [ ] **A dash after the decimal mark reads as a zero fraction** (next release) — Swiss `CHF 5.–` and Dutch `€ 5,-` are whole amounts, but `parse/2` refuses them and `scan/2` leaves `".–"` unread; CLDR has no data for it (CLDR-3394), so it is a lenient rule. Found from ex_money #209, 2026-09-27.
 
 * [ ] **`localize_mf1` sibling library** (next release) — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60. A separate package, since MF1 is ICU's specification and not TR35's. Port `ex_cldr_messages` 2.0.1's `v1/` parser (NimbleParsec), interpreter, printer and HTML renderer, about 1,700 lines. Its only ex_cldr calls are public formatters with Localize equivalents: `Number`, `Date`, `Time`, `DateTime`, `List`, `Unit` and `PluralRule`. Gettext passes neither a PO entry's flags nor its `msgctxt` to the interpolation module, so a flag cannot pick the format. Instead, a backend's interpolation module chooses it: an MF1 module for an all-MF1 backend, and a mixed module that reads a message as MF2 only when it opens with MF2's own `{{` or `.input`, `.local` or `.match`. Neither opener is valid MF1, so a mixed backend writes its simple MF2 messages quoted. Settle the PO flags too: MF1 keeps `icu-format`, and `Localize.Gettext.Interpolation.message_format/0` also writes `icu-format` for MF2, which tools that key on it read as MF1.
@@ -71,6 +69,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Localize.Number.Parser.parse_currency_amount/2`** — reads one currency amount into `{:ok, {currency, decimal}}`: currency either side, a sign before, between or after, accounting parentheses, the currency's separators, `:default_currency` and `:unknown_currency`; reads every case in ex_money's `test/money_parse_test.exs`. 2026-10-28, unreleased.
 
 * [x] **A currency symbol ending in a period is matched whole** — the matcher takes the closing period of a string whose CLDR form has one, and the bidi controls after it, so `da` "kr." and `ar` "ج.م.‏" leave nothing over; "100 USD." keeps its period. 2026-10-28, unreleased.
 

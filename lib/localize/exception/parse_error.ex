@@ -26,6 +26,9 @@ defmodule Localize.ParseError do
   parsed. `:input` is `nil` in this case — retaining the oversized
   string is the thing the cap exists to prevent.
 
+  When `:reason` is `:missing_currency` the input was a currency amount
+  that names no currency, and no default currency was given.
+
   """
 
   @behaviour Localize.Exception
@@ -38,6 +41,7 @@ defmodule Localize.ParseError do
           | :incomplete_input
           | :invalid_message_format
           | :input_too_large
+          | :missing_currency
 
   @type t :: %__MODULE__{
           input: String.t() | nil,
@@ -59,7 +63,8 @@ defmodule Localize.ParseError do
       :unexpected_input,
       :incomplete_input,
       :invalid_message_format,
-      :input_too_large
+      :input_too_large,
+      :missing_currency
     ]
 
   @impl true
@@ -171,6 +176,14 @@ defmodule Localize.ParseError do
       detail: detail_or_default(detail, "input"),
       size: size,
       limit: limit
+    )
+  end
+
+  def message(%__MODULE__{reason: :missing_currency, input: input}) do
+    Localize.Exception.safe_message(
+      "message",
+      "Could not parse {$input}: no currency was found",
+      input: inspect(input)
     )
   end
 

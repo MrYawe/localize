@@ -63,6 +63,16 @@ defmodule Localize.Number.Parser do
   # the end of a string.
   @leading_bidi_controls ~r/\A[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+/u
   @trailing_bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+\z/u
+  @any_bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u
+
+  # The number in a currency amount: digits, with any separator a locale or
+  # currency writes between them. Which separator groups and which marks the
+  # decimal is left to `parse/2` once the currency is known. A separator
+  # counts only between digits, so the period of `da` "kr.5" stays with the
+  # currency.
+  @amount_number ~r/\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*/u
+
+  @any_digit ~r/\p{Nd}/u
 
   # The three places in `@number_format` that `localize_format_string/3` fills
   # in with the locale: the sign class, the grouping separator and the decimal.
@@ -448,6 +458,88 @@ defmodule Localize.Number.Parser do
     end
   end
 
+  @doc """
+  Parses a string that holds one currency amount into its currency and
+  its amount.
+
+  The currency, a code, symbol or name, may come before or after the
+  amount, with or without a space between them. A sign may stand
+  before the currency, between the currency and the amount, or after
+  the amount, and the parentheses of an accounting format negate it.
+  The amount is read with the separators the locale uses for that
+  currency, so `fr-CH` "1’234.56 CHF" reads as it is written. Bidi
+  controls are ignored. Nothing else may surround the amount.
+
+  ### Arguments
+
+  * `string` is the string to parse.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is a locale identifier. The default is
+    `Localize.get_locale/0`.
+
+  * `:number_system` and `:separators` are as for `parse/2`.
+
+  * `:only`, `:except` and `:fuzzy` are as for `resolve_currency/2`.
+
+  * `:default_currency` is the currency of an amount that names none:
+    a currency code, or a name or symbol, resolved as currency text
+    in the string would be. Without it, such an amount is an error.
+
+  * `:unknown_currency` is a function of one argument, called with
+    currency text that names no currency of the locale. It returns
+    `{:ok, currency}` to read the text as `currency`, or anything else
+    to leave it unknown. A caller recognises currencies of its own,
+    such as digital tokens, with it.
+
+  ### Returns
+
+  * `{:ok, {currency, amount}}` where `currency` is a currency code, or
+    what `:unknown_currency` returned, and `amount` is a `t:Decimal.t/0`,
+    or
+
+  * `{:error, %Localize.UnknownCurrencyError{currency: text}}` when the
+    currency text names no currency, or
+
+  * `{:error, %Localize.ParseError{reason: :missing_currency}}` when the
+    string names no currency and there is no `:default_currency`, or
+
+  * `{:error, %Localize.ParseError{reason: :unexpected_input}}` when the
+    string is not one currency amount, or
+
+  * `{:error, exception}` for an invalid locale or option.
+
+  ### Examples
+
+      iex> Localize.Number.Parser.parse_currency_amount("USD 100", locale: :en)
+      {:ok, {:USD, Decimal.new("100")}}
+
+      iex> Localize.Number.Parser.parse_currency_amount("(1 234,56 €)", locale: :fr)
+      {:ok, {:EUR, Decimal.new("-1234.56")}}
+
+      iex> Localize.Number.Parser.parse_currency_amount("kr-127,54", locale: :da)
+      {:ok, {:DKK, Decimal.new("-127.54")}}
+
+  """
+  @spec parse_currency_amount(String.t(), Keyword.t()) ::
+          {:ok, {Localize.Currency.currency_code() | term(), Decimal.t()}}
+          | {:error, Exception.t()}
+  def parse_currency_amount(string, options \\ []) do
+    with :ok <- validate_arguments(string, :string, options),
+         :ok <- validate_amount_size(string),
+         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         options = Keyword.put(options, :locale, language_tag),
+         {:ok, parts} <- amount_parts(string, language_tag),
+         {:ok, currency, separators_of} <- amount_currency(parts, string, options),
+         {:ok, number} <- amount_number(parts, separators_of, string, options) do
+      {:ok, {currency, signed_amount(number, parts)}}
+    end
+  end
+
   defp find_currency(string, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     only_filter = Keyword.get(options, :only, [:all])
@@ -778,6 +870,222 @@ defmodule Localize.Number.Parser do
     do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 
   # ── Private helpers ──────────────────────────────────────────
+
+  # ── Currency amounts ─────────────────────────────────────────
+
+  defp validate_amount_size(string) do
+    limit = max_number_bytes()
+
+    if byte_size(string) > limit do
+      {:error,
+       Localize.ParseError.exception(
+         reason: :input_too_large,
+         detail: "currency amount",
+         size: byte_size(string),
+         limit: limit
+       )}
+    else
+      :ok
+    end
+  end
+
+  # Splits an amount into its number, its currency text and its sign. The
+  # text either side of the number is its decorations (spaces, signs and
+  # parentheses) around at most one currency text.
+  defp amount_parts(string, language_tag) do
+    text = String.replace(string, @any_bidi_controls, "")
+
+    case Regex.run(@amount_number, text, return: :index) do
+      [{start, length}] ->
+        before = binary_part(text, 0, start)
+        number = binary_part(text, start, length)
+        rest = binary_part(text, start + length, byte_size(text) - start - length)
+        decorated_parts(before, number, rest, language_tag, string)
+
+      nil ->
+        {:error, not_an_amount(string)}
+    end
+  end
+
+  defp decorated_parts(before, number, rest, language_tag, string) do
+    pattern = decoration_pattern(language_tag)
+    {leading, prefix, before_number} = decorations(pattern, before)
+    {after_number, suffix, trailing} = decorations(pattern, rest)
+    opening = leading <> before_number
+    closing = after_number <> trailing
+    signs = sign_counts(opening <> closing, language_tag)
+
+    if valid_amount?(prefix, suffix, opening, closing, signs) do
+      # Parentheses negate whatever sign is inside them, so "($-127.54)" is
+      # positive, as ex_money has always read it.
+      minus? = signs.minus == 1
+      parenthesised? = String.contains?(opening, "(")
+
+      {:ok, %{currency: prefix <> suffix, number: number, negative?: minus? != parenthesised?}}
+    else
+      {:error, not_an_amount(string)}
+    end
+  end
+
+  # One currency text at most, on one side; no second number; a sign of one
+  # kind at most; and parentheses only as a pair around the whole amount.
+  defp valid_amount?(prefix, suffix, opening, closing, signs) do
+    (prefix == "" or suffix == "") and
+      not String.match?(prefix <> suffix, @any_digit) and
+      signs.minus + signs.plus <= 1 and
+      parentheses(opening, "(") == parentheses(closing, ")") and
+      parentheses(opening, "(") <= 1 and
+      parentheses(opening, ")") == 0 and
+      parentheses(closing, "(") == 0
+  end
+
+  defp parentheses(text, parenthesis) do
+    length(:binary.matches(text, parenthesis))
+  end
+
+  # `text` as its leading decorations, the text between them and its
+  # trailing decorations.
+  defp decorations(pattern, text) do
+    case Regex.run(pattern, text) do
+      [_text, leading, middle, trailing] -> {leading, middle, trailing}
+      _no_decorations -> {"", text, ""}
+    end
+  end
+
+  defp decoration_pattern(language_tag) do
+    {minus, plus} = amount_signs(language_tag)
+    decoration = "[\\p{Zs}\\t()" <> class_characters(minus ++ plus) <> "]*"
+    Regex.compile!("\\A(" <> decoration <> ")(.*?)(" <> decoration <> ")\\z", "us")
+  end
+
+  # The minus and plus signs `parse/2` folds, without the minus family's
+  # sample "_", which `parse/2` reads as a digit separator.
+  defp amount_signs(language_tag) do
+    sets = lenient_sets(language_tag)
+    {lenient_equivalents("-", sets) -- ["_"], lenient_equivalents("+", sets)}
+  end
+
+  defp sign_counts(decorations, language_tag) do
+    {minus, plus} = amount_signs(language_tag)
+    characters = String.graphemes(decorations)
+
+    %{
+      minus: Enum.count(characters, &(&1 in minus)),
+      plus: Enum.count(characters, &(&1 in plus))
+    }
+  end
+
+  # The currency an amount names, and the currency whose separators its
+  # number is read with: none for one the caller's `:unknown_currency`
+  # function named, which Localize has no separators for.
+  defp amount_currency(%{currency: ""}, string, options) do
+    default = Keyword.get(options, :default_currency)
+
+    if is_nil(default) do
+      {:error, Localize.ParseError.exception(input: string, reason: :missing_currency)}
+    else
+      default_currency(default, options)
+    end
+  end
+
+  defp amount_currency(%{currency: text}, _string, options) do
+    text_currency(text, options)
+  end
+
+  defp default_currency(default, options) when is_atom(default) do
+    text_currency(Atom.to_string(default), options)
+  end
+
+  defp default_currency(default, options) when is_binary(default) do
+    text_currency(default, options)
+  end
+
+  defp default_currency(default, _options) do
+    {:error, Localize.Utils.Helpers.invalid_value(default, "a currency code or name")}
+  end
+
+  # A closing period is tried off as well as on, so "100 USD." is dollars as
+  # it is in the text of a sentence.
+  defp text_currency(text, options) do
+    filters = Keyword.take(options, [:locale, :only, :except, :fuzzy])
+
+    [text, String.trim_trailing(text, ".")]
+    |> Enum.uniq()
+    |> first_text_currency(text, filters, options)
+  end
+
+  defp first_text_currency([candidate | rest], text, filters, options) do
+    case resolve_currency(candidate, filters) do
+      [currency] when is_atom(currency) ->
+        {:ok, currency, currency}
+
+      {:error, %Localize.UnknownCurrencyError{}} ->
+        first_text_currency(rest, text, filters, options)
+
+      {:error, _invalid_option} = error ->
+        error
+
+      _part_of_the_text ->
+        first_text_currency(rest, text, filters, options)
+    end
+  end
+
+  defp first_text_currency([], text, _filters, options) do
+    caller_currency(Keyword.get(options, :unknown_currency), text)
+  end
+
+  defp caller_currency(nil, text) do
+    {:error, Localize.UnknownCurrencyError.exception(currency: text)}
+  end
+
+  defp caller_currency(resolver, text) when is_function(resolver, 1) do
+    case resolver.(text) do
+      {:ok, currency} -> {:ok, currency, nil}
+      _unknown -> caller_currency(nil, text)
+    end
+  end
+
+  defp caller_currency(resolver, _text) do
+    {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of one argument")}
+  end
+
+  defp amount_number(%{number: number}, separators_of, string, options) do
+    parse_options =
+      options
+      |> Keyword.take([:locale, :number_system, :separators])
+      |> Keyword.put(:number, :decimal)
+      |> put_separators_currency(separators_of)
+
+    case parse(number, parse_options) do
+      {:ok, decimal} -> {:ok, decimal}
+      {:error, exception} -> {:error, not_an_amount(string, exception)}
+    end
+  end
+
+  defp put_separators_currency(options, nil) do
+    options
+  end
+
+  defp put_separators_currency(options, currency) do
+    Keyword.put(options, :currency, currency)
+  end
+
+  defp signed_amount(decimal, %{negative?: true}) do
+    Decimal.negate(decimal)
+  end
+
+  defp signed_amount(decimal, %{negative?: false}) do
+    decimal
+  end
+
+  defp not_an_amount(string, cause \\ nil) do
+    Localize.ParseError.exception(
+      input: string,
+      reason: :unexpected_input,
+      detail: "not a currency amount",
+      cause: cause
+    )
+  end
 
   defp find_and_replace_currency(string_map, string, fuzzy, language_tag) do
     replace_strings(string_map, string, fuzzy, period_strings(language_tag))
