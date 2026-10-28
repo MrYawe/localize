@@ -238,6 +238,20 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "Latin digits in a locale whose digits are not" do
+    test "are read with the locale's Latin separators" do
+      assert {:ok, 10_000} = Parser.parse("100,00", locale: "ar-EG")
+      assert {:ok, 1234.56} = Parser.parse("1,234.56", locale: "ar-EG")
+      assert {:ok, 1234.56} = Parser.parse("1,234.56", locale: "fa")
+      assert [1234.56, " EGP"] = Parser.scan("1,234.56 EGP", locale: "ar-EG")
+    end
+
+    test "while the locale's own digits keep its separators" do
+      assert {:ok, 1234.56} = Parser.parse("١٬٢٣٤٫٥٦", locale: "ar-EG")
+      assert {:ok, 100.0} = Parser.parse("100,00", locale: "ar-EG", number_system: :arab)
+    end
+  end
+
   describe "lenient grouping" do
     test "refuses a group longer than the locale's longest" do
       # A separator after four digits is no grouping any locale writes, and

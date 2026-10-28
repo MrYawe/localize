@@ -193,7 +193,7 @@ defmodule Localize.Number.Parser do
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       lenient? = Keyword.get(options, :lenient, true)
 
@@ -206,9 +206,13 @@ defmodule Localize.Number.Parser do
 
       normalized_string = transliterate_digits(string, number_system)
 
+      # The pieces carry Latin digits now, so `parse/2` is told the number
+      # system the scan chose rather than choosing again from those digits.
+      element_options = Keyword.put(options, :number_system, number_system)
+
       scanner
       |> Regex.split(normalized_string, include_captures: true, trim: true)
-      |> Enum.map(&parse_element(&1, options))
+      |> Enum.map(&parse_element(&1, element_options))
     end
   end
 
@@ -342,7 +346,7 @@ defmodule Localize.Number.Parser do
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
       lenient? = Keyword.get(options, :lenient, true)
 
@@ -778,7 +782,7 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, number_system} <- digits_number_system_from(language_tag, options),
+         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, []) do
       per_strings =
         build_per_strings(symbol)
@@ -1468,18 +1472,46 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp digits_number_system_from(language_tag, options) do
+  defp digits_number_system_from(language_tag, string, options) do
     number_system =
       Keyword.get_lazy(options, :number_system, fn ->
-        case System.number_system_from_locale(language_tag) do
-          {:ok, system} -> system
-          _ -> :latn
-        end
+        written_number_system(language_tag, string)
       end)
 
     case System.number_system_digits(number_system) do
       {:ok, _digits} -> {:ok, number_system}
       {:error, _} = error -> error
+    end
+  end
+
+  # The locale's number system, unless the text is written in Latin digits
+  # alone. `ar-EG` writes `arab` digits with ٬ and ٫, and ٫ folds onto ",", so
+  # reading typed "100,00" with those separators made it 100.00 and refused
+  # "1,234.56". The locale's Latin separators are the ones such text is
+  # written with.
+  defp written_number_system(language_tag, string) do
+    case System.number_system_from_locale(language_tag) do
+      {:ok, system} -> system_for_digits(system, string)
+      _no_system -> :latn
+    end
+  end
+
+  defp system_for_digits(:latn, _string) do
+    :latn
+  end
+
+  defp system_for_digits(system, string) do
+    case System.number_system_digits(system) do
+      {:ok, digits} -> native_or_latin(system, digits, string)
+      {:error, _not_numeric} -> system
+    end
+  end
+
+  defp native_or_latin(system, digits, string) do
+    if String.contains?(string, String.graphemes(digits)) do
+      system
+    else
+      :latn
     end
   end
 
