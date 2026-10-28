@@ -1,0 +1,131 @@
+# Currency amounts and how Localize.Number.Parser.parse_currency_amount/2 must
+# read them, gathered from other implementations' tests and from style guides.
+#
+# Each row is decided by Localize's rule for money: an amount that could be
+# read two ways is refused, never guessed. Where the source reads a row
+# otherwise, `their_result` keeps its answer and `note` says why ours differs.
+#
+# Columns, tab separated:
+#   locale        the locale the text is read in
+#   input         the text; \u{XXXX} writes an invisible or space character
+#   expected      "CODE amount", or "refuse"
+#   status        empty, or "gap": a reading is expected but the parser
+#                 refuses it today (safe, but a known shortfall)
+#   source        where the row comes from (icu: ICU's
+#                 numberformattestspecification.txt, Unicode-3.0)
+#   their_result  the source's own answer
+#   note          why the expected result differs from the source's
+#
+en	53.45	refuse		icu:parse currency fail	refuse	
+en-GB	53.45	refuse		icu:parse currency ISO	refuse	
+en-GB	£53.45	GBP 53.45		icu:parse currency ISO	GBP 53.45	
+en-GB	$53.45	refuse		icu:parse currency ISO	USD 53.45	$ is the narrow symbol of some 25 currencies in en-GB
+en-GB	53.45 USD	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	53.45 GBP	GBP 53.45		icu:parse currency ISO	GBP 53.45	
+en-GB	USD 53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	53.45USD	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	USD53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	(7.92) USD	USD -7.92		icu:parse currency ISO	USD -7.92	
+en-GB	(7.92) GBP	GBP -7.92		icu:parse currency ISO	GBP -7.92	
+en-GB	(7.926) USD	USD -7.926		icu:parse currency ISO	USD -7.926	
+en-GB	(7.926 USD)	USD -7.926		icu:parse currency ISO	USD -7.926	
+en-GB	(USD 7.926)	USD -7.926		icu:parse currency ISO	USD -7.926	
+en-GB	USD (7.926)	USD -7.926		icu:parse currency ISO	USD -7.926	
+en-GB	USD (7.92)	USD -7.92		icu:parse currency ISO	USD -7.92	
+en-GB	(7.92)USD	USD -7.92		icu:parse currency ISO	USD -7.92	
+en-GB	USD(7.92)	USD -7.92		icu:parse currency ISO	USD -7.92	
+en-GB	(8) USD	USD -8		icu:parse currency ISO	USD -8	
+en-GB	-8 USD	USD -8		icu:parse currency ISO	USD -8	
+en-GB	67 USD	USD 67		icu:parse currency ISO	USD 67	
+en-GB	53.45$	refuse		icu:parse currency ISO	USD 53.45	$ is the narrow symbol of some 25 currencies in en-GB
+en-GB	US Dollars 53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	53.45 US Dollars	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	US Dollar 53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	53.45 US Dollar	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	US Dollars53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	53.45US Dollars	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	US Dollar53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	US Dollat53.45	refuse		icu:parse currency ISO	refuse	
+en-GB	53.45US Dollar	USD 53.45		icu:parse currency ISO	USD 53.45	
+en-GB	US Dollars (53.45)	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	(53.45) US Dollars	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	(53.45) Euros	EUR -53.45		icu:parse currency ISO	EUR -53.45	
+en-GB	US Dollar (53.45)	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	(53.45) US Dollar	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	US Dollars(53.45)	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	(53.45)US Dollars	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	US Dollar(53.45)	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	US Dollat(53.45)	refuse		icu:parse currency ISO	refuse	
+en-GB	(53.45)US Dollar	USD -53.45		icu:parse currency ISO	USD -53.45	
+en-GB	-7.92 USD	USD -7.92		icu:parse currency ISO negative	USD -7.92	
+en-GB	-7.92 GBP	GBP -7.92		icu:parse currency ISO negative	GBP -7.92	
+en-GB	-7.926 USD	USD -7.926		icu:parse currency ISO negative	USD -7.926	
+en-GB	USD -7.926	USD -7.926		icu:parse currency ISO negative	USD -7.926	
+en-GB	-7.92USD	USD -7.92		icu:parse currency ISO negative	USD -7.92	
+en-GB	USD-7.92	USD -7.92		icu:parse currency ISO negative	USD -7.92	
+fa-IR	ریال ۱۲۳۵	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+fa-IR	IRR ۱۲۳۵	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+fa-IR	ریال ایران ۱۲۳۵	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+fa-IR	IRR 1235	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+fa-IR	ریال 1235	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+fa-IR	ریال ایران 1235	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
+en-US	EUR 7.82	EUR 7.82		icu:parse currency with foreign symbols symbol english	EUR 7.82	
+en-US	€ 7.82	EUR 7.82		icu:parse currency with foreign symbols symbol english	EUR 7.82	
+en-US	Euro 7.82	EUR 7.82		icu:parse currency with foreign symbols symbol english	EUR 7.82	
+en-US	Euros 7.82	EUR 7.82		icu:parse currency with foreign symbols symbol english	EUR 7.82	
+en-US	$52.41	USD 52.41		icu:parse currency without currency mode	USD 52.41	
+en-US	USD52.41	USD 52.41		icu:parse currency without currency mode	USD 52.41	
+en-US	€52.41	EUR 52.41		icu:parse currency without currency mode	refuse	ICU refuses it outside currency mode; it is unambiguous
+en-US	EUR52.41	EUR 52.41		icu:parse currency without currency mode	refuse	ICU refuses it outside currency mode; it is unambiguous
+en-US	$53.45	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	53.45 USD	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	USD 53.45	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	53.45USD	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	USD53.45	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	(7.92) USD	USD -7.92		icu:parse currency ISO strict	USD -7.92	
+en-US	(7.92) EUR	EUR -7.92		icu:parse currency ISO strict	EUR -7.92	
+en-US	(7.926) USD	USD -7.926		icu:parse currency ISO strict	USD -7.926	
+en-US	(7.926 USD)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(USD 7.926)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	USD (7.926)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	USD (7.92)	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(7.92)USD	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	USD(7.92)	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(8) USD	USD -8		icu:parse currency ISO strict	USD -8	
+en-US	-8 USD	USD -8		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	67 USD	USD 67		icu:parse currency ISO strict	USD 67	
+en-US	53.45$	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	US Dollars 53.45	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	53.45 US Dollars	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	US Dollar 53.45	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	53.45 US Dollar	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	US Dollars53.45	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	53.45US Dollars	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	US Dollar53.45	USD 53.45		icu:parse currency ISO strict	USD 53.45	
+en-US	US Dollat53.45	refuse		icu:parse currency ISO strict	refuse	
+en-US	53.45US Dollar	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	US Dollars (53.45)	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(53.45) US Dollars	USD -53.45		icu:parse currency ISO strict	USD -53.45	
+en-US	US Dollar (53.45)	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(53.45) US Dollar	USD -53.45		icu:parse currency ISO strict	USD -53.45	
+en-US	US Dollars(53.45)	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(53.45)US Dollars	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	US Dollar(53.45)	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	US Dollat(53.45)	refuse		icu:parse currency ISO strict	refuse	
+en-US	(53.45)US Dollar	USD -53.45		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en	USD123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	USD 123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	usd123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	usd 123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	Usd123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	Usd 123	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	US$123	USD 123	gap	icu:parseCurrency() lowercase currency	USD 123	CLDR's en data has no US$
+en	us$123	refuse		icu:parseCurrency() lowercase currency	refuse	
+en	Us$123	refuse		icu:parseCurrency() lowercase currency	refuse	
+en	123 US dollars	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	123 US DOLLARS	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	123 us dollars	USD 123		icu:parseCurrency() lowercase currency	USD 123	
+en	GBP123	GBP 123		icu:parseCurrency() lowercase currency	GBP 123	
+en	gbp123	GBP 123		icu:parseCurrency() lowercase currency	GBP 123	
+en	British pounds 123	GBP 123		icu:parseCurrency() lowercase currency	GBP 123	
+en	british POUNDS 123	GBP 123		icu:parseCurrency() lowercase currency	GBP 123	
