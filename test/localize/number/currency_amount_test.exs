@@ -104,6 +104,39 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert %Localize.UnknownCurrencyError{currency: "Dogecoin"} =
                amount("100 Dogecoin", unknown_currency: token)
     end
+
+    # A caller's currency has no separators in CLDR, so its amount is read
+    # with the locale's and the root locale's, the form ex_money writes a
+    # token amount in, and refused where the two differ.
+    test "a caller's currency is read with the locale's separators and the root's" do
+      token = fn text ->
+        if text in ["BTC", "₿"] do
+          {:ok, "BTC"}
+        else
+          :error
+        end
+      end
+
+      for {string, locale, value} <- [
+            {"₿1.234", :en, "1.234"},
+            {"₿1.234", :fr, "1.234"},
+            {"₿1234.56", :de, "1234.56"},
+            {"₿0.00012345", :de, "0.00012345"},
+            {"1,5 BTC", :de, "1.5"},
+            {"1,234.56 BTC", :de, "1234.56"},
+            {"₿.5", :de, "0.5"}
+          ] do
+        assert {"BTC", ^value} = amount(string, locale: locale, unknown_currency: token),
+               "#{locale} #{inspect(string)}"
+      end
+
+      for string <- ["₿1.234", "1,234 BTC"] do
+        assert %Localize.InvalidAmountError{cause: %Localize.ParseError{detail: detail}} =
+                 amount(string, locale: :de, unknown_currency: token)
+
+        assert detail =~ "ambiguous"
+      end
+    end
   end
 
   describe "what Localize formats" do

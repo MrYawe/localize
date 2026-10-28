@@ -306,6 +306,22 @@ defmodule Localize.Number.ParserTest do
   # `de-AT` and `fr-CH` write a currency amount with other separators than a
   # plain number. Either may be typed, so both are read; where both readings
   # are valid and differ, the text is ambiguous and refused.
+  describe "parse/2 with root_separators: true" do
+    test "reads what either the locale or the root locale reads" do
+      options = [locale: "de", number: :decimal, grouping: :sizes, root_separators: true]
+      assert {:ok, %Decimal{} = d1} = Parser.parse("1234.56", options)
+      assert Decimal.equal?(d1, "1234.56")
+      assert {:ok, %Decimal{} = d2} = Parser.parse("1,5", options)
+      assert Decimal.equal?(d2, "1.5")
+      assert {:error, %Localize.ParseError{detail: detail}} = Parser.parse("1.234", options)
+      assert detail =~ "ambiguous"
+    end
+
+    test "changes nothing where the locale reads as the root does" do
+      assert {:ok, 1234.56} = Parser.parse("1,234.56", locale: "en", root_separators: true)
+    end
+  end
+
   describe "parse/2 with :currency in a locale whose currency separators differ" do
     defp amount_of(string, locale, currency) do
       Parser.parse(string, locale: locale, currency: currency, number: :decimal, grouping: :sizes)

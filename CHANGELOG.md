@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse/2` option `grouping: :sizes` takes only groups of the sizes the locale writes, so `de` "1.23" is refused rather than read as 123; `parse_currency_amount/2` reads amounts with it.
 
+* `Localize.Number.Parser.parse/2` option `root_separators: true` also reads with the root locale's separators and refuses a string the two read differently; `parse_currency_amount/2` reads the amount of a caller's `:unknown_currency` with it.
+
 * `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
 
 ### Fixed

@@ -196,6 +196,12 @@ defmodule Localize.Number.Parser do
     different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
     `nil`, a plain number.
 
+  * `:root_separators` set to `true` also reads the string with the root
+    locale's separators, the locale-neutral `1,234.56`, for an amount of
+    something CLDR has no data for, such as a digital token, which is
+    commonly written that way. A string both read, as different numbers, is
+    refused: `de` `"1.234"` is 1234 or 1.234. The default is `false`.
+
   * `:separators` names the set of decimal and grouping separators to read
     with, for a locale that has more than one. `en-ZA` writes `1 234,56` with
     its `:standard` set and `1,234.56` with its `:us` set. A locale without
@@ -331,6 +337,12 @@ defmodule Localize.Number.Parser do
     different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
     `nil`, a plain number.
 
+  * `:root_separators` set to `true` also reads the string with the root
+    locale's separators, the locale-neutral `1,234.56`, for an amount of
+    something CLDR has no data for, such as a digital token, which is
+    commonly written that way. A string both read, as different numbers, is
+    refused: `de` `"1.234"` is 1234 or 1.234. The default is `false`.
+
   * `:separators` names the set of decimal and grouping separators to read
     with, for a locale that has more than one. `en-ZA` writes `1 234,56` with
     its `:standard` set and `1,234.56` with its `:us` set. A locale without
@@ -388,8 +400,8 @@ defmodule Localize.Number.Parser do
          {:ok, grouping} <- grouping_mode(options),
          {:ok, symbol_sets} <- symbol_sets(language_tag, number_system, options) do
       readings =
-        Enum.map(symbol_sets, fn symbols ->
-          read_number(string, number_type, number_system, symbols, language_tag, grouping)
+        Enum.map(symbol_sets, fn {reading_tag, symbols} ->
+          read_number(string, number_type, number_system, symbols, reading_tag, grouping)
         end)
 
       agreed_reading(readings, string)
@@ -400,26 +412,57 @@ defmodule Localize.Number.Parser do
   # the separators the currency is formatted with and, in the two locales
   # that write plain numbers otherwise (`de-AT`, `fr-CH`), with those too: a
   # price may be typed either way.
+  #
+  # With `root_separators: true` it is read with the root locale's as well,
+  # the locale-neutral form `1,234.56`, for an amount of something CLDR has no
+  # data for, such as a digital token, which is commonly written that way.
+  #
+  # Each set comes with the locale whose grouping sizes and folds it is read
+  # with.
   defp symbol_sets(language_tag, number_system, options) do
-    with {:ok, symbols} <- number_symbols(language_tag, number_system, options) do
-      if is_nil(options[:currency]) do
-        {:ok, [symbols]}
-      else
-        with_plain_symbols(symbols, language_tag, number_system, options)
+    with {:ok, symbols} <- number_symbols(language_tag, number_system, options),
+         {:ok, sets} <- with_plain_symbols([{language_tag, symbols}], number_system, options) do
+      with_root_symbols(sets, number_system, options)
+    end
+  end
+
+  defp with_plain_symbols(sets, number_system, options) do
+    if is_nil(options[:currency]) do
+      {:ok, sets}
+    else
+      [{language_tag, _currency_symbols}] = sets
+      plain_options = Keyword.delete(options, :currency)
+
+      with {:ok, plain} <- number_symbols(language_tag, number_system, plain_options) do
+        {:ok, add_symbol_set(sets, {language_tag, plain})}
       end
     end
   end
 
-  defp with_plain_symbols(currency_symbols, language_tag, number_system, options) do
-    plain_options = Keyword.delete(options, :currency)
+  defp with_root_symbols(sets, number_system, options) do
+    if options[:root_separators] == true do
+      plain_options = Keyword.drop(options, [:currency, :separators])
 
-    with {:ok, plain} <- number_symbols(language_tag, number_system, plain_options) do
-      if plain.group == currency_symbols.group and plain.decimal == currency_symbols.decimal do
-        {:ok, [currency_symbols]}
-      else
-        {:ok, [currency_symbols, plain]}
+      with {:ok, root} <- Localize.validate_locale(:und),
+           {:ok, symbols} <- number_symbols(root, number_system, plain_options) do
+        {:ok, add_symbol_set(sets, {root, symbols})}
       end
+    else
+      {:ok, sets}
     end
+  end
+
+  # A set whose separators another already has adds no reading of its own.
+  defp add_symbol_set(sets, {_tag, symbols} = set) do
+    if Enum.any?(sets, fn {_other_tag, other} -> same_separators?(other, symbols) end) do
+      sets
+    else
+      sets ++ [set]
+    end
+  end
+
+  defp same_separators?(this, that) do
+    this.group == that.group and this.decimal == that.decimal
   end
 
   # A number is the one every valid reading gives. Where two readings are
@@ -644,7 +687,9 @@ defmodule Localize.Number.Parser do
     currency text that names no currency of the locale. It returns
     `{:ok, currency}` to read the text as `currency`, or anything else
     to leave it unknown. A caller recognises currencies of its own,
-    such as digital tokens, with it.
+    such as digital tokens, with it. Their amounts are read with the
+    locale's separators and the root locale's (`root_separators: true` of
+    `parse/2`), and refused where the two differ.
 
   ### Returns
 
@@ -1234,7 +1279,7 @@ defmodule Localize.Number.Parser do
         lenient = lenient_replacements(language_tag)
         folded_mark = apply_lenient(mark, lenient)
 
-        Enum.any?(symbol_sets, fn symbols ->
+        Enum.any?(symbol_sets, fn {_tag, symbols} ->
           apply_lenient(extract_separator(symbols.decimal), lenient) == folded_mark
         end)
 
@@ -1322,8 +1367,11 @@ defmodule Localize.Number.Parser do
     end
   end
 
+  # A currency the caller's `:unknown_currency` named has no separators in
+  # CLDR, so its amount is read with the locale's plain-number ones and the
+  # root locale's, and refused where they differ.
   defp put_separators_currency(options, nil) do
-    options
+    Keyword.put(options, :root_separators, true)
   end
 
   defp put_separators_currency(options, currency) do
