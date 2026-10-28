@@ -355,11 +355,14 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:CHF, "0.5"} = amount("CHF,5", locale: :"fr-CH")
     end
 
-    # Both of `de-AT`'s sets mark the fraction with a comma, so a period is
-    # the euro's group, or a decimal point only where it can be no group.
-    test "a period is de-AT's currency group where it can be one" do
+    # Both of `de-AT`'s sets mark the fraction with a comma, and the euro's
+    # groups with a period, so a period is never its decimal point.
+    test "a period is de-AT's currency group, never its decimal point" do
       assert {:EUR, "1234"} = amount("1.234 EUR", locale: :"de-AT")
-      assert {:EUR, "100.00"} = amount("100.00 EUR", locale: :"de-AT")
+
+      for string <- ["100.00 EUR", "1.23 EUR", "1.2345 EUR"] do
+        assert %Localize.InvalidAmountError{} = amount(string, locale: :"de-AT"), string
+      end
     end
 
     test "a period that is neither of the locale's separators" do

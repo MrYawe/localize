@@ -591,7 +591,7 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **Groups the locale does not write** — `de` `1.23 EUR` is refused, where a lenient reading of the grouping would make it 123 euros.
 
-* **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two would read as different numbers is refused. `de-AT` groups the euro with a period, so `1.234 EUR` is 1234 euros.
+* **Two sets of separators** — `de-AT` and `fr-CH` write a currency amount with other separators than a plain number. Either is read, and text the two would read as different numbers is refused. `de-AT` groups the euro with a period, so `1.234 EUR` is 1234 euros, and a period is never its decimal point: `100.00 EUR` is refused, as in `de`.
 
 * **Compatibility characters** — the currency text is matched after NFKC normalization, as TR35's loose matching asks, so `ja` `¥1.00` is the yen, which `ja` writes `￥`, and a fullwidth `＄` is the dollar. The number is not normalized, since NFKC would turn the footnote of `$5²` into a digit; such text is refused.
 

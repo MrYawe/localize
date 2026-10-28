@@ -27,6 +27,11 @@
 #                 swiss:Schreibweisungen <rule>  the Swiss Federal
 #                                  Chancellery's writing rules for amounts,
 #                                  read in de-CH
+#                 generated:<template>  amounts that must be refused,
+#                                  written for each of 110 locales with its
+#                                  own digits, currency-amount separators and
+#                                  currency code (a malformed group, two
+#                                  decimal marks, a range, two currencies, ...)
 #   their_result  the source's own answer
 #   note          why the expected result differs from the source's
 #   given_currency  optional: the currency the caller supplies, passed as
@@ -4170,3 +4175,1851 @@ de-CH	Fr. 1\u{00A0}222\u{00A0}333.–	refuse		swiss:Schreibweisungen 512	CHF 122
 de-CH	0,13 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.0013	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	
 de-CH	22,5 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.225	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	
 de-CH	15 Rp.	refuse		swiss:Schreibweisungen 544	CHF 0.15	the Rappen, a hundredth of a franc, is no currency of its own; the rupiah's narrow symbol Rp is not read in de-CH	
+af	1\u{00A0}23 ZAR	refuse		generated:malformed group			
+af	1\u{00A0}2345 ZAR	refuse		generated:group too long			
+af	1,234\u{00A0}567 ZAR	refuse		generated:group after decimal			
+af	1,2,3 ZAR	refuse		generated:two decimal marks			
+af	1,,5 ZAR	refuse		generated:doubled decimal mark			
+af	5-10 ZAR	refuse		generated:range			
+af	5 – 10 ZAR	refuse		generated:range with dash			
+af	USD 5 ZAR	refuse		generated:two currencies			
+af	5 ZAR 6 ZAR	refuse		generated:two amounts			
+af	about 5 ZAR	refuse		generated:text before			
+af	5 ZAR each	refuse		generated:text after			
+af	ZAR	refuse		generated:no number			
+af	ZAR -	refuse		generated:sign only			
+af	-5- ZAR	refuse		generated:two signs			
+af	1.234 ZAR	refuse		generated:period group			
+af	1.000.000 ZAR	refuse		generated:period groups			
+am	1,23 ETB	refuse		generated:malformed group			
+am	1,2345 ETB	refuse		generated:group too long			
+am	1.234,567 ETB	refuse		generated:group after decimal			
+am	1.2.3 ETB	refuse		generated:two decimal marks			
+am	1..5 ETB	refuse		generated:doubled decimal mark			
+am	5-10 ETB	refuse		generated:range			
+am	5 – 10 ETB	refuse		generated:range with dash			
+am	USD 5 ETB	refuse		generated:two currencies			
+am	5 ETB 6 ETB	refuse		generated:two amounts			
+am	about 5 ETB	refuse		generated:text before			
+am	5 ETB each	refuse		generated:text after			
+am	ETB	refuse		generated:no number			
+am	ETB -	refuse		generated:sign only			
+am	-5- ETB	refuse		generated:two signs			
+am	1 2 ETB	refuse		generated:space between digits			
+am	,5 ETB	refuse		generated:group opens			
+am	5, ETB	refuse		generated:group closes			
+ar	1,23 EGP	refuse		generated:malformed group			
+ar	1,2345 EGP	refuse		generated:group too long			
+ar	1.234,567 EGP	refuse		generated:group after decimal			
+ar	1.2.3 EGP	refuse		generated:two decimal marks			
+ar	1..5 EGP	refuse		generated:doubled decimal mark			
+ar	5-10 EGP	refuse		generated:range			
+ar	5 – 10 EGP	refuse		generated:range with dash			
+ar	USD 5 EGP	refuse		generated:two currencies			
+ar	5 EGP 6 EGP	refuse		generated:two amounts			
+ar	about 5 EGP	refuse		generated:text before			
+ar	5 EGP each	refuse		generated:text after			
+ar	EGP	refuse		generated:no number			
+ar	EGP -	refuse		generated:sign only			
+ar	-5- EGP	refuse		generated:two signs			
+ar	1 2 EGP	refuse		generated:space between digits			
+ar	,5 EGP	refuse		generated:group opens			
+ar	5, EGP	refuse		generated:group closes			
+ar-EG	١٬٢٣ EGP	refuse		generated:malformed group			
+ar-EG	١٬٢٣٤٥ EGP	refuse		generated:group too long			
+ar-EG	١٫٢٣٤٬٥٦٧ EGP	refuse		generated:group after decimal			
+ar-EG	١٫٢٫٣ EGP	refuse		generated:two decimal marks			
+ar-EG	١٫٫٥ EGP	refuse		generated:doubled decimal mark			
+ar-EG	٥-١٠ EGP	refuse		generated:range			
+ar-EG	٥ – ١٠ EGP	refuse		generated:range with dash			
+ar-EG	USD ٥ EGP	refuse		generated:two currencies			
+ar-EG	٥ EGP ٦ EGP	refuse		generated:two amounts			
+ar-EG	about ٥ EGP	refuse		generated:text before			
+ar-EG	٥ EGP each	refuse		generated:text after			
+ar-EG	EGP	refuse		generated:no number			
+ar-EG	EGP -	refuse		generated:sign only			
+ar-EG	-٥- EGP	refuse		generated:two signs			
+ar-EG	١ ٢ EGP	refuse		generated:space between digits			
+ar-EG	٬٥ EGP	refuse		generated:group opens			
+ar-EG	٥٬ EGP	refuse		generated:group closes			
+ar-EG	١.٢٣٤ EGP	refuse		generated:period group			
+ar-EG	١.٠٠٠.٠٠٠ EGP	refuse		generated:period groups			
+as	১,২৩ INR	refuse		generated:malformed group			
+as	১,২৩৪৫ INR	refuse		generated:group too long			
+as	১.২৩৪,৫৬৭ INR	refuse		generated:group after decimal			
+as	১.২.৩ INR	refuse		generated:two decimal marks			
+as	১..৫ INR	refuse		generated:doubled decimal mark			
+as	৫-১০ INR	refuse		generated:range			
+as	৫ – ১০ INR	refuse		generated:range with dash			
+as	USD ৫ INR	refuse		generated:two currencies			
+as	৫ INR ৬ INR	refuse		generated:two amounts			
+as	about ৫ INR	refuse		generated:text before			
+as	৫ INR each	refuse		generated:text after			
+as	INR	refuse		generated:no number			
+as	INR -	refuse		generated:sign only			
+as	-৫- INR	refuse		generated:two signs			
+as	১ ২ INR	refuse		generated:space between digits			
+as	,৫ INR	refuse		generated:group opens			
+as	৫, INR	refuse		generated:group closes			
+az	1.23 AZN	refuse		generated:malformed group			
+az	1.2345 AZN	refuse		generated:group too long			
+az	1,234.567 AZN	refuse		generated:group after decimal			
+az	1,2,3 AZN	refuse		generated:two decimal marks			
+az	1,,5 AZN	refuse		generated:doubled decimal mark			
+az	5-10 AZN	refuse		generated:range			
+az	5 – 10 AZN	refuse		generated:range with dash			
+az	USD 5 AZN	refuse		generated:two currencies			
+az	5 AZN 6 AZN	refuse		generated:two amounts			
+az	about 5 AZN	refuse		generated:text before			
+az	5 AZN each	refuse		generated:text after			
+az	AZN	refuse		generated:no number			
+az	AZN -	refuse		generated:sign only			
+az	-5- AZN	refuse		generated:two signs			
+az	1 2 AZN	refuse		generated:space between digits			
+az	.5 AZN	refuse		generated:group opens			
+az	5. AZN	refuse		generated:group closes			
+be	1\u{00A0}23 BYN	refuse		generated:malformed group			
+be	1\u{00A0}2345 BYN	refuse		generated:group too long			
+be	1,234\u{00A0}567 BYN	refuse		generated:group after decimal			
+be	1,2,3 BYN	refuse		generated:two decimal marks			
+be	1,,5 BYN	refuse		generated:doubled decimal mark			
+be	5-10 BYN	refuse		generated:range			
+be	5 – 10 BYN	refuse		generated:range with dash			
+be	USD 5 BYN	refuse		generated:two currencies			
+be	5 BYN 6 BYN	refuse		generated:two amounts			
+be	about 5 BYN	refuse		generated:text before			
+be	5 BYN each	refuse		generated:text after			
+be	BYN	refuse		generated:no number			
+be	BYN -	refuse		generated:sign only			
+be	-5- BYN	refuse		generated:two signs			
+be	1.234 BYN	refuse		generated:period group			
+be	1.000.000 BYN	refuse		generated:period groups			
+bg	1\u{00A0}23 EUR	refuse		generated:malformed group			
+bg	1\u{00A0}2345 EUR	refuse		generated:group too long			
+bg	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+bg	1,2,3 EUR	refuse		generated:two decimal marks			
+bg	1,,5 EUR	refuse		generated:doubled decimal mark			
+bg	5-10 EUR	refuse		generated:range			
+bg	5 – 10 EUR	refuse		generated:range with dash			
+bg	USD 5 EUR	refuse		generated:two currencies			
+bg	5 EUR 6 EUR	refuse		generated:two amounts			
+bg	about 5 EUR	refuse		generated:text before			
+bg	5 EUR each	refuse		generated:text after			
+bg	EUR	refuse		generated:no number			
+bg	EUR -	refuse		generated:sign only			
+bg	-5- EUR	refuse		generated:two signs			
+bg	1.234 EUR	refuse		generated:period group			
+bg	1.000.000 EUR	refuse		generated:period groups			
+bn	১,২৩ BDT	refuse		generated:malformed group			
+bn	১,২৩৪৫ BDT	refuse		generated:group too long			
+bn	১.২৩৪,৫৬৭ BDT	refuse		generated:group after decimal			
+bn	১.২.৩ BDT	refuse		generated:two decimal marks			
+bn	১..৫ BDT	refuse		generated:doubled decimal mark			
+bn	৫-১০ BDT	refuse		generated:range			
+bn	৫ – ১০ BDT	refuse		generated:range with dash			
+bn	USD ৫ BDT	refuse		generated:two currencies			
+bn	৫ BDT ৬ BDT	refuse		generated:two amounts			
+bn	about ৫ BDT	refuse		generated:text before			
+bn	৫ BDT each	refuse		generated:text after			
+bn	BDT	refuse		generated:no number			
+bn	BDT -	refuse		generated:sign only			
+bn	-৫- BDT	refuse		generated:two signs			
+bn	১ ২ BDT	refuse		generated:space between digits			
+bn	,৫ BDT	refuse		generated:group opens			
+bn	৫, BDT	refuse		generated:group closes			
+bs	1.23 BAM	refuse		generated:malformed group			
+bs	1.2345 BAM	refuse		generated:group too long			
+bs	1,234.567 BAM	refuse		generated:group after decimal			
+bs	1,2,3 BAM	refuse		generated:two decimal marks			
+bs	1,,5 BAM	refuse		generated:doubled decimal mark			
+bs	5-10 BAM	refuse		generated:range			
+bs	5 – 10 BAM	refuse		generated:range with dash			
+bs	USD 5 BAM	refuse		generated:two currencies			
+bs	5 BAM 6 BAM	refuse		generated:two amounts			
+bs	about 5 BAM	refuse		generated:text before			
+bs	5 BAM each	refuse		generated:text after			
+bs	BAM	refuse		generated:no number			
+bs	BAM -	refuse		generated:sign only			
+bs	-5- BAM	refuse		generated:two signs			
+bs	1 2 BAM	refuse		generated:space between digits			
+bs	.5 BAM	refuse		generated:group opens			
+bs	5. BAM	refuse		generated:group closes			
+ca	1.23 EUR	refuse		generated:malformed group			
+ca	1.2345 EUR	refuse		generated:group too long			
+ca	1,234.567 EUR	refuse		generated:group after decimal			
+ca	1,2,3 EUR	refuse		generated:two decimal marks			
+ca	1,,5 EUR	refuse		generated:doubled decimal mark			
+ca	5-10 EUR	refuse		generated:range			
+ca	5 – 10 EUR	refuse		generated:range with dash			
+ca	USD 5 EUR	refuse		generated:two currencies			
+ca	5 EUR 6 EUR	refuse		generated:two amounts			
+ca	about 5 EUR	refuse		generated:text before			
+ca	5 EUR each	refuse		generated:text after			
+ca	EUR	refuse		generated:no number			
+ca	EUR -	refuse		generated:sign only			
+ca	-5- EUR	refuse		generated:two signs			
+ca	1 2 EUR	refuse		generated:space between digits			
+ca	.5 EUR	refuse		generated:group opens			
+ca	5. EUR	refuse		generated:group closes			
+cs	1\u{00A0}23 CZK	refuse		generated:malformed group			
+cs	1\u{00A0}2345 CZK	refuse		generated:group too long			
+cs	1,234\u{00A0}567 CZK	refuse		generated:group after decimal			
+cs	1,2,3 CZK	refuse		generated:two decimal marks			
+cs	1,,5 CZK	refuse		generated:doubled decimal mark			
+cs	5-10 CZK	refuse		generated:range			
+cs	5 – 10 CZK	refuse		generated:range with dash			
+cs	USD 5 CZK	refuse		generated:two currencies			
+cs	5 CZK 6 CZK	refuse		generated:two amounts			
+cs	about 5 CZK	refuse		generated:text before			
+cs	5 CZK each	refuse		generated:text after			
+cs	CZK	refuse		generated:no number			
+cs	CZK -	refuse		generated:sign only			
+cs	-5- CZK	refuse		generated:two signs			
+cs	1.234 CZK	refuse		generated:period group			
+cs	1.000.000 CZK	refuse		generated:period groups			
+cy	1,23 GBP	refuse		generated:malformed group			
+cy	1,2345 GBP	refuse		generated:group too long			
+cy	1.234,567 GBP	refuse		generated:group after decimal			
+cy	1.2.3 GBP	refuse		generated:two decimal marks			
+cy	1..5 GBP	refuse		generated:doubled decimal mark			
+cy	5-10 GBP	refuse		generated:range			
+cy	5 – 10 GBP	refuse		generated:range with dash			
+cy	USD 5 GBP	refuse		generated:two currencies			
+cy	5 GBP 6 GBP	refuse		generated:two amounts			
+cy	about 5 GBP	refuse		generated:text before			
+cy	5 GBP each	refuse		generated:text after			
+cy	GBP	refuse		generated:no number			
+cy	GBP -	refuse		generated:sign only			
+cy	-5- GBP	refuse		generated:two signs			
+cy	1 2 GBP	refuse		generated:space between digits			
+cy	,5 GBP	refuse		generated:group opens			
+cy	5, GBP	refuse		generated:group closes			
+da	1.23 DKK	refuse		generated:malformed group			
+da	1.2345 DKK	refuse		generated:group too long			
+da	1,234.567 DKK	refuse		generated:group after decimal			
+da	1,2,3 DKK	refuse		generated:two decimal marks			
+da	1,,5 DKK	refuse		generated:doubled decimal mark			
+da	5-10 DKK	refuse		generated:range			
+da	5 – 10 DKK	refuse		generated:range with dash			
+da	USD 5 DKK	refuse		generated:two currencies			
+da	5 DKK 6 DKK	refuse		generated:two amounts			
+da	about 5 DKK	refuse		generated:text before			
+da	5 DKK each	refuse		generated:text after			
+da	DKK	refuse		generated:no number			
+da	DKK -	refuse		generated:sign only			
+da	-5- DKK	refuse		generated:two signs			
+da	1 2 DKK	refuse		generated:space between digits			
+da	.5 DKK	refuse		generated:group opens			
+da	5. DKK	refuse		generated:group closes			
+de	1.23 EUR	refuse		generated:malformed group			
+de	1.2345 EUR	refuse		generated:group too long			
+de	1,234.567 EUR	refuse		generated:group after decimal			
+de	1,2,3 EUR	refuse		generated:two decimal marks			
+de	1,,5 EUR	refuse		generated:doubled decimal mark			
+de	5-10 EUR	refuse		generated:range			
+de	5 – 10 EUR	refuse		generated:range with dash			
+de	USD 5 EUR	refuse		generated:two currencies			
+de	5 EUR 6 EUR	refuse		generated:two amounts			
+de	about 5 EUR	refuse		generated:text before			
+de	5 EUR each	refuse		generated:text after			
+de	EUR	refuse		generated:no number			
+de	EUR -	refuse		generated:sign only			
+de	-5- EUR	refuse		generated:two signs			
+de	1 2 EUR	refuse		generated:space between digits			
+de	.5 EUR	refuse		generated:group opens			
+de	5. EUR	refuse		generated:group closes			
+de-AT	1.23 EUR	refuse		generated:malformed group			
+de-AT	1.2345 EUR	refuse		generated:group too long			
+de-AT	1,234.567 EUR	refuse		generated:group after decimal			
+de-AT	1,2,3 EUR	refuse		generated:two decimal marks			
+de-AT	1,,5 EUR	refuse		generated:doubled decimal mark			
+de-AT	5-10 EUR	refuse		generated:range			
+de-AT	5 – 10 EUR	refuse		generated:range with dash			
+de-AT	USD 5 EUR	refuse		generated:two currencies			
+de-AT	5 EUR 6 EUR	refuse		generated:two amounts			
+de-AT	about 5 EUR	refuse		generated:text before			
+de-AT	5 EUR each	refuse		generated:text after			
+de-AT	EUR	refuse		generated:no number			
+de-AT	EUR -	refuse		generated:sign only			
+de-AT	-5- EUR	refuse		generated:two signs			
+de-AT	1 2 EUR	refuse		generated:space between digits			
+de-AT	.5 EUR	refuse		generated:group opens			
+de-AT	5. EUR	refuse		generated:group closes			
+de-CH	1'23 CHF	refuse		generated:malformed group			
+de-CH	1'2345 CHF	refuse		generated:group too long			
+de-CH	1.234'567 CHF	refuse		generated:group after decimal			
+de-CH	1.2.3 CHF	refuse		generated:two decimal marks			
+de-CH	1..5 CHF	refuse		generated:doubled decimal mark			
+de-CH	5-10 CHF	refuse		generated:range			
+de-CH	5 – 10 CHF	refuse		generated:range with dash			
+de-CH	USD 5 CHF	refuse		generated:two currencies			
+de-CH	5 CHF 6 CHF	refuse		generated:two amounts			
+de-CH	about 5 CHF	refuse		generated:text before			
+de-CH	5 CHF each	refuse		generated:text after			
+de-CH	CHF	refuse		generated:no number			
+de-CH	CHF -	refuse		generated:sign only			
+de-CH	-5- CHF	refuse		generated:two signs			
+de-CH	1 2 CHF	refuse		generated:space between digits			
+de-CH	'5 CHF	refuse		generated:group opens			
+de-CH	5' CHF	refuse		generated:group closes			
+el	1.23 EUR	refuse		generated:malformed group			
+el	1.2345 EUR	refuse		generated:group too long			
+el	1,234.567 EUR	refuse		generated:group after decimal			
+el	1,2,3 EUR	refuse		generated:two decimal marks			
+el	1,,5 EUR	refuse		generated:doubled decimal mark			
+el	5-10 EUR	refuse		generated:range			
+el	5 – 10 EUR	refuse		generated:range with dash			
+el	USD 5 EUR	refuse		generated:two currencies			
+el	5 EUR 6 EUR	refuse		generated:two amounts			
+el	about 5 EUR	refuse		generated:text before			
+el	5 EUR each	refuse		generated:text after			
+el	EUR	refuse		generated:no number			
+el	EUR -	refuse		generated:sign only			
+el	-5- EUR	refuse		generated:two signs			
+el	1 2 EUR	refuse		generated:space between digits			
+el	.5 EUR	refuse		generated:group opens			
+el	5. EUR	refuse		generated:group closes			
+en	1,23 USD	refuse		generated:malformed group			
+en	1,2345 USD	refuse		generated:group too long			
+en	1.234,567 USD	refuse		generated:group after decimal			
+en	1.2.3 USD	refuse		generated:two decimal marks			
+en	1..5 USD	refuse		generated:doubled decimal mark			
+en	5-10 USD	refuse		generated:range			
+en	5 – 10 USD	refuse		generated:range with dash			
+en	EUR 5 USD	refuse		generated:two currencies			
+en	5 USD 6 USD	refuse		generated:two amounts			
+en	about 5 USD	refuse		generated:text before			
+en	5 USD each	refuse		generated:text after			
+en	USD	refuse		generated:no number			
+en	USD -	refuse		generated:sign only			
+en	-5- USD	refuse		generated:two signs			
+en	1 2 USD	refuse		generated:space between digits			
+en	,5 USD	refuse		generated:group opens			
+en	5, USD	refuse		generated:group closes			
+en-AU	1,23 AUD	refuse		generated:malformed group			
+en-AU	1,2345 AUD	refuse		generated:group too long			
+en-AU	1.234,567 AUD	refuse		generated:group after decimal			
+en-AU	1.2.3 AUD	refuse		generated:two decimal marks			
+en-AU	1..5 AUD	refuse		generated:doubled decimal mark			
+en-AU	5-10 AUD	refuse		generated:range			
+en-AU	5 – 10 AUD	refuse		generated:range with dash			
+en-AU	USD 5 AUD	refuse		generated:two currencies			
+en-AU	5 AUD 6 AUD	refuse		generated:two amounts			
+en-AU	about 5 AUD	refuse		generated:text before			
+en-AU	5 AUD each	refuse		generated:text after			
+en-AU	AUD	refuse		generated:no number			
+en-AU	AUD -	refuse		generated:sign only			
+en-AU	-5- AUD	refuse		generated:two signs			
+en-AU	1 2 AUD	refuse		generated:space between digits			
+en-AU	,5 AUD	refuse		generated:group opens			
+en-AU	5, AUD	refuse		generated:group closes			
+en-CA	1,23 CAD	refuse		generated:malformed group			
+en-CA	1,2345 CAD	refuse		generated:group too long			
+en-CA	1.234,567 CAD	refuse		generated:group after decimal			
+en-CA	1.2.3 CAD	refuse		generated:two decimal marks			
+en-CA	1..5 CAD	refuse		generated:doubled decimal mark			
+en-CA	5-10 CAD	refuse		generated:range			
+en-CA	5 – 10 CAD	refuse		generated:range with dash			
+en-CA	USD 5 CAD	refuse		generated:two currencies			
+en-CA	5 CAD 6 CAD	refuse		generated:two amounts			
+en-CA	about 5 CAD	refuse		generated:text before			
+en-CA	5 CAD each	refuse		generated:text after			
+en-CA	CAD	refuse		generated:no number			
+en-CA	CAD -	refuse		generated:sign only			
+en-CA	-5- CAD	refuse		generated:two signs			
+en-CA	1 2 CAD	refuse		generated:space between digits			
+en-CA	,5 CAD	refuse		generated:group opens			
+en-CA	5, CAD	refuse		generated:group closes			
+en-GB	1,23 GBP	refuse		generated:malformed group			
+en-GB	1,2345 GBP	refuse		generated:group too long			
+en-GB	1.234,567 GBP	refuse		generated:group after decimal			
+en-GB	1.2.3 GBP	refuse		generated:two decimal marks			
+en-GB	1..5 GBP	refuse		generated:doubled decimal mark			
+en-GB	5-10 GBP	refuse		generated:range			
+en-GB	5 – 10 GBP	refuse		generated:range with dash			
+en-GB	USD 5 GBP	refuse		generated:two currencies			
+en-GB	5 GBP 6 GBP	refuse		generated:two amounts			
+en-GB	about 5 GBP	refuse		generated:text before			
+en-GB	5 GBP each	refuse		generated:text after			
+en-GB	GBP	refuse		generated:no number			
+en-GB	GBP -	refuse		generated:sign only			
+en-GB	-5- GBP	refuse		generated:two signs			
+en-GB	1 2 GBP	refuse		generated:space between digits			
+en-GB	,5 GBP	refuse		generated:group opens			
+en-GB	5, GBP	refuse		generated:group closes			
+en-IN	1,23 INR	refuse		generated:malformed group			
+en-IN	1,2345 INR	refuse		generated:group too long			
+en-IN	1.234,567 INR	refuse		generated:group after decimal			
+en-IN	1.2.3 INR	refuse		generated:two decimal marks			
+en-IN	1..5 INR	refuse		generated:doubled decimal mark			
+en-IN	5-10 INR	refuse		generated:range			
+en-IN	5 – 10 INR	refuse		generated:range with dash			
+en-IN	USD 5 INR	refuse		generated:two currencies			
+en-IN	5 INR 6 INR	refuse		generated:two amounts			
+en-IN	about 5 INR	refuse		generated:text before			
+en-IN	5 INR each	refuse		generated:text after			
+en-IN	INR	refuse		generated:no number			
+en-IN	INR -	refuse		generated:sign only			
+en-IN	-5- INR	refuse		generated:two signs			
+en-IN	1 2 INR	refuse		generated:space between digits			
+en-IN	,5 INR	refuse		generated:group opens			
+en-IN	5, INR	refuse		generated:group closes			
+en-ZA	1\u{00A0}23 ZAR	refuse		generated:malformed group			
+en-ZA	1\u{00A0}2345 ZAR	refuse		generated:group too long			
+en-ZA	1,234\u{00A0}567 ZAR	refuse		generated:group after decimal			
+en-ZA	1,2,3 ZAR	refuse		generated:two decimal marks			
+en-ZA	1,,5 ZAR	refuse		generated:doubled decimal mark			
+en-ZA	5-10 ZAR	refuse		generated:range			
+en-ZA	5 – 10 ZAR	refuse		generated:range with dash			
+en-ZA	USD 5 ZAR	refuse		generated:two currencies			
+en-ZA	5 ZAR 6 ZAR	refuse		generated:two amounts			
+en-ZA	about 5 ZAR	refuse		generated:text before			
+en-ZA	5 ZAR each	refuse		generated:text after			
+en-ZA	ZAR	refuse		generated:no number			
+en-ZA	ZAR -	refuse		generated:sign only			
+en-ZA	-5- ZAR	refuse		generated:two signs			
+en-ZA	1.234 ZAR	refuse		generated:period group			
+en-ZA	1.000.000 ZAR	refuse		generated:period groups			
+es	1.23 EUR	refuse		generated:malformed group			
+es	1.2345 EUR	refuse		generated:group too long			
+es	1,234.567 EUR	refuse		generated:group after decimal			
+es	1,2,3 EUR	refuse		generated:two decimal marks			
+es	1,,5 EUR	refuse		generated:doubled decimal mark			
+es	5-10 EUR	refuse		generated:range			
+es	5 – 10 EUR	refuse		generated:range with dash			
+es	USD 5 EUR	refuse		generated:two currencies			
+es	5 EUR 6 EUR	refuse		generated:two amounts			
+es	about 5 EUR	refuse		generated:text before			
+es	5 EUR each	refuse		generated:text after			
+es	EUR	refuse		generated:no number			
+es	EUR -	refuse		generated:sign only			
+es	-5- EUR	refuse		generated:two signs			
+es	1 2 EUR	refuse		generated:space between digits			
+es	.5 EUR	refuse		generated:group opens			
+es	5. EUR	refuse		generated:group closes			
+es-419	1,23 USD	refuse		generated:malformed group			
+es-419	1,2345 USD	refuse		generated:group too long			
+es-419	1.234,567 USD	refuse		generated:group after decimal			
+es-419	1.2.3 USD	refuse		generated:two decimal marks			
+es-419	1..5 USD	refuse		generated:doubled decimal mark			
+es-419	5-10 USD	refuse		generated:range			
+es-419	5 – 10 USD	refuse		generated:range with dash			
+es-419	EUR 5 USD	refuse		generated:two currencies			
+es-419	5 USD 6 USD	refuse		generated:two amounts			
+es-419	about 5 USD	refuse		generated:text before			
+es-419	5 USD each	refuse		generated:text after			
+es-419	USD	refuse		generated:no number			
+es-419	USD -	refuse		generated:sign only			
+es-419	-5- USD	refuse		generated:two signs			
+es-419	1 2 USD	refuse		generated:space between digits			
+es-419	,5 USD	refuse		generated:group opens			
+es-419	5, USD	refuse		generated:group closes			
+es-MX	1,23 MXN	refuse		generated:malformed group			
+es-MX	1,2345 MXN	refuse		generated:group too long			
+es-MX	1.234,567 MXN	refuse		generated:group after decimal			
+es-MX	1.2.3 MXN	refuse		generated:two decimal marks			
+es-MX	1..5 MXN	refuse		generated:doubled decimal mark			
+es-MX	5-10 MXN	refuse		generated:range			
+es-MX	5 – 10 MXN	refuse		generated:range with dash			
+es-MX	USD 5 MXN	refuse		generated:two currencies			
+es-MX	5 MXN 6 MXN	refuse		generated:two amounts			
+es-MX	about 5 MXN	refuse		generated:text before			
+es-MX	5 MXN each	refuse		generated:text after			
+es-MX	MXN	refuse		generated:no number			
+es-MX	MXN -	refuse		generated:sign only			
+es-MX	-5- MXN	refuse		generated:two signs			
+es-MX	1 2 MXN	refuse		generated:space between digits			
+es-MX	,5 MXN	refuse		generated:group opens			
+es-MX	5, MXN	refuse		generated:group closes			
+es-US	1,23 USD	refuse		generated:malformed group			
+es-US	1,2345 USD	refuse		generated:group too long			
+es-US	1.234,567 USD	refuse		generated:group after decimal			
+es-US	1.2.3 USD	refuse		generated:two decimal marks			
+es-US	1..5 USD	refuse		generated:doubled decimal mark			
+es-US	5-10 USD	refuse		generated:range			
+es-US	5 – 10 USD	refuse		generated:range with dash			
+es-US	EUR 5 USD	refuse		generated:two currencies			
+es-US	5 USD 6 USD	refuse		generated:two amounts			
+es-US	about 5 USD	refuse		generated:text before			
+es-US	5 USD each	refuse		generated:text after			
+es-US	USD	refuse		generated:no number			
+es-US	USD -	refuse		generated:sign only			
+es-US	-5- USD	refuse		generated:two signs			
+es-US	1 2 USD	refuse		generated:space between digits			
+es-US	,5 USD	refuse		generated:group opens			
+es-US	5, USD	refuse		generated:group closes			
+et	1\u{00A0}23 EUR	refuse		generated:malformed group			
+et	1\u{00A0}2345 EUR	refuse		generated:group too long			
+et	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+et	1,2,3 EUR	refuse		generated:two decimal marks			
+et	1,,5 EUR	refuse		generated:doubled decimal mark			
+et	5-10 EUR	refuse		generated:range			
+et	5 – 10 EUR	refuse		generated:range with dash			
+et	USD 5 EUR	refuse		generated:two currencies			
+et	5 EUR 6 EUR	refuse		generated:two amounts			
+et	about 5 EUR	refuse		generated:text before			
+et	5 EUR each	refuse		generated:text after			
+et	EUR	refuse		generated:no number			
+et	EUR -	refuse		generated:sign only			
+et	-5- EUR	refuse		generated:two signs			
+et	1.234 EUR	refuse		generated:period group			
+et	1.000.000 EUR	refuse		generated:period groups			
+eu	1.23 EUR	refuse		generated:malformed group			
+eu	1.2345 EUR	refuse		generated:group too long			
+eu	1,234.567 EUR	refuse		generated:group after decimal			
+eu	1,2,3 EUR	refuse		generated:two decimal marks			
+eu	1,,5 EUR	refuse		generated:doubled decimal mark			
+eu	5-10 EUR	refuse		generated:range			
+eu	5 – 10 EUR	refuse		generated:range with dash			
+eu	USD 5 EUR	refuse		generated:two currencies			
+eu	5 EUR 6 EUR	refuse		generated:two amounts			
+eu	about 5 EUR	refuse		generated:text before			
+eu	5 EUR each	refuse		generated:text after			
+eu	EUR	refuse		generated:no number			
+eu	EUR -	refuse		generated:sign only			
+eu	-5- EUR	refuse		generated:two signs			
+eu	1 2 EUR	refuse		generated:space between digits			
+eu	.5 EUR	refuse		generated:group opens			
+eu	5. EUR	refuse		generated:group closes			
+fa	۱٬۲۳ IRR	refuse		generated:malformed group			
+fa	۱٬۲۳۴۵ IRR	refuse		generated:group too long			
+fa	۱٫۲۳۴٬۵۶۷ IRR	refuse		generated:group after decimal			
+fa	۱٫۲٫۳ IRR	refuse		generated:two decimal marks			
+fa	۱٫٫۵ IRR	refuse		generated:doubled decimal mark			
+fa	۵-۱۰ IRR	refuse		generated:range			
+fa	۵ – ۱۰ IRR	refuse		generated:range with dash			
+fa	USD ۵ IRR	refuse		generated:two currencies			
+fa	۵ IRR ۶ IRR	refuse		generated:two amounts			
+fa	about ۵ IRR	refuse		generated:text before			
+fa	۵ IRR each	refuse		generated:text after			
+fa	IRR	refuse		generated:no number			
+fa	IRR -	refuse		generated:sign only			
+fa	-۵- IRR	refuse		generated:two signs			
+fa	۱ ۲ IRR	refuse		generated:space between digits			
+fa	٬۵ IRR	refuse		generated:group opens			
+fa	۵٬ IRR	refuse		generated:group closes			
+fa	۱.۲۳۴ IRR	refuse		generated:period group			
+fa	۱.۰۰۰.۰۰۰ IRR	refuse		generated:period groups			
+fi	1\u{00A0}23 EUR	refuse		generated:malformed group			
+fi	1\u{00A0}2345 EUR	refuse		generated:group too long			
+fi	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+fi	1,2,3 EUR	refuse		generated:two decimal marks			
+fi	1,,5 EUR	refuse		generated:doubled decimal mark			
+fi	5-10 EUR	refuse		generated:range			
+fi	5 – 10 EUR	refuse		generated:range with dash			
+fi	USD 5 EUR	refuse		generated:two currencies			
+fi	5 EUR 6 EUR	refuse		generated:two amounts			
+fi	about 5 EUR	refuse		generated:text before			
+fi	5 EUR each	refuse		generated:text after			
+fi	EUR	refuse		generated:no number			
+fi	EUR -	refuse		generated:sign only			
+fi	-5- EUR	refuse		generated:two signs			
+fi	1.234 EUR	refuse		generated:period group			
+fi	1.000.000 EUR	refuse		generated:period groups			
+fil	1,23 PHP	refuse		generated:malformed group			
+fil	1,2345 PHP	refuse		generated:group too long			
+fil	1.234,567 PHP	refuse		generated:group after decimal			
+fil	1.2.3 PHP	refuse		generated:two decimal marks			
+fil	1..5 PHP	refuse		generated:doubled decimal mark			
+fil	5-10 PHP	refuse		generated:range			
+fil	5 – 10 PHP	refuse		generated:range with dash			
+fil	USD 5 PHP	refuse		generated:two currencies			
+fil	5 PHP 6 PHP	refuse		generated:two amounts			
+fil	about 5 PHP	refuse		generated:text before			
+fil	5 PHP each	refuse		generated:text after			
+fil	PHP	refuse		generated:no number			
+fil	PHP -	refuse		generated:sign only			
+fil	-5- PHP	refuse		generated:two signs			
+fil	1 2 PHP	refuse		generated:space between digits			
+fil	,5 PHP	refuse		generated:group opens			
+fil	5, PHP	refuse		generated:group closes			
+fr	1\u{202F}23 EUR	refuse		generated:malformed group			
+fr	1\u{202F}2345 EUR	refuse		generated:group too long			
+fr	1,234\u{202F}567 EUR	refuse		generated:group after decimal			
+fr	1,2,3 EUR	refuse		generated:two decimal marks			
+fr	1,,5 EUR	refuse		generated:doubled decimal mark			
+fr	5-10 EUR	refuse		generated:range			
+fr	5 – 10 EUR	refuse		generated:range with dash			
+fr	USD 5 EUR	refuse		generated:two currencies			
+fr	5 EUR 6 EUR	refuse		generated:two amounts			
+fr	about 5 EUR	refuse		generated:text before			
+fr	5 EUR each	refuse		generated:text after			
+fr	EUR	refuse		generated:no number			
+fr	EUR -	refuse		generated:sign only			
+fr	-5- EUR	refuse		generated:two signs			
+fr	1.234 EUR	refuse		generated:period group			
+fr	1.000.000 EUR	refuse		generated:period groups			
+fr-CA	1\u{00A0}23 CAD	refuse		generated:malformed group			
+fr-CA	1\u{00A0}2345 CAD	refuse		generated:group too long			
+fr-CA	1,234\u{00A0}567 CAD	refuse		generated:group after decimal			
+fr-CA	1,2,3 CAD	refuse		generated:two decimal marks			
+fr-CA	1,,5 CAD	refuse		generated:doubled decimal mark			
+fr-CA	5-10 CAD	refuse		generated:range			
+fr-CA	5 – 10 CAD	refuse		generated:range with dash			
+fr-CA	USD 5 CAD	refuse		generated:two currencies			
+fr-CA	5 CAD 6 CAD	refuse		generated:two amounts			
+fr-CA	about 5 CAD	refuse		generated:text before			
+fr-CA	5 CAD each	refuse		generated:text after			
+fr-CA	CAD	refuse		generated:no number			
+fr-CA	CAD -	refuse		generated:sign only			
+fr-CA	-5- CAD	refuse		generated:two signs			
+fr-CA	1.234 CAD	refuse		generated:period group			
+fr-CA	1.000.000 CAD	refuse		generated:period groups			
+fr-CH	1'23 CHF	refuse		generated:malformed group			
+fr-CH	1'2345 CHF	refuse		generated:group too long			
+fr-CH	1.234'567 CHF	refuse		generated:group after decimal			
+fr-CH	1.2.3 CHF	refuse		generated:two decimal marks			
+fr-CH	1..5 CHF	refuse		generated:doubled decimal mark			
+fr-CH	5-10 CHF	refuse		generated:range			
+fr-CH	5 – 10 CHF	refuse		generated:range with dash			
+fr-CH	USD 5 CHF	refuse		generated:two currencies			
+fr-CH	5 CHF 6 CHF	refuse		generated:two amounts			
+fr-CH	about 5 CHF	refuse		generated:text before			
+fr-CH	5 CHF each	refuse		generated:text after			
+fr-CH	CHF	refuse		generated:no number			
+fr-CH	CHF -	refuse		generated:sign only			
+fr-CH	-5- CHF	refuse		generated:two signs			
+fr-CH	1 2 CHF	refuse		generated:space between digits			
+fr-CH	'5 CHF	refuse		generated:group opens			
+fr-CH	5' CHF	refuse		generated:group closes			
+ga	1,23 EUR	refuse		generated:malformed group			
+ga	1,2345 EUR	refuse		generated:group too long			
+ga	1.234,567 EUR	refuse		generated:group after decimal			
+ga	1.2.3 EUR	refuse		generated:two decimal marks			
+ga	1..5 EUR	refuse		generated:doubled decimal mark			
+ga	5-10 EUR	refuse		generated:range			
+ga	5 – 10 EUR	refuse		generated:range with dash			
+ga	USD 5 EUR	refuse		generated:two currencies			
+ga	5 EUR 6 EUR	refuse		generated:two amounts			
+ga	about 5 EUR	refuse		generated:text before			
+ga	5 EUR each	refuse		generated:text after			
+ga	EUR	refuse		generated:no number			
+ga	EUR -	refuse		generated:sign only			
+ga	-5- EUR	refuse		generated:two signs			
+ga	1 2 EUR	refuse		generated:space between digits			
+ga	,5 EUR	refuse		generated:group opens			
+ga	5, EUR	refuse		generated:group closes			
+gd	1,23 GBP	refuse		generated:malformed group			
+gd	1,2345 GBP	refuse		generated:group too long			
+gd	1.234,567 GBP	refuse		generated:group after decimal			
+gd	1.2.3 GBP	refuse		generated:two decimal marks			
+gd	1..5 GBP	refuse		generated:doubled decimal mark			
+gd	5-10 GBP	refuse		generated:range			
+gd	5 – 10 GBP	refuse		generated:range with dash			
+gd	USD 5 GBP	refuse		generated:two currencies			
+gd	5 GBP 6 GBP	refuse		generated:two amounts			
+gd	about 5 GBP	refuse		generated:text before			
+gd	5 GBP each	refuse		generated:text after			
+gd	GBP	refuse		generated:no number			
+gd	GBP -	refuse		generated:sign only			
+gd	-5- GBP	refuse		generated:two signs			
+gd	1 2 GBP	refuse		generated:space between digits			
+gd	,5 GBP	refuse		generated:group opens			
+gd	5, GBP	refuse		generated:group closes			
+gl	1\u{00A0}23 EUR	refuse		generated:malformed group			
+gl	1\u{00A0}2345 EUR	refuse		generated:group too long			
+gl	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+gl	1,2,3 EUR	refuse		generated:two decimal marks			
+gl	1,,5 EUR	refuse		generated:doubled decimal mark			
+gl	5-10 EUR	refuse		generated:range			
+gl	5 – 10 EUR	refuse		generated:range with dash			
+gl	USD 5 EUR	refuse		generated:two currencies			
+gl	5 EUR 6 EUR	refuse		generated:two amounts			
+gl	about 5 EUR	refuse		generated:text before			
+gl	5 EUR each	refuse		generated:text after			
+gl	EUR	refuse		generated:no number			
+gl	EUR -	refuse		generated:sign only			
+gl	-5- EUR	refuse		generated:two signs			
+gl	1.234 EUR	refuse		generated:period group			
+gl	1.000.000 EUR	refuse		generated:period groups			
+gu	1,23 INR	refuse		generated:malformed group			
+gu	1,2345 INR	refuse		generated:group too long			
+gu	1.234,567 INR	refuse		generated:group after decimal			
+gu	1.2.3 INR	refuse		generated:two decimal marks			
+gu	1..5 INR	refuse		generated:doubled decimal mark			
+gu	5-10 INR	refuse		generated:range			
+gu	5 – 10 INR	refuse		generated:range with dash			
+gu	USD 5 INR	refuse		generated:two currencies			
+gu	5 INR 6 INR	refuse		generated:two amounts			
+gu	about 5 INR	refuse		generated:text before			
+gu	5 INR each	refuse		generated:text after			
+gu	INR	refuse		generated:no number			
+gu	INR -	refuse		generated:sign only			
+gu	-5- INR	refuse		generated:two signs			
+gu	1 2 INR	refuse		generated:space between digits			
+gu	,5 INR	refuse		generated:group opens			
+gu	5, INR	refuse		generated:group closes			
+ha	1,23 NGN	refuse		generated:malformed group			
+ha	1,2345 NGN	refuse		generated:group too long			
+ha	1.234,567 NGN	refuse		generated:group after decimal			
+ha	1.2.3 NGN	refuse		generated:two decimal marks			
+ha	1..5 NGN	refuse		generated:doubled decimal mark			
+ha	5-10 NGN	refuse		generated:range			
+ha	5 – 10 NGN	refuse		generated:range with dash			
+ha	USD 5 NGN	refuse		generated:two currencies			
+ha	5 NGN 6 NGN	refuse		generated:two amounts			
+ha	about 5 NGN	refuse		generated:text before			
+ha	5 NGN each	refuse		generated:text after			
+ha	NGN	refuse		generated:no number			
+ha	NGN -	refuse		generated:sign only			
+ha	-5- NGN	refuse		generated:two signs			
+ha	1 2 NGN	refuse		generated:space between digits			
+ha	,5 NGN	refuse		generated:group opens			
+ha	5, NGN	refuse		generated:group closes			
+he	1,23 ILS	refuse		generated:malformed group			
+he	1,2345 ILS	refuse		generated:group too long			
+he	1.234,567 ILS	refuse		generated:group after decimal			
+he	1.2.3 ILS	refuse		generated:two decimal marks			
+he	1..5 ILS	refuse		generated:doubled decimal mark			
+he	5-10 ILS	refuse		generated:range			
+he	5 – 10 ILS	refuse		generated:range with dash			
+he	USD 5 ILS	refuse		generated:two currencies			
+he	5 ILS 6 ILS	refuse		generated:two amounts			
+he	about 5 ILS	refuse		generated:text before			
+he	5 ILS each	refuse		generated:text after			
+he	ILS	refuse		generated:no number			
+he	ILS -	refuse		generated:sign only			
+he	-5- ILS	refuse		generated:two signs			
+he	1 2 ILS	refuse		generated:space between digits			
+he	,5 ILS	refuse		generated:group opens			
+he	5, ILS	refuse		generated:group closes			
+hi	1,23 INR	refuse		generated:malformed group			
+hi	1,2345 INR	refuse		generated:group too long			
+hi	1.234,567 INR	refuse		generated:group after decimal			
+hi	1.2.3 INR	refuse		generated:two decimal marks			
+hi	1..5 INR	refuse		generated:doubled decimal mark			
+hi	5-10 INR	refuse		generated:range			
+hi	5 – 10 INR	refuse		generated:range with dash			
+hi	USD 5 INR	refuse		generated:two currencies			
+hi	5 INR 6 INR	refuse		generated:two amounts			
+hi	about 5 INR	refuse		generated:text before			
+hi	5 INR each	refuse		generated:text after			
+hi	INR	refuse		generated:no number			
+hi	INR -	refuse		generated:sign only			
+hi	-5- INR	refuse		generated:two signs			
+hi	1 2 INR	refuse		generated:space between digits			
+hi	,5 INR	refuse		generated:group opens			
+hi	5, INR	refuse		generated:group closes			
+hi-Latn	1,23 INR	refuse		generated:malformed group			
+hi-Latn	1,2345 INR	refuse		generated:group too long			
+hi-Latn	1.234,567 INR	refuse		generated:group after decimal			
+hi-Latn	1.2.3 INR	refuse		generated:two decimal marks			
+hi-Latn	1..5 INR	refuse		generated:doubled decimal mark			
+hi-Latn	5-10 INR	refuse		generated:range			
+hi-Latn	5 – 10 INR	refuse		generated:range with dash			
+hi-Latn	USD 5 INR	refuse		generated:two currencies			
+hi-Latn	5 INR 6 INR	refuse		generated:two amounts			
+hi-Latn	about 5 INR	refuse		generated:text before			
+hi-Latn	5 INR each	refuse		generated:text after			
+hi-Latn	INR	refuse		generated:no number			
+hi-Latn	INR -	refuse		generated:sign only			
+hi-Latn	-5- INR	refuse		generated:two signs			
+hi-Latn	1 2 INR	refuse		generated:space between digits			
+hi-Latn	,5 INR	refuse		generated:group opens			
+hi-Latn	5, INR	refuse		generated:group closes			
+hr	1.23 EUR	refuse		generated:malformed group			
+hr	1.2345 EUR	refuse		generated:group too long			
+hr	1,234.567 EUR	refuse		generated:group after decimal			
+hr	1,2,3 EUR	refuse		generated:two decimal marks			
+hr	1,,5 EUR	refuse		generated:doubled decimal mark			
+hr	5-10 EUR	refuse		generated:range			
+hr	5 – 10 EUR	refuse		generated:range with dash			
+hr	USD 5 EUR	refuse		generated:two currencies			
+hr	5 EUR 6 EUR	refuse		generated:two amounts			
+hr	about 5 EUR	refuse		generated:text before			
+hr	5 EUR each	refuse		generated:text after			
+hr	EUR	refuse		generated:no number			
+hr	EUR -	refuse		generated:sign only			
+hr	-5- EUR	refuse		generated:two signs			
+hr	1 2 EUR	refuse		generated:space between digits			
+hr	.5 EUR	refuse		generated:group opens			
+hr	5. EUR	refuse		generated:group closes			
+hu	1\u{00A0}23 HUF	refuse		generated:malformed group			
+hu	1\u{00A0}2345 HUF	refuse		generated:group too long			
+hu	1,234\u{00A0}567 HUF	refuse		generated:group after decimal			
+hu	1,2,3 HUF	refuse		generated:two decimal marks			
+hu	1,,5 HUF	refuse		generated:doubled decimal mark			
+hu	5-10 HUF	refuse		generated:range			
+hu	5 – 10 HUF	refuse		generated:range with dash			
+hu	USD 5 HUF	refuse		generated:two currencies			
+hu	5 HUF 6 HUF	refuse		generated:two amounts			
+hu	about 5 HUF	refuse		generated:text before			
+hu	5 HUF each	refuse		generated:text after			
+hu	HUF	refuse		generated:no number			
+hu	HUF -	refuse		generated:sign only			
+hu	-5- HUF	refuse		generated:two signs			
+hu	1.234 HUF	refuse		generated:period group			
+hu	1.000.000 HUF	refuse		generated:period groups			
+hy	1\u{00A0}23 AMD	refuse		generated:malformed group			
+hy	1\u{00A0}2345 AMD	refuse		generated:group too long			
+hy	1,234\u{00A0}567 AMD	refuse		generated:group after decimal			
+hy	1,2,3 AMD	refuse		generated:two decimal marks			
+hy	1,,5 AMD	refuse		generated:doubled decimal mark			
+hy	5-10 AMD	refuse		generated:range			
+hy	5 – 10 AMD	refuse		generated:range with dash			
+hy	USD 5 AMD	refuse		generated:two currencies			
+hy	5 AMD 6 AMD	refuse		generated:two amounts			
+hy	about 5 AMD	refuse		generated:text before			
+hy	5 AMD each	refuse		generated:text after			
+hy	AMD	refuse		generated:no number			
+hy	AMD -	refuse		generated:sign only			
+hy	-5- AMD	refuse		generated:two signs			
+hy	1.234 AMD	refuse		generated:period group			
+hy	1.000.000 AMD	refuse		generated:period groups			
+id	1.23 IDR	refuse		generated:malformed group			
+id	1.2345 IDR	refuse		generated:group too long			
+id	1,234.567 IDR	refuse		generated:group after decimal			
+id	1,2,3 IDR	refuse		generated:two decimal marks			
+id	1,,5 IDR	refuse		generated:doubled decimal mark			
+id	5-10 IDR	refuse		generated:range			
+id	5 – 10 IDR	refuse		generated:range with dash			
+id	USD 5 IDR	refuse		generated:two currencies			
+id	5 IDR 6 IDR	refuse		generated:two amounts			
+id	about 5 IDR	refuse		generated:text before			
+id	5 IDR each	refuse		generated:text after			
+id	IDR	refuse		generated:no number			
+id	IDR -	refuse		generated:sign only			
+id	-5- IDR	refuse		generated:two signs			
+id	1 2 IDR	refuse		generated:space between digits			
+id	.5 IDR	refuse		generated:group opens			
+id	5. IDR	refuse		generated:group closes			
+ig	1,23 NGN	refuse		generated:malformed group			
+ig	1,2345 NGN	refuse		generated:group too long			
+ig	1.234,567 NGN	refuse		generated:group after decimal			
+ig	1.2.3 NGN	refuse		generated:two decimal marks			
+ig	1..5 NGN	refuse		generated:doubled decimal mark			
+ig	5-10 NGN	refuse		generated:range			
+ig	5 – 10 NGN	refuse		generated:range with dash			
+ig	USD 5 NGN	refuse		generated:two currencies			
+ig	5 NGN 6 NGN	refuse		generated:two amounts			
+ig	about 5 NGN	refuse		generated:text before			
+ig	5 NGN each	refuse		generated:text after			
+ig	NGN	refuse		generated:no number			
+ig	NGN -	refuse		generated:sign only			
+ig	-5- NGN	refuse		generated:two signs			
+ig	1 2 NGN	refuse		generated:space between digits			
+ig	,5 NGN	refuse		generated:group opens			
+ig	5, NGN	refuse		generated:group closes			
+is	1.23 ISK	refuse		generated:malformed group			
+is	1.2345 ISK	refuse		generated:group too long			
+is	1,234.567 ISK	refuse		generated:group after decimal			
+is	1,2,3 ISK	refuse		generated:two decimal marks			
+is	1,,5 ISK	refuse		generated:doubled decimal mark			
+is	5-10 ISK	refuse		generated:range			
+is	5 – 10 ISK	refuse		generated:range with dash			
+is	USD 5 ISK	refuse		generated:two currencies			
+is	5 ISK 6 ISK	refuse		generated:two amounts			
+is	about 5 ISK	refuse		generated:text before			
+is	5 ISK each	refuse		generated:text after			
+is	ISK	refuse		generated:no number			
+is	ISK -	refuse		generated:sign only			
+is	-5- ISK	refuse		generated:two signs			
+is	1 2 ISK	refuse		generated:space between digits			
+is	.5 ISK	refuse		generated:group opens			
+is	5. ISK	refuse		generated:group closes			
+it	1.23 EUR	refuse		generated:malformed group			
+it	1.2345 EUR	refuse		generated:group too long			
+it	1,234.567 EUR	refuse		generated:group after decimal			
+it	1,2,3 EUR	refuse		generated:two decimal marks			
+it	1,,5 EUR	refuse		generated:doubled decimal mark			
+it	5-10 EUR	refuse		generated:range			
+it	5 – 10 EUR	refuse		generated:range with dash			
+it	USD 5 EUR	refuse		generated:two currencies			
+it	5 EUR 6 EUR	refuse		generated:two amounts			
+it	about 5 EUR	refuse		generated:text before			
+it	5 EUR each	refuse		generated:text after			
+it	EUR	refuse		generated:no number			
+it	EUR -	refuse		generated:sign only			
+it	-5- EUR	refuse		generated:two signs			
+it	1 2 EUR	refuse		generated:space between digits			
+it	.5 EUR	refuse		generated:group opens			
+it	5. EUR	refuse		generated:group closes			
+it-CH	1'23 CHF	refuse		generated:malformed group			
+it-CH	1'2345 CHF	refuse		generated:group too long			
+it-CH	1.234'567 CHF	refuse		generated:group after decimal			
+it-CH	1.2.3 CHF	refuse		generated:two decimal marks			
+it-CH	1..5 CHF	refuse		generated:doubled decimal mark			
+it-CH	5-10 CHF	refuse		generated:range			
+it-CH	5 – 10 CHF	refuse		generated:range with dash			
+it-CH	USD 5 CHF	refuse		generated:two currencies			
+it-CH	5 CHF 6 CHF	refuse		generated:two amounts			
+it-CH	about 5 CHF	refuse		generated:text before			
+it-CH	5 CHF each	refuse		generated:text after			
+it-CH	CHF	refuse		generated:no number			
+it-CH	CHF -	refuse		generated:sign only			
+it-CH	-5- CHF	refuse		generated:two signs			
+it-CH	1 2 CHF	refuse		generated:space between digits			
+it-CH	'5 CHF	refuse		generated:group opens			
+it-CH	5' CHF	refuse		generated:group closes			
+ja	1,23 JPY	refuse		generated:malformed group			
+ja	1,2345 JPY	refuse		generated:group too long			
+ja	1.234,567 JPY	refuse		generated:group after decimal			
+ja	1.2.3 JPY	refuse		generated:two decimal marks			
+ja	1..5 JPY	refuse		generated:doubled decimal mark			
+ja	5-10 JPY	refuse		generated:range			
+ja	5 – 10 JPY	refuse		generated:range with dash			
+ja	USD 5 JPY	refuse		generated:two currencies			
+ja	5 JPY 6 JPY	refuse		generated:two amounts			
+ja	about 5 JPY	refuse		generated:text before			
+ja	5 JPY each	refuse		generated:text after			
+ja	JPY	refuse		generated:no number			
+ja	JPY -	refuse		generated:sign only			
+ja	-5- JPY	refuse		generated:two signs			
+ja	1 2 JPY	refuse		generated:space between digits			
+ja	,5 JPY	refuse		generated:group opens			
+ja	5, JPY	refuse		generated:group closes			
+jv	1.23 IDR	refuse		generated:malformed group			
+jv	1.2345 IDR	refuse		generated:group too long			
+jv	1,234.567 IDR	refuse		generated:group after decimal			
+jv	1,2,3 IDR	refuse		generated:two decimal marks			
+jv	1,,5 IDR	refuse		generated:doubled decimal mark			
+jv	5-10 IDR	refuse		generated:range			
+jv	5 – 10 IDR	refuse		generated:range with dash			
+jv	USD 5 IDR	refuse		generated:two currencies			
+jv	5 IDR 6 IDR	refuse		generated:two amounts			
+jv	about 5 IDR	refuse		generated:text before			
+jv	5 IDR each	refuse		generated:text after			
+jv	IDR	refuse		generated:no number			
+jv	IDR -	refuse		generated:sign only			
+jv	-5- IDR	refuse		generated:two signs			
+jv	1 2 IDR	refuse		generated:space between digits			
+jv	.5 IDR	refuse		generated:group opens			
+jv	5. IDR	refuse		generated:group closes			
+ka	1\u{00A0}23 GEL	refuse		generated:malformed group			
+ka	1\u{00A0}2345 GEL	refuse		generated:group too long			
+ka	1,234\u{00A0}567 GEL	refuse		generated:group after decimal			
+ka	1,2,3 GEL	refuse		generated:two decimal marks			
+ka	1,,5 GEL	refuse		generated:doubled decimal mark			
+ka	5-10 GEL	refuse		generated:range			
+ka	5 – 10 GEL	refuse		generated:range with dash			
+ka	USD 5 GEL	refuse		generated:two currencies			
+ka	5 GEL 6 GEL	refuse		generated:two amounts			
+ka	about 5 GEL	refuse		generated:text before			
+ka	5 GEL each	refuse		generated:text after			
+ka	GEL	refuse		generated:no number			
+ka	GEL -	refuse		generated:sign only			
+ka	-5- GEL	refuse		generated:two signs			
+ka	1.234 GEL	refuse		generated:period group			
+ka	1.000.000 GEL	refuse		generated:period groups			
+kk	1\u{00A0}23 KZT	refuse		generated:malformed group			
+kk	1\u{00A0}2345 KZT	refuse		generated:group too long			
+kk	1,234\u{00A0}567 KZT	refuse		generated:group after decimal			
+kk	1,2,3 KZT	refuse		generated:two decimal marks			
+kk	1,,5 KZT	refuse		generated:doubled decimal mark			
+kk	5-10 KZT	refuse		generated:range			
+kk	5 – 10 KZT	refuse		generated:range with dash			
+kk	USD 5 KZT	refuse		generated:two currencies			
+kk	5 KZT 6 KZT	refuse		generated:two amounts			
+kk	about 5 KZT	refuse		generated:text before			
+kk	5 KZT each	refuse		generated:text after			
+kk	KZT	refuse		generated:no number			
+kk	KZT -	refuse		generated:sign only			
+kk	-5- KZT	refuse		generated:two signs			
+kk	1.234 KZT	refuse		generated:period group			
+kk	1.000.000 KZT	refuse		generated:period groups			
+km	1,23 KHR	refuse		generated:malformed group			
+km	1,2345 KHR	refuse		generated:group too long			
+km	1.234,567 KHR	refuse		generated:group after decimal			
+km	1.2.3 KHR	refuse		generated:two decimal marks			
+km	1..5 KHR	refuse		generated:doubled decimal mark			
+km	5-10 KHR	refuse		generated:range			
+km	5 – 10 KHR	refuse		generated:range with dash			
+km	USD 5 KHR	refuse		generated:two currencies			
+km	5 KHR 6 KHR	refuse		generated:two amounts			
+km	about 5 KHR	refuse		generated:text before			
+km	5 KHR each	refuse		generated:text after			
+km	KHR	refuse		generated:no number			
+km	KHR -	refuse		generated:sign only			
+km	-5- KHR	refuse		generated:two signs			
+km	1 2 KHR	refuse		generated:space between digits			
+km	,5 KHR	refuse		generated:group opens			
+km	5, KHR	refuse		generated:group closes			
+kn	1,23 INR	refuse		generated:malformed group			
+kn	1,2345 INR	refuse		generated:group too long			
+kn	1.234,567 INR	refuse		generated:group after decimal			
+kn	1.2.3 INR	refuse		generated:two decimal marks			
+kn	1..5 INR	refuse		generated:doubled decimal mark			
+kn	5-10 INR	refuse		generated:range			
+kn	5 – 10 INR	refuse		generated:range with dash			
+kn	USD 5 INR	refuse		generated:two currencies			
+kn	5 INR 6 INR	refuse		generated:two amounts			
+kn	about 5 INR	refuse		generated:text before			
+kn	5 INR each	refuse		generated:text after			
+kn	INR	refuse		generated:no number			
+kn	INR -	refuse		generated:sign only			
+kn	-5- INR	refuse		generated:two signs			
+kn	1 2 INR	refuse		generated:space between digits			
+kn	,5 INR	refuse		generated:group opens			
+kn	5, INR	refuse		generated:group closes			
+ko	1,23 KRW	refuse		generated:malformed group			
+ko	1,2345 KRW	refuse		generated:group too long			
+ko	1.234,567 KRW	refuse		generated:group after decimal			
+ko	1.2.3 KRW	refuse		generated:two decimal marks			
+ko	1..5 KRW	refuse		generated:doubled decimal mark			
+ko	5-10 KRW	refuse		generated:range			
+ko	5 – 10 KRW	refuse		generated:range with dash			
+ko	USD 5 KRW	refuse		generated:two currencies			
+ko	5 KRW 6 KRW	refuse		generated:two amounts			
+ko	about 5 KRW	refuse		generated:text before			
+ko	5 KRW each	refuse		generated:text after			
+ko	KRW	refuse		generated:no number			
+ko	KRW -	refuse		generated:sign only			
+ko	-5- KRW	refuse		generated:two signs			
+ko	1 2 KRW	refuse		generated:space between digits			
+ko	,5 KRW	refuse		generated:group opens			
+ko	5, KRW	refuse		generated:group closes			
+kok	1,23 INR	refuse		generated:malformed group			
+kok	1,2345 INR	refuse		generated:group too long			
+kok	1.234,567 INR	refuse		generated:group after decimal			
+kok	1.2.3 INR	refuse		generated:two decimal marks			
+kok	1..5 INR	refuse		generated:doubled decimal mark			
+kok	5-10 INR	refuse		generated:range			
+kok	5 – 10 INR	refuse		generated:range with dash			
+kok	USD 5 INR	refuse		generated:two currencies			
+kok	5 INR 6 INR	refuse		generated:two amounts			
+kok	about 5 INR	refuse		generated:text before			
+kok	5 INR each	refuse		generated:text after			
+kok	INR	refuse		generated:no number			
+kok	INR -	refuse		generated:sign only			
+kok	-5- INR	refuse		generated:two signs			
+kok	1 2 INR	refuse		generated:space between digits			
+kok	,5 INR	refuse		generated:group opens			
+kok	5, INR	refuse		generated:group closes			
+ky	1\u{00A0}23 KGS	refuse		generated:malformed group			
+ky	1\u{00A0}2345 KGS	refuse		generated:group too long			
+ky	1,234\u{00A0}567 KGS	refuse		generated:group after decimal			
+ky	1,2,3 KGS	refuse		generated:two decimal marks			
+ky	1,,5 KGS	refuse		generated:doubled decimal mark			
+ky	5-10 KGS	refuse		generated:range			
+ky	5 – 10 KGS	refuse		generated:range with dash			
+ky	USD 5 KGS	refuse		generated:two currencies			
+ky	5 KGS 6 KGS	refuse		generated:two amounts			
+ky	about 5 KGS	refuse		generated:text before			
+ky	5 KGS each	refuse		generated:text after			
+ky	KGS	refuse		generated:no number			
+ky	KGS -	refuse		generated:sign only			
+ky	-5- KGS	refuse		generated:two signs			
+ky	1.234 KGS	refuse		generated:period group			
+ky	1.000.000 KGS	refuse		generated:period groups			
+lo	1.23 LAK	refuse		generated:malformed group			
+lo	1.2345 LAK	refuse		generated:group too long			
+lo	1,234.567 LAK	refuse		generated:group after decimal			
+lo	1,2,3 LAK	refuse		generated:two decimal marks			
+lo	1,,5 LAK	refuse		generated:doubled decimal mark			
+lo	5-10 LAK	refuse		generated:range			
+lo	5 – 10 LAK	refuse		generated:range with dash			
+lo	USD 5 LAK	refuse		generated:two currencies			
+lo	5 LAK 6 LAK	refuse		generated:two amounts			
+lo	about 5 LAK	refuse		generated:text before			
+lo	5 LAK each	refuse		generated:text after			
+lo	LAK	refuse		generated:no number			
+lo	LAK -	refuse		generated:sign only			
+lo	-5- LAK	refuse		generated:two signs			
+lo	1 2 LAK	refuse		generated:space between digits			
+lo	.5 LAK	refuse		generated:group opens			
+lo	5. LAK	refuse		generated:group closes			
+lt	1\u{00A0}23 EUR	refuse		generated:malformed group			
+lt	1\u{00A0}2345 EUR	refuse		generated:group too long			
+lt	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+lt	1,2,3 EUR	refuse		generated:two decimal marks			
+lt	1,,5 EUR	refuse		generated:doubled decimal mark			
+lt	5-10 EUR	refuse		generated:range			
+lt	5 – 10 EUR	refuse		generated:range with dash			
+lt	USD 5 EUR	refuse		generated:two currencies			
+lt	5 EUR 6 EUR	refuse		generated:two amounts			
+lt	about 5 EUR	refuse		generated:text before			
+lt	5 EUR each	refuse		generated:text after			
+lt	EUR	refuse		generated:no number			
+lt	EUR -	refuse		generated:sign only			
+lt	-5- EUR	refuse		generated:two signs			
+lt	1.234 EUR	refuse		generated:period group			
+lt	1.000.000 EUR	refuse		generated:period groups			
+lv	1\u{00A0}23 EUR	refuse		generated:malformed group			
+lv	1\u{00A0}2345 EUR	refuse		generated:group too long			
+lv	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+lv	1,2,3 EUR	refuse		generated:two decimal marks			
+lv	1,,5 EUR	refuse		generated:doubled decimal mark			
+lv	5-10 EUR	refuse		generated:range			
+lv	5 – 10 EUR	refuse		generated:range with dash			
+lv	USD 5 EUR	refuse		generated:two currencies			
+lv	5 EUR 6 EUR	refuse		generated:two amounts			
+lv	about 5 EUR	refuse		generated:text before			
+lv	5 EUR each	refuse		generated:text after			
+lv	EUR	refuse		generated:no number			
+lv	EUR -	refuse		generated:sign only			
+lv	-5- EUR	refuse		generated:two signs			
+lv	1.234 EUR	refuse		generated:period group			
+lv	1.000.000 EUR	refuse		generated:period groups			
+mk	1.23 MKD	refuse		generated:malformed group			
+mk	1.2345 MKD	refuse		generated:group too long			
+mk	1,234.567 MKD	refuse		generated:group after decimal			
+mk	1,2,3 MKD	refuse		generated:two decimal marks			
+mk	1,,5 MKD	refuse		generated:doubled decimal mark			
+mk	5-10 MKD	refuse		generated:range			
+mk	5 – 10 MKD	refuse		generated:range with dash			
+mk	USD 5 MKD	refuse		generated:two currencies			
+mk	5 MKD 6 MKD	refuse		generated:two amounts			
+mk	about 5 MKD	refuse		generated:text before			
+mk	5 MKD each	refuse		generated:text after			
+mk	MKD	refuse		generated:no number			
+mk	MKD -	refuse		generated:sign only			
+mk	-5- MKD	refuse		generated:two signs			
+mk	1 2 MKD	refuse		generated:space between digits			
+mk	.5 MKD	refuse		generated:group opens			
+mk	5. MKD	refuse		generated:group closes			
+ml	1,23 INR	refuse		generated:malformed group			
+ml	1,2345 INR	refuse		generated:group too long			
+ml	1.234,567 INR	refuse		generated:group after decimal			
+ml	1.2.3 INR	refuse		generated:two decimal marks			
+ml	1..5 INR	refuse		generated:doubled decimal mark			
+ml	5-10 INR	refuse		generated:range			
+ml	5 – 10 INR	refuse		generated:range with dash			
+ml	USD 5 INR	refuse		generated:two currencies			
+ml	5 INR 6 INR	refuse		generated:two amounts			
+ml	about 5 INR	refuse		generated:text before			
+ml	5 INR each	refuse		generated:text after			
+ml	INR	refuse		generated:no number			
+ml	INR -	refuse		generated:sign only			
+ml	-5- INR	refuse		generated:two signs			
+ml	1 2 INR	refuse		generated:space between digits			
+ml	,5 INR	refuse		generated:group opens			
+ml	5, INR	refuse		generated:group closes			
+mn	1,23 MNT	refuse		generated:malformed group			
+mn	1,2345 MNT	refuse		generated:group too long			
+mn	1.234,567 MNT	refuse		generated:group after decimal			
+mn	1.2.3 MNT	refuse		generated:two decimal marks			
+mn	1..5 MNT	refuse		generated:doubled decimal mark			
+mn	5-10 MNT	refuse		generated:range			
+mn	5 – 10 MNT	refuse		generated:range with dash			
+mn	USD 5 MNT	refuse		generated:two currencies			
+mn	5 MNT 6 MNT	refuse		generated:two amounts			
+mn	about 5 MNT	refuse		generated:text before			
+mn	5 MNT each	refuse		generated:text after			
+mn	MNT	refuse		generated:no number			
+mn	MNT -	refuse		generated:sign only			
+mn	-5- MNT	refuse		generated:two signs			
+mn	1 2 MNT	refuse		generated:space between digits			
+mn	,5 MNT	refuse		generated:group opens			
+mn	5, MNT	refuse		generated:group closes			
+mr	१,२३ INR	refuse		generated:malformed group			
+mr	१,२३४५ INR	refuse		generated:group too long			
+mr	१.२३४,५६७ INR	refuse		generated:group after decimal			
+mr	१.२.३ INR	refuse		generated:two decimal marks			
+mr	१..५ INR	refuse		generated:doubled decimal mark			
+mr	५-१० INR	refuse		generated:range			
+mr	५ – १० INR	refuse		generated:range with dash			
+mr	USD ५ INR	refuse		generated:two currencies			
+mr	५ INR ६ INR	refuse		generated:two amounts			
+mr	about ५ INR	refuse		generated:text before			
+mr	५ INR each	refuse		generated:text after			
+mr	INR	refuse		generated:no number			
+mr	INR -	refuse		generated:sign only			
+mr	-५- INR	refuse		generated:two signs			
+mr	१ २ INR	refuse		generated:space between digits			
+mr	,५ INR	refuse		generated:group opens			
+mr	५, INR	refuse		generated:group closes			
+ms	1,23 MYR	refuse		generated:malformed group			
+ms	1,2345 MYR	refuse		generated:group too long			
+ms	1.234,567 MYR	refuse		generated:group after decimal			
+ms	1.2.3 MYR	refuse		generated:two decimal marks			
+ms	1..5 MYR	refuse		generated:doubled decimal mark			
+ms	5-10 MYR	refuse		generated:range			
+ms	5 – 10 MYR	refuse		generated:range with dash			
+ms	USD 5 MYR	refuse		generated:two currencies			
+ms	5 MYR 6 MYR	refuse		generated:two amounts			
+ms	about 5 MYR	refuse		generated:text before			
+ms	5 MYR each	refuse		generated:text after			
+ms	MYR	refuse		generated:no number			
+ms	MYR -	refuse		generated:sign only			
+ms	-5- MYR	refuse		generated:two signs			
+ms	1 2 MYR	refuse		generated:space between digits			
+ms	,5 MYR	refuse		generated:group opens			
+ms	5, MYR	refuse		generated:group closes			
+my	၁,၂၃ MMK	refuse		generated:malformed group			
+my	၁,၂၃၄၅ MMK	refuse		generated:group too long			
+my	၁.၂၃၄,၅၆၇ MMK	refuse		generated:group after decimal			
+my	၁.၂.၃ MMK	refuse		generated:two decimal marks			
+my	၁..၅ MMK	refuse		generated:doubled decimal mark			
+my	၅-၁၀ MMK	refuse		generated:range			
+my	၅ – ၁၀ MMK	refuse		generated:range with dash			
+my	USD ၅ MMK	refuse		generated:two currencies			
+my	၅ MMK ၆ MMK	refuse		generated:two amounts			
+my	about ၅ MMK	refuse		generated:text before			
+my	၅ MMK each	refuse		generated:text after			
+my	MMK	refuse		generated:no number			
+my	MMK -	refuse		generated:sign only			
+my	-၅- MMK	refuse		generated:two signs			
+my	၁ ၂ MMK	refuse		generated:space between digits			
+my	,၅ MMK	refuse		generated:group opens			
+my	၅, MMK	refuse		generated:group closes			
+ne	१,२३ NPR	refuse		generated:malformed group			
+ne	१,२३४५ NPR	refuse		generated:group too long			
+ne	१.२३४,५६७ NPR	refuse		generated:group after decimal			
+ne	१.२.३ NPR	refuse		generated:two decimal marks			
+ne	१..५ NPR	refuse		generated:doubled decimal mark			
+ne	५-१० NPR	refuse		generated:range			
+ne	५ – १० NPR	refuse		generated:range with dash			
+ne	USD ५ NPR	refuse		generated:two currencies			
+ne	५ NPR ६ NPR	refuse		generated:two amounts			
+ne	about ५ NPR	refuse		generated:text before			
+ne	५ NPR each	refuse		generated:text after			
+ne	NPR	refuse		generated:no number			
+ne	NPR -	refuse		generated:sign only			
+ne	-५- NPR	refuse		generated:two signs			
+ne	१ २ NPR	refuse		generated:space between digits			
+ne	,५ NPR	refuse		generated:group opens			
+ne	५, NPR	refuse		generated:group closes			
+nl	1.23 EUR	refuse		generated:malformed group			
+nl	1.2345 EUR	refuse		generated:group too long			
+nl	1,234.567 EUR	refuse		generated:group after decimal			
+nl	1,2,3 EUR	refuse		generated:two decimal marks			
+nl	1,,5 EUR	refuse		generated:doubled decimal mark			
+nl	5-10 EUR	refuse		generated:range			
+nl	5 – 10 EUR	refuse		generated:range with dash			
+nl	USD 5 EUR	refuse		generated:two currencies			
+nl	5 EUR 6 EUR	refuse		generated:two amounts			
+nl	about 5 EUR	refuse		generated:text before			
+nl	5 EUR each	refuse		generated:text after			
+nl	EUR	refuse		generated:no number			
+nl	EUR -	refuse		generated:sign only			
+nl	-5- EUR	refuse		generated:two signs			
+nl	1 2 EUR	refuse		generated:space between digits			
+nl	.5 EUR	refuse		generated:group opens			
+nl	5. EUR	refuse		generated:group closes			
+nl-BE	1.23 EUR	refuse		generated:malformed group			
+nl-BE	1.2345 EUR	refuse		generated:group too long			
+nl-BE	1,234.567 EUR	refuse		generated:group after decimal			
+nl-BE	1,2,3 EUR	refuse		generated:two decimal marks			
+nl-BE	1,,5 EUR	refuse		generated:doubled decimal mark			
+nl-BE	5-10 EUR	refuse		generated:range			
+nl-BE	5 – 10 EUR	refuse		generated:range with dash			
+nl-BE	USD 5 EUR	refuse		generated:two currencies			
+nl-BE	5 EUR 6 EUR	refuse		generated:two amounts			
+nl-BE	about 5 EUR	refuse		generated:text before			
+nl-BE	5 EUR each	refuse		generated:text after			
+nl-BE	EUR	refuse		generated:no number			
+nl-BE	EUR -	refuse		generated:sign only			
+nl-BE	-5- EUR	refuse		generated:two signs			
+nl-BE	1 2 EUR	refuse		generated:space between digits			
+nl-BE	.5 EUR	refuse		generated:group opens			
+nl-BE	5. EUR	refuse		generated:group closes			
+nn	1\u{00A0}23 NOK	refuse		generated:malformed group			
+nn	1\u{00A0}2345 NOK	refuse		generated:group too long			
+nn	1,234\u{00A0}567 NOK	refuse		generated:group after decimal			
+nn	1,2,3 NOK	refuse		generated:two decimal marks			
+nn	1,,5 NOK	refuse		generated:doubled decimal mark			
+nn	5-10 NOK	refuse		generated:range			
+nn	5 – 10 NOK	refuse		generated:range with dash			
+nn	USD 5 NOK	refuse		generated:two currencies			
+nn	5 NOK 6 NOK	refuse		generated:two amounts			
+nn	about 5 NOK	refuse		generated:text before			
+nn	5 NOK each	refuse		generated:text after			
+nn	NOK	refuse		generated:no number			
+nn	NOK -	refuse		generated:sign only			
+nn	-5- NOK	refuse		generated:two signs			
+nn	1.234 NOK	refuse		generated:period group			
+nn	1.000.000 NOK	refuse		generated:period groups			
+no	1\u{00A0}23 NOK	refuse		generated:malformed group			
+no	1\u{00A0}2345 NOK	refuse		generated:group too long			
+no	1,234\u{00A0}567 NOK	refuse		generated:group after decimal			
+no	1,2,3 NOK	refuse		generated:two decimal marks			
+no	1,,5 NOK	refuse		generated:doubled decimal mark			
+no	5-10 NOK	refuse		generated:range			
+no	5 – 10 NOK	refuse		generated:range with dash			
+no	USD 5 NOK	refuse		generated:two currencies			
+no	5 NOK 6 NOK	refuse		generated:two amounts			
+no	about 5 NOK	refuse		generated:text before			
+no	5 NOK each	refuse		generated:text after			
+no	NOK	refuse		generated:no number			
+no	NOK -	refuse		generated:sign only			
+no	-5- NOK	refuse		generated:two signs			
+no	1.234 NOK	refuse		generated:period group			
+no	1.000.000 NOK	refuse		generated:period groups			
+or	1,23 INR	refuse		generated:malformed group			
+or	1,2345 INR	refuse		generated:group too long			
+or	1.234,567 INR	refuse		generated:group after decimal			
+or	1.2.3 INR	refuse		generated:two decimal marks			
+or	1..5 INR	refuse		generated:doubled decimal mark			
+or	5-10 INR	refuse		generated:range			
+or	5 – 10 INR	refuse		generated:range with dash			
+or	USD 5 INR	refuse		generated:two currencies			
+or	5 INR 6 INR	refuse		generated:two amounts			
+or	about 5 INR	refuse		generated:text before			
+or	5 INR each	refuse		generated:text after			
+or	INR	refuse		generated:no number			
+or	INR -	refuse		generated:sign only			
+or	-5- INR	refuse		generated:two signs			
+or	1 2 INR	refuse		generated:space between digits			
+or	,5 INR	refuse		generated:group opens			
+or	5, INR	refuse		generated:group closes			
+pa	1,23 INR	refuse		generated:malformed group			
+pa	1,2345 INR	refuse		generated:group too long			
+pa	1.234,567 INR	refuse		generated:group after decimal			
+pa	1.2.3 INR	refuse		generated:two decimal marks			
+pa	1..5 INR	refuse		generated:doubled decimal mark			
+pa	5-10 INR	refuse		generated:range			
+pa	5 – 10 INR	refuse		generated:range with dash			
+pa	USD 5 INR	refuse		generated:two currencies			
+pa	5 INR 6 INR	refuse		generated:two amounts			
+pa	about 5 INR	refuse		generated:text before			
+pa	5 INR each	refuse		generated:text after			
+pa	INR	refuse		generated:no number			
+pa	INR -	refuse		generated:sign only			
+pa	-5- INR	refuse		generated:two signs			
+pa	1 2 INR	refuse		generated:space between digits			
+pa	,5 INR	refuse		generated:group opens			
+pa	5, INR	refuse		generated:group closes			
+pcm	1,23 NGN	refuse		generated:malformed group			
+pcm	1,2345 NGN	refuse		generated:group too long			
+pcm	1.234,567 NGN	refuse		generated:group after decimal			
+pcm	1.2.3 NGN	refuse		generated:two decimal marks			
+pcm	1..5 NGN	refuse		generated:doubled decimal mark			
+pcm	5-10 NGN	refuse		generated:range			
+pcm	5 – 10 NGN	refuse		generated:range with dash			
+pcm	USD 5 NGN	refuse		generated:two currencies			
+pcm	5 NGN 6 NGN	refuse		generated:two amounts			
+pcm	about 5 NGN	refuse		generated:text before			
+pcm	5 NGN each	refuse		generated:text after			
+pcm	NGN	refuse		generated:no number			
+pcm	NGN -	refuse		generated:sign only			
+pcm	-5- NGN	refuse		generated:two signs			
+pcm	1 2 NGN	refuse		generated:space between digits			
+pcm	,5 NGN	refuse		generated:group opens			
+pcm	5, NGN	refuse		generated:group closes			
+pl	1\u{00A0}23 PLN	refuse		generated:malformed group			
+pl	1\u{00A0}2345 PLN	refuse		generated:group too long			
+pl	1,234\u{00A0}567 PLN	refuse		generated:group after decimal			
+pl	1,2,3 PLN	refuse		generated:two decimal marks			
+pl	1,,5 PLN	refuse		generated:doubled decimal mark			
+pl	5-10 PLN	refuse		generated:range			
+pl	5 – 10 PLN	refuse		generated:range with dash			
+pl	USD 5 PLN	refuse		generated:two currencies			
+pl	5 PLN 6 PLN	refuse		generated:two amounts			
+pl	about 5 PLN	refuse		generated:text before			
+pl	5 PLN each	refuse		generated:text after			
+pl	PLN	refuse		generated:no number			
+pl	PLN -	refuse		generated:sign only			
+pl	-5- PLN	refuse		generated:two signs			
+pl	1.234 PLN	refuse		generated:period group			
+pl	1.000.000 PLN	refuse		generated:period groups			
+ps	۱٬۲۳ AFN	refuse		generated:malformed group			
+ps	۱٬۲۳۴۵ AFN	refuse		generated:group too long			
+ps	۱٫۲۳۴٬۵۶۷ AFN	refuse		generated:group after decimal			
+ps	۱٫۲٫۳ AFN	refuse		generated:two decimal marks			
+ps	۱٫٫۵ AFN	refuse		generated:doubled decimal mark			
+ps	۵-۱۰ AFN	refuse		generated:range			
+ps	۵ – ۱۰ AFN	refuse		generated:range with dash			
+ps	USD ۵ AFN	refuse		generated:two currencies			
+ps	۵ AFN ۶ AFN	refuse		generated:two amounts			
+ps	about ۵ AFN	refuse		generated:text before			
+ps	۵ AFN each	refuse		generated:text after			
+ps	AFN	refuse		generated:no number			
+ps	AFN -	refuse		generated:sign only			
+ps	-۵- AFN	refuse		generated:two signs			
+ps	۱ ۲ AFN	refuse		generated:space between digits			
+ps	٬۵ AFN	refuse		generated:group opens			
+ps	۵٬ AFN	refuse		generated:group closes			
+ps	۱.۲۳۴ AFN	refuse		generated:period group			
+ps	۱.۰۰۰.۰۰۰ AFN	refuse		generated:period groups			
+pt	1.23 BRL	refuse		generated:malformed group			
+pt	1.2345 BRL	refuse		generated:group too long			
+pt	1,234.567 BRL	refuse		generated:group after decimal			
+pt	1,2,3 BRL	refuse		generated:two decimal marks			
+pt	1,,5 BRL	refuse		generated:doubled decimal mark			
+pt	5-10 BRL	refuse		generated:range			
+pt	5 – 10 BRL	refuse		generated:range with dash			
+pt	USD 5 BRL	refuse		generated:two currencies			
+pt	5 BRL 6 BRL	refuse		generated:two amounts			
+pt	about 5 BRL	refuse		generated:text before			
+pt	5 BRL each	refuse		generated:text after			
+pt	BRL	refuse		generated:no number			
+pt	BRL -	refuse		generated:sign only			
+pt	-5- BRL	refuse		generated:two signs			
+pt	1 2 BRL	refuse		generated:space between digits			
+pt	.5 BRL	refuse		generated:group opens			
+pt	5. BRL	refuse		generated:group closes			
+pt-PT	1\u{00A0}23 EUR	refuse		generated:malformed group			
+pt-PT	1\u{00A0}2345 EUR	refuse		generated:group too long			
+pt-PT	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+pt-PT	1,2,3 EUR	refuse		generated:two decimal marks			
+pt-PT	1,,5 EUR	refuse		generated:doubled decimal mark			
+pt-PT	5-10 EUR	refuse		generated:range			
+pt-PT	5 – 10 EUR	refuse		generated:range with dash			
+pt-PT	USD 5 EUR	refuse		generated:two currencies			
+pt-PT	5 EUR 6 EUR	refuse		generated:two amounts			
+pt-PT	about 5 EUR	refuse		generated:text before			
+pt-PT	5 EUR each	refuse		generated:text after			
+pt-PT	EUR	refuse		generated:no number			
+pt-PT	EUR -	refuse		generated:sign only			
+pt-PT	-5- EUR	refuse		generated:two signs			
+pt-PT	1.234 EUR	refuse		generated:period group			
+pt-PT	1.000.000 EUR	refuse		generated:period groups			
+qu	1,23 PEN	refuse		generated:malformed group			
+qu	1,2345 PEN	refuse		generated:group too long			
+qu	1.234,567 PEN	refuse		generated:group after decimal			
+qu	1.2.3 PEN	refuse		generated:two decimal marks			
+qu	1..5 PEN	refuse		generated:doubled decimal mark			
+qu	5-10 PEN	refuse		generated:range			
+qu	5 – 10 PEN	refuse		generated:range with dash			
+qu	USD 5 PEN	refuse		generated:two currencies			
+qu	5 PEN 6 PEN	refuse		generated:two amounts			
+qu	about 5 PEN	refuse		generated:text before			
+qu	5 PEN each	refuse		generated:text after			
+qu	PEN	refuse		generated:no number			
+qu	PEN -	refuse		generated:sign only			
+qu	-5- PEN	refuse		generated:two signs			
+qu	1 2 PEN	refuse		generated:space between digits			
+qu	,5 PEN	refuse		generated:group opens			
+qu	5, PEN	refuse		generated:group closes			
+ro	1.23 RON	refuse		generated:malformed group			
+ro	1.2345 RON	refuse		generated:group too long			
+ro	1,234.567 RON	refuse		generated:group after decimal			
+ro	1,2,3 RON	refuse		generated:two decimal marks			
+ro	1,,5 RON	refuse		generated:doubled decimal mark			
+ro	5-10 RON	refuse		generated:range			
+ro	5 – 10 RON	refuse		generated:range with dash			
+ro	USD 5 RON	refuse		generated:two currencies			
+ro	5 RON 6 RON	refuse		generated:two amounts			
+ro	about 5 RON	refuse		generated:text before			
+ro	5 RON each	refuse		generated:text after			
+ro	RON	refuse		generated:no number			
+ro	RON -	refuse		generated:sign only			
+ro	-5- RON	refuse		generated:two signs			
+ro	1 2 RON	refuse		generated:space between digits			
+ro	.5 RON	refuse		generated:group opens			
+ro	5. RON	refuse		generated:group closes			
+ru	1\u{00A0}23 RUB	refuse		generated:malformed group			
+ru	1\u{00A0}2345 RUB	refuse		generated:group too long			
+ru	1,234\u{00A0}567 RUB	refuse		generated:group after decimal			
+ru	1,2,3 RUB	refuse		generated:two decimal marks			
+ru	1,,5 RUB	refuse		generated:doubled decimal mark			
+ru	5-10 RUB	refuse		generated:range			
+ru	5 – 10 RUB	refuse		generated:range with dash			
+ru	USD 5 RUB	refuse		generated:two currencies			
+ru	5 RUB 6 RUB	refuse		generated:two amounts			
+ru	about 5 RUB	refuse		generated:text before			
+ru	5 RUB each	refuse		generated:text after			
+ru	RUB	refuse		generated:no number			
+ru	RUB -	refuse		generated:sign only			
+ru	-5- RUB	refuse		generated:two signs			
+ru	1.234 RUB	refuse		generated:period group			
+ru	1.000.000 RUB	refuse		generated:period groups			
+sd	١٬٢٣ PKR	refuse		generated:malformed group			
+sd	١٬٢٣٤٥ PKR	refuse		generated:group too long			
+sd	١.٢٣٤٬٥٦٧ PKR	refuse		generated:group after decimal			
+sd	١.٢.٣ PKR	refuse		generated:two decimal marks			
+sd	١..٥ PKR	refuse		generated:doubled decimal mark			
+sd	٥-١٠ PKR	refuse		generated:range			
+sd	٥ – ١٠ PKR	refuse		generated:range with dash			
+sd	USD ٥ PKR	refuse		generated:two currencies			
+sd	٥ PKR ٦ PKR	refuse		generated:two amounts			
+sd	about ٥ PKR	refuse		generated:text before			
+sd	٥ PKR each	refuse		generated:text after			
+sd	PKR	refuse		generated:no number			
+sd	PKR -	refuse		generated:sign only			
+sd	-٥- PKR	refuse		generated:two signs			
+sd	١ ٢ PKR	refuse		generated:space between digits			
+sd	٬٥ PKR	refuse		generated:group opens			
+sd	٥٬ PKR	refuse		generated:group closes			
+si	1,23 LKR	refuse		generated:malformed group			
+si	1,2345 LKR	refuse		generated:group too long			
+si	1.234,567 LKR	refuse		generated:group after decimal			
+si	1.2.3 LKR	refuse		generated:two decimal marks			
+si	1..5 LKR	refuse		generated:doubled decimal mark			
+si	5-10 LKR	refuse		generated:range			
+si	5 – 10 LKR	refuse		generated:range with dash			
+si	USD 5 LKR	refuse		generated:two currencies			
+si	5 LKR 6 LKR	refuse		generated:two amounts			
+si	about 5 LKR	refuse		generated:text before			
+si	5 LKR each	refuse		generated:text after			
+si	LKR	refuse		generated:no number			
+si	LKR -	refuse		generated:sign only			
+si	-5- LKR	refuse		generated:two signs			
+si	1 2 LKR	refuse		generated:space between digits			
+si	,5 LKR	refuse		generated:group opens			
+si	5, LKR	refuse		generated:group closes			
+sk	1\u{00A0}23 EUR	refuse		generated:malformed group			
+sk	1\u{00A0}2345 EUR	refuse		generated:group too long			
+sk	1,234\u{00A0}567 EUR	refuse		generated:group after decimal			
+sk	1,2,3 EUR	refuse		generated:two decimal marks			
+sk	1,,5 EUR	refuse		generated:doubled decimal mark			
+sk	5-10 EUR	refuse		generated:range			
+sk	5 – 10 EUR	refuse		generated:range with dash			
+sk	USD 5 EUR	refuse		generated:two currencies			
+sk	5 EUR 6 EUR	refuse		generated:two amounts			
+sk	about 5 EUR	refuse		generated:text before			
+sk	5 EUR each	refuse		generated:text after			
+sk	EUR	refuse		generated:no number			
+sk	EUR -	refuse		generated:sign only			
+sk	-5- EUR	refuse		generated:two signs			
+sk	1.234 EUR	refuse		generated:period group			
+sk	1.000.000 EUR	refuse		generated:period groups			
+sl	1.23 EUR	refuse		generated:malformed group			
+sl	1.2345 EUR	refuse		generated:group too long			
+sl	1,234.567 EUR	refuse		generated:group after decimal			
+sl	1,2,3 EUR	refuse		generated:two decimal marks			
+sl	1,,5 EUR	refuse		generated:doubled decimal mark			
+sl	5-10 EUR	refuse		generated:range			
+sl	5 – 10 EUR	refuse		generated:range with dash			
+sl	USD 5 EUR	refuse		generated:two currencies			
+sl	5 EUR 6 EUR	refuse		generated:two amounts			
+sl	about 5 EUR	refuse		generated:text before			
+sl	5 EUR each	refuse		generated:text after			
+sl	EUR	refuse		generated:no number			
+sl	EUR -	refuse		generated:sign only			
+sl	-5- EUR	refuse		generated:two signs			
+sl	1 2 EUR	refuse		generated:space between digits			
+sl	.5 EUR	refuse		generated:group opens			
+sl	5. EUR	refuse		generated:group closes			
+so	1,23 SOS	refuse		generated:malformed group			
+so	1,2345 SOS	refuse		generated:group too long			
+so	1.234,567 SOS	refuse		generated:group after decimal			
+so	1.2.3 SOS	refuse		generated:two decimal marks			
+so	1..5 SOS	refuse		generated:doubled decimal mark			
+so	5-10 SOS	refuse		generated:range			
+so	5 – 10 SOS	refuse		generated:range with dash			
+so	USD 5 SOS	refuse		generated:two currencies			
+so	5 SOS 6 SOS	refuse		generated:two amounts			
+so	about 5 SOS	refuse		generated:text before			
+so	5 SOS each	refuse		generated:text after			
+so	SOS	refuse		generated:no number			
+so	SOS -	refuse		generated:sign only			
+so	-5- SOS	refuse		generated:two signs			
+so	1 2 SOS	refuse		generated:space between digits			
+so	,5 SOS	refuse		generated:group opens			
+so	5, SOS	refuse		generated:group closes			
+sq	1\u{00A0}23 ALL	refuse		generated:malformed group			
+sq	1\u{00A0}2345 ALL	refuse		generated:group too long			
+sq	1,234\u{00A0}567 ALL	refuse		generated:group after decimal			
+sq	1,2,3 ALL	refuse		generated:two decimal marks			
+sq	1,,5 ALL	refuse		generated:doubled decimal mark			
+sq	5-10 ALL	refuse		generated:range			
+sq	5 – 10 ALL	refuse		generated:range with dash			
+sq	USD 5 ALL	refuse		generated:two currencies			
+sq	5 ALL 6 ALL	refuse		generated:two amounts			
+sq	about 5 ALL	refuse		generated:text before			
+sq	5 ALL each	refuse		generated:text after			
+sq	ALL	refuse		generated:no number			
+sq	ALL -	refuse		generated:sign only			
+sq	-5- ALL	refuse		generated:two signs			
+sq	1.234 ALL	refuse		generated:period group			
+sq	1.000.000 ALL	refuse		generated:period groups			
+sr	1.23 RSD	refuse		generated:malformed group			
+sr	1.2345 RSD	refuse		generated:group too long			
+sr	1,234.567 RSD	refuse		generated:group after decimal			
+sr	1,2,3 RSD	refuse		generated:two decimal marks			
+sr	1,,5 RSD	refuse		generated:doubled decimal mark			
+sr	5-10 RSD	refuse		generated:range			
+sr	5 – 10 RSD	refuse		generated:range with dash			
+sr	USD 5 RSD	refuse		generated:two currencies			
+sr	5 RSD 6 RSD	refuse		generated:two amounts			
+sr	about 5 RSD	refuse		generated:text before			
+sr	5 RSD each	refuse		generated:text after			
+sr	RSD	refuse		generated:no number			
+sr	RSD -	refuse		generated:sign only			
+sr	-5- RSD	refuse		generated:two signs			
+sr	1 2 RSD	refuse		generated:space between digits			
+sr	.5 RSD	refuse		generated:group opens			
+sr	5. RSD	refuse		generated:group closes			
+sr-Latn	1.23 RSD	refuse		generated:malformed group			
+sr-Latn	1.2345 RSD	refuse		generated:group too long			
+sr-Latn	1,234.567 RSD	refuse		generated:group after decimal			
+sr-Latn	1,2,3 RSD	refuse		generated:two decimal marks			
+sr-Latn	1,,5 RSD	refuse		generated:doubled decimal mark			
+sr-Latn	5-10 RSD	refuse		generated:range			
+sr-Latn	5 – 10 RSD	refuse		generated:range with dash			
+sr-Latn	USD 5 RSD	refuse		generated:two currencies			
+sr-Latn	5 RSD 6 RSD	refuse		generated:two amounts			
+sr-Latn	about 5 RSD	refuse		generated:text before			
+sr-Latn	5 RSD each	refuse		generated:text after			
+sr-Latn	RSD	refuse		generated:no number			
+sr-Latn	RSD -	refuse		generated:sign only			
+sr-Latn	-5- RSD	refuse		generated:two signs			
+sr-Latn	1 2 RSD	refuse		generated:space between digits			
+sr-Latn	.5 RSD	refuse		generated:group opens			
+sr-Latn	5. RSD	refuse		generated:group closes			
+sv	1\u{00A0}23 SEK	refuse		generated:malformed group			
+sv	1\u{00A0}2345 SEK	refuse		generated:group too long			
+sv	1,234\u{00A0}567 SEK	refuse		generated:group after decimal			
+sv	1,2,3 SEK	refuse		generated:two decimal marks			
+sv	1,,5 SEK	refuse		generated:doubled decimal mark			
+sv	5-10 SEK	refuse		generated:range			
+sv	5 – 10 SEK	refuse		generated:range with dash			
+sv	USD 5 SEK	refuse		generated:two currencies			
+sv	5 SEK 6 SEK	refuse		generated:two amounts			
+sv	about 5 SEK	refuse		generated:text before			
+sv	5 SEK each	refuse		generated:text after			
+sv	SEK	refuse		generated:no number			
+sv	SEK -	refuse		generated:sign only			
+sv	-5- SEK	refuse		generated:two signs			
+sv	1.234 SEK	refuse		generated:period group			
+sv	1.000.000 SEK	refuse		generated:period groups			
+sw	1,23 TZS	refuse		generated:malformed group			
+sw	1,2345 TZS	refuse		generated:group too long			
+sw	1.234,567 TZS	refuse		generated:group after decimal			
+sw	1.2.3 TZS	refuse		generated:two decimal marks			
+sw	1..5 TZS	refuse		generated:doubled decimal mark			
+sw	5-10 TZS	refuse		generated:range			
+sw	5 – 10 TZS	refuse		generated:range with dash			
+sw	USD 5 TZS	refuse		generated:two currencies			
+sw	5 TZS 6 TZS	refuse		generated:two amounts			
+sw	about 5 TZS	refuse		generated:text before			
+sw	5 TZS each	refuse		generated:text after			
+sw	TZS	refuse		generated:no number			
+sw	TZS -	refuse		generated:sign only			
+sw	-5- TZS	refuse		generated:two signs			
+sw	1 2 TZS	refuse		generated:space between digits			
+sw	,5 TZS	refuse		generated:group opens			
+sw	5, TZS	refuse		generated:group closes			
+ta	1,23 INR	refuse		generated:malformed group			
+ta	1,2345 INR	refuse		generated:group too long			
+ta	1.234,567 INR	refuse		generated:group after decimal			
+ta	1.2.3 INR	refuse		generated:two decimal marks			
+ta	1..5 INR	refuse		generated:doubled decimal mark			
+ta	5-10 INR	refuse		generated:range			
+ta	5 – 10 INR	refuse		generated:range with dash			
+ta	USD 5 INR	refuse		generated:two currencies			
+ta	5 INR 6 INR	refuse		generated:two amounts			
+ta	about 5 INR	refuse		generated:text before			
+ta	5 INR each	refuse		generated:text after			
+ta	INR	refuse		generated:no number			
+ta	INR -	refuse		generated:sign only			
+ta	-5- INR	refuse		generated:two signs			
+ta	1 2 INR	refuse		generated:space between digits			
+ta	,5 INR	refuse		generated:group opens			
+ta	5, INR	refuse		generated:group closes			
+te	1,23 INR	refuse		generated:malformed group			
+te	1,2345 INR	refuse		generated:group too long			
+te	1.234,567 INR	refuse		generated:group after decimal			
+te	1.2.3 INR	refuse		generated:two decimal marks			
+te	1..5 INR	refuse		generated:doubled decimal mark			
+te	5-10 INR	refuse		generated:range			
+te	5 – 10 INR	refuse		generated:range with dash			
+te	USD 5 INR	refuse		generated:two currencies			
+te	5 INR 6 INR	refuse		generated:two amounts			
+te	about 5 INR	refuse		generated:text before			
+te	5 INR each	refuse		generated:text after			
+te	INR	refuse		generated:no number			
+te	INR -	refuse		generated:sign only			
+te	-5- INR	refuse		generated:two signs			
+te	1 2 INR	refuse		generated:space between digits			
+te	,5 INR	refuse		generated:group opens			
+te	5, INR	refuse		generated:group closes			
+th	1,23 THB	refuse		generated:malformed group			
+th	1,2345 THB	refuse		generated:group too long			
+th	1.234,567 THB	refuse		generated:group after decimal			
+th	1.2.3 THB	refuse		generated:two decimal marks			
+th	1..5 THB	refuse		generated:doubled decimal mark			
+th	5-10 THB	refuse		generated:range			
+th	5 – 10 THB	refuse		generated:range with dash			
+th	USD 5 THB	refuse		generated:two currencies			
+th	5 THB 6 THB	refuse		generated:two amounts			
+th	about 5 THB	refuse		generated:text before			
+th	5 THB each	refuse		generated:text after			
+th	THB	refuse		generated:no number			
+th	THB -	refuse		generated:sign only			
+th	-5- THB	refuse		generated:two signs			
+th	1 2 THB	refuse		generated:space between digits			
+th	,5 THB	refuse		generated:group opens			
+th	5, THB	refuse		generated:group closes			
+tk	1\u{00A0}23 TMT	refuse		generated:malformed group			
+tk	1\u{00A0}2345 TMT	refuse		generated:group too long			
+tk	1,234\u{00A0}567 TMT	refuse		generated:group after decimal			
+tk	1,2,3 TMT	refuse		generated:two decimal marks			
+tk	1,,5 TMT	refuse		generated:doubled decimal mark			
+tk	5-10 TMT	refuse		generated:range			
+tk	5 – 10 TMT	refuse		generated:range with dash			
+tk	USD 5 TMT	refuse		generated:two currencies			
+tk	5 TMT 6 TMT	refuse		generated:two amounts			
+tk	about 5 TMT	refuse		generated:text before			
+tk	5 TMT each	refuse		generated:text after			
+tk	TMT	refuse		generated:no number			
+tk	TMT -	refuse		generated:sign only			
+tk	-5- TMT	refuse		generated:two signs			
+tk	1.234 TMT	refuse		generated:period group			
+tk	1.000.000 TMT	refuse		generated:period groups			
+tr	1.23 TRY	refuse		generated:malformed group			
+tr	1.2345 TRY	refuse		generated:group too long			
+tr	1,234.567 TRY	refuse		generated:group after decimal			
+tr	1,2,3 TRY	refuse		generated:two decimal marks			
+tr	1,,5 TRY	refuse		generated:doubled decimal mark			
+tr	5-10 TRY	refuse		generated:range			
+tr	5 – 10 TRY	refuse		generated:range with dash			
+tr	USD 5 TRY	refuse		generated:two currencies			
+tr	5 TRY 6 TRY	refuse		generated:two amounts			
+tr	about 5 TRY	refuse		generated:text before			
+tr	5 TRY each	refuse		generated:text after			
+tr	TRY	refuse		generated:no number			
+tr	TRY -	refuse		generated:sign only			
+tr	-5- TRY	refuse		generated:two signs			
+tr	1 2 TRY	refuse		generated:space between digits			
+tr	.5 TRY	refuse		generated:group opens			
+tr	5. TRY	refuse		generated:group closes			
+uk	1\u{00A0}23 UAH	refuse		generated:malformed group			
+uk	1\u{00A0}2345 UAH	refuse		generated:group too long			
+uk	1,234\u{00A0}567 UAH	refuse		generated:group after decimal			
+uk	1,2,3 UAH	refuse		generated:two decimal marks			
+uk	1,,5 UAH	refuse		generated:doubled decimal mark			
+uk	5-10 UAH	refuse		generated:range			
+uk	5 – 10 UAH	refuse		generated:range with dash			
+uk	USD 5 UAH	refuse		generated:two currencies			
+uk	5 UAH 6 UAH	refuse		generated:two amounts			
+uk	about 5 UAH	refuse		generated:text before			
+uk	5 UAH each	refuse		generated:text after			
+uk	UAH	refuse		generated:no number			
+uk	UAH -	refuse		generated:sign only			
+uk	-5- UAH	refuse		generated:two signs			
+uk	1.234 UAH	refuse		generated:period group			
+uk	1.000.000 UAH	refuse		generated:period groups			
+ur	1,23 PKR	refuse		generated:malformed group			
+ur	1,2345 PKR	refuse		generated:group too long			
+ur	1.234,567 PKR	refuse		generated:group after decimal			
+ur	1.2.3 PKR	refuse		generated:two decimal marks			
+ur	1..5 PKR	refuse		generated:doubled decimal mark			
+ur	5-10 PKR	refuse		generated:range			
+ur	5 – 10 PKR	refuse		generated:range with dash			
+ur	USD 5 PKR	refuse		generated:two currencies			
+ur	5 PKR 6 PKR	refuse		generated:two amounts			
+ur	about 5 PKR	refuse		generated:text before			
+ur	5 PKR each	refuse		generated:text after			
+ur	PKR	refuse		generated:no number			
+ur	PKR -	refuse		generated:sign only			
+ur	-5- PKR	refuse		generated:two signs			
+ur	1 2 PKR	refuse		generated:space between digits			
+ur	,5 PKR	refuse		generated:group opens			
+ur	5, PKR	refuse		generated:group closes			
+uz	1\u{00A0}23 UZS	refuse		generated:malformed group			
+uz	1\u{00A0}2345 UZS	refuse		generated:group too long			
+uz	1,234\u{00A0}567 UZS	refuse		generated:group after decimal			
+uz	1,2,3 UZS	refuse		generated:two decimal marks			
+uz	1,,5 UZS	refuse		generated:doubled decimal mark			
+uz	5-10 UZS	refuse		generated:range			
+uz	5 – 10 UZS	refuse		generated:range with dash			
+uz	USD 5 UZS	refuse		generated:two currencies			
+uz	5 UZS 6 UZS	refuse		generated:two amounts			
+uz	about 5 UZS	refuse		generated:text before			
+uz	5 UZS each	refuse		generated:text after			
+uz	UZS	refuse		generated:no number			
+uz	UZS -	refuse		generated:sign only			
+uz	-5- UZS	refuse		generated:two signs			
+uz	1.234 UZS	refuse		generated:period group			
+uz	1.000.000 UZS	refuse		generated:period groups			
+vi	1.23 VND	refuse		generated:malformed group			
+vi	1.2345 VND	refuse		generated:group too long			
+vi	1,234.567 VND	refuse		generated:group after decimal			
+vi	1,2,3 VND	refuse		generated:two decimal marks			
+vi	1,,5 VND	refuse		generated:doubled decimal mark			
+vi	5-10 VND	refuse		generated:range			
+vi	5 – 10 VND	refuse		generated:range with dash			
+vi	USD 5 VND	refuse		generated:two currencies			
+vi	5 VND 6 VND	refuse		generated:two amounts			
+vi	about 5 VND	refuse		generated:text before			
+vi	5 VND each	refuse		generated:text after			
+vi	VND	refuse		generated:no number			
+vi	VND -	refuse		generated:sign only			
+vi	-5- VND	refuse		generated:two signs			
+vi	1 2 VND	refuse		generated:space between digits			
+vi	.5 VND	refuse		generated:group opens			
+vi	5. VND	refuse		generated:group closes			
+yo	1,23 NGN	refuse		generated:malformed group			
+yo	1,2345 NGN	refuse		generated:group too long			
+yo	1.234,567 NGN	refuse		generated:group after decimal			
+yo	1.2.3 NGN	refuse		generated:two decimal marks			
+yo	1..5 NGN	refuse		generated:doubled decimal mark			
+yo	5-10 NGN	refuse		generated:range			
+yo	5 – 10 NGN	refuse		generated:range with dash			
+yo	USD 5 NGN	refuse		generated:two currencies			
+yo	5 NGN 6 NGN	refuse		generated:two amounts			
+yo	about 5 NGN	refuse		generated:text before			
+yo	5 NGN each	refuse		generated:text after			
+yo	NGN	refuse		generated:no number			
+yo	NGN -	refuse		generated:sign only			
+yo	-5- NGN	refuse		generated:two signs			
+yo	1 2 NGN	refuse		generated:space between digits			
+yo	,5 NGN	refuse		generated:group opens			
+yo	5, NGN	refuse		generated:group closes			
+yue	1,23 HKD	refuse		generated:malformed group			
+yue	1,2345 HKD	refuse		generated:group too long			
+yue	1.234,567 HKD	refuse		generated:group after decimal			
+yue	1.2.3 HKD	refuse		generated:two decimal marks			
+yue	1..5 HKD	refuse		generated:doubled decimal mark			
+yue	5-10 HKD	refuse		generated:range			
+yue	5 – 10 HKD	refuse		generated:range with dash			
+yue	USD 5 HKD	refuse		generated:two currencies			
+yue	5 HKD 6 HKD	refuse		generated:two amounts			
+yue	about 5 HKD	refuse		generated:text before			
+yue	5 HKD each	refuse		generated:text after			
+yue	HKD	refuse		generated:no number			
+yue	HKD -	refuse		generated:sign only			
+yue	-5- HKD	refuse		generated:two signs			
+yue	1 2 HKD	refuse		generated:space between digits			
+yue	,5 HKD	refuse		generated:group opens			
+yue	5, HKD	refuse		generated:group closes			
+zh	1,23 CNY	refuse		generated:malformed group			
+zh	1,2345 CNY	refuse		generated:group too long			
+zh	1.234,567 CNY	refuse		generated:group after decimal			
+zh	1.2.3 CNY	refuse		generated:two decimal marks			
+zh	1..5 CNY	refuse		generated:doubled decimal mark			
+zh	5-10 CNY	refuse		generated:range			
+zh	5 – 10 CNY	refuse		generated:range with dash			
+zh	USD 5 CNY	refuse		generated:two currencies			
+zh	5 CNY 6 CNY	refuse		generated:two amounts			
+zh	about 5 CNY	refuse		generated:text before			
+zh	5 CNY each	refuse		generated:text after			
+zh	CNY	refuse		generated:no number			
+zh	CNY -	refuse		generated:sign only			
+zh	-5- CNY	refuse		generated:two signs			
+zh	1 2 CNY	refuse		generated:space between digits			
+zh	,5 CNY	refuse		generated:group opens			
+zh	5, CNY	refuse		generated:group closes			
+zh-Hant	1,23 TWD	refuse		generated:malformed group			
+zh-Hant	1,2345 TWD	refuse		generated:group too long			
+zh-Hant	1.234,567 TWD	refuse		generated:group after decimal			
+zh-Hant	1.2.3 TWD	refuse		generated:two decimal marks			
+zh-Hant	1..5 TWD	refuse		generated:doubled decimal mark			
+zh-Hant	5-10 TWD	refuse		generated:range			
+zh-Hant	5 – 10 TWD	refuse		generated:range with dash			
+zh-Hant	USD 5 TWD	refuse		generated:two currencies			
+zh-Hant	5 TWD 6 TWD	refuse		generated:two amounts			
+zh-Hant	about 5 TWD	refuse		generated:text before			
+zh-Hant	5 TWD each	refuse		generated:text after			
+zh-Hant	TWD	refuse		generated:no number			
+zh-Hant	TWD -	refuse		generated:sign only			
+zh-Hant	-5- TWD	refuse		generated:two signs			
+zh-Hant	1 2 TWD	refuse		generated:space between digits			
+zh-Hant	,5 TWD	refuse		generated:group opens			
+zh-Hant	5, TWD	refuse		generated:group closes			
+zh-Hant-HK	1,23 HKD	refuse		generated:malformed group			
+zh-Hant-HK	1,2345 HKD	refuse		generated:group too long			
+zh-Hant-HK	1.234,567 HKD	refuse		generated:group after decimal			
+zh-Hant-HK	1.2.3 HKD	refuse		generated:two decimal marks			
+zh-Hant-HK	1..5 HKD	refuse		generated:doubled decimal mark			
+zh-Hant-HK	5-10 HKD	refuse		generated:range			
+zh-Hant-HK	5 – 10 HKD	refuse		generated:range with dash			
+zh-Hant-HK	USD 5 HKD	refuse		generated:two currencies			
+zh-Hant-HK	5 HKD 6 HKD	refuse		generated:two amounts			
+zh-Hant-HK	about 5 HKD	refuse		generated:text before			
+zh-Hant-HK	5 HKD each	refuse		generated:text after			
+zh-Hant-HK	HKD	refuse		generated:no number			
+zh-Hant-HK	HKD -	refuse		generated:sign only			
+zh-Hant-HK	-5- HKD	refuse		generated:two signs			
+zh-Hant-HK	1 2 HKD	refuse		generated:space between digits			
+zh-Hant-HK	,5 HKD	refuse		generated:group opens			
+zh-Hant-HK	5, HKD	refuse		generated:group closes			
+zu	1,23 ZAR	refuse		generated:malformed group			
+zu	1,2345 ZAR	refuse		generated:group too long			
+zu	1.234,567 ZAR	refuse		generated:group after decimal			
+zu	1.2.3 ZAR	refuse		generated:two decimal marks			
+zu	1..5 ZAR	refuse		generated:doubled decimal mark			
+zu	5-10 ZAR	refuse		generated:range			
+zu	5 – 10 ZAR	refuse		generated:range with dash			
+zu	USD 5 ZAR	refuse		generated:two currencies			
+zu	5 ZAR 6 ZAR	refuse		generated:two amounts			
+zu	about 5 ZAR	refuse		generated:text before			
+zu	5 ZAR each	refuse		generated:text after			
+zu	ZAR	refuse		generated:no number			
+zu	ZAR -	refuse		generated:sign only			
+zu	-5- ZAR	refuse		generated:two signs			
+zu	1 2 ZAR	refuse		generated:space between digits			
+zu	,5 ZAR	refuse		generated:group opens			
+zu	5, ZAR	refuse		generated:group closes			

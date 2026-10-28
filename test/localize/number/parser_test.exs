@@ -337,13 +337,14 @@ defmodule Localize.Number.ParserTest do
       assert Decimal.equal?(d5, "1234.56")
     end
 
-    # Both of `de-AT`'s sets mark the fraction with a comma, so a period is
-    # the euro's group, or a decimal point only where it can be no group.
-    test "reads a period as de-AT's currency group where it can be one" do
+    # Both of `de-AT`'s sets mark the fraction with a comma, and the euro's
+    # groups with a period, so a period is never its decimal point: "100.00"
+    # is a malformed group, as in `de`.
+    test "reads a period as de-AT's currency group, never as a decimal point" do
       assert {:ok, %Decimal{} = amount} = amount_of("1.234", "de-AT", :EUR)
       assert Decimal.equal?(amount, "1234")
-      assert {:ok, %Decimal{} = amount} = amount_of("100.00", "de-AT", :EUR)
-      assert Decimal.equal?(amount, "100.00")
+      assert {:error, _} = amount_of("100.00", "de-AT", :EUR)
+      assert {:error, _} = amount_of("1.23", "de-AT", :EUR)
       assert {:error, _} = amount_of("1.234,5.6", "de-AT", :EUR)
     end
 

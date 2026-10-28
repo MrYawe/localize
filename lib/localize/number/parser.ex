@@ -432,9 +432,18 @@ defmodule Localize.Number.Parser do
          {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, grouping} <- grouping_mode(options),
          {:ok, symbol_sets} <- symbol_sets(language_tag, number_system, options) do
+      period_separator = period_separator?(symbol_sets)
+
       readings =
         Enum.map(symbol_sets, fn {reading_tag, symbols} ->
-          read_number(string, number_type, number_system, symbols, reading_tag, grouping)
+          read_number(
+            string,
+            number_type,
+            number_system,
+            symbols,
+            {reading_tag, period_separator},
+            grouping
+          )
         end)
 
       agreed_reading(readings, string)
@@ -562,18 +571,42 @@ defmodule Localize.Number.Parser do
 
   # Text that is not a number of this locale is a parse error naming the
   # text, not whichever step of the reading first refused it.
-  defp read_number(string, number_type, number_system, symbol, language_tag, grouping) do
-    case normalized_value(string, number_type, number_system, symbol, language_tag, grouping) do
+  # A period that is a separator of any set the number is read with is not
+  # foreign to the locale: `de-AT` groups the euro with it, so its plain-number
+  # set, which does not, must not take "1.23 EUR" for 1.23.
+  defp period_separator?(symbol_sets) do
+    Enum.any?(symbol_sets, fn {reading_tag, symbols} ->
+      lenient = lenient_replacements(reading_tag)
+
+      Enum.any?([symbols.decimal, symbols.group], fn separator ->
+        separator
+        |> extract_separator()
+        |> apply_lenient(lenient)
+        |> Kernel.==(".")
+      end)
+    end)
+  end
+
+  defp read_number(string, number_type, number_system, symbol, reading, grouping) do
+    case normalized_value(string, number_type, number_system, symbol, reading, grouping) do
       {:ok, _value} = success -> bound_decimal_exponent(success, string)
       _unreadable -> {:error, parse_error(string)}
     end
   end
 
-  defp normalized_value(string, number_type, number_system, symbol, language_tag, grouping) do
+  defp normalized_value(string, number_type, number_system, symbol, reading, grouping) do
+    {language_tag, period_separator} = reading
+
     with {:ok, normalized} <-
            string
            |> transliterate_digits(number_system)
-           |> normalize_number_string(symbol, language_tag, number_system, grouping) do
+           |> normalize_number_string(
+             symbol,
+             language_tag,
+             number_system,
+             grouping,
+             period_separator
+           ) do
       normalized |> String.trim() |> parse_number(number_type)
     end
   end
@@ -1670,7 +1703,14 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp normalize_number_string(string, symbols, language_tag, number_system, grouping) do
+  defp normalize_number_string(
+         string,
+         symbols,
+         language_tag,
+         number_system,
+         grouping,
+         period_separator
+       ) do
     lenient = lenient_replacements(language_tag)
 
     # TR35 is explicit that loose matching applies "to both the input text and
@@ -1696,7 +1736,7 @@ defmodule Localize.Number.Parser do
          body = normalize_spaces(body, group_sep),
          :ok <-
            validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping),
-         :ok <- no_stray_period(body, group_sep, decimal_sep) do
+         :ok <- no_stray_period(body, group_sep, decimal_sep, period_separator) do
       number =
         body
         |> String.replace(group_sep, "")
@@ -1717,11 +1757,13 @@ defmodule Localize.Number.Parser do
   # as one only where it can be nothing else: a single period between digits,
   # in text without the locale's own decimal mark, and not in the shape of a
   # thousands group. `fr` "100.00" is 100, but "1.234" is refused, since one
-  # who groups with a period means 1234 by it.
-  defp no_stray_period(body, group_sep, decimal_sep) do
+  # who groups with a period means 1234 by it. Where another set the number is
+  # read with has the period, this one leaves it to that set.
+  defp no_stray_period(body, group_sep, decimal_sep, period_separator) do
     cond do
       "." in [group_sep, decimal_sep] -> :ok
       not String.contains?(body, ".") -> :ok
+      period_separator -> {:error, :stray_period}
       foreign_decimal_point?(body, decimal_sep) -> :ok
       true -> {:error, :stray_period}
     end
