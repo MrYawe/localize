@@ -138,6 +138,14 @@ defmodule Localize.Number.CurrencyAmountTest do
       end
     end
 
+    test "a zero fraction written as a dash" do
+      assert {:CHF, "5"} = amount("CHF 5.–", locale: :"de-CH")
+      assert {:CHF, "5"} = amount("Fr. 5.—", locale: :"de-CH")
+      assert {:EUR, "5"} = amount("€ 5,-", locale: :nl)
+      assert {:EUR, "-5"} = amount("-€ 5,-", locale: :nl)
+      assert {:EUR, "-127.54"} = amount("€ 127,54-", locale: :nl)
+    end
+
     test "a sentence's closing period after the currency" do
       assert {:USD, "100"} = amount("100 USD.")
     end

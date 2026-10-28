@@ -350,6 +350,32 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "zero fraction written as a dash" do
+    test "parse/2 reads it as a whole amount" do
+      assert {:ok, 5} = Parser.parse("5.–", locale: "de-CH")
+      assert {:ok, 5} = Parser.parse("5.—", locale: "de-CH")
+      assert {:ok, 5} = Parser.parse("5.--", locale: "de-CH")
+      assert {:ok, 5} = Parser.parse("5,-", locale: "nl")
+      assert {:ok, 1234} = Parser.parse("1.234,-", locale: "nl")
+      assert {:ok, -5} = Parser.parse("-5.–", locale: "de-CH")
+    end
+
+    test "parse/2 reads it only leniently, and only after digits" do
+      assert {:error, _} = Parser.parse("5.–", locale: "de-CH", lenient: false)
+      assert {:error, _} = Parser.parse(".–", locale: "de-CH")
+      assert {:error, _} = Parser.parse("5.---", locale: "de-CH")
+      assert {:error, _} = Parser.parse("5-", locale: "en")
+    end
+
+    test "scan/2 reads it as part of the number" do
+      assert ["CHF ", 5] = Parser.scan("CHF 5.–", locale: "de-CH")
+      assert ["€ ", 5, " en ", 6] = Parser.scan("€ 5,- en 6,-", locale: "nl")
+      assert ["CHF ", 5, ".–"] = Parser.scan("CHF 5.–", locale: "de-CH", lenient: false)
+      assert [1, ".", -2] = Parser.scan("1.-2", locale: "en")
+      assert ["€ ", 127.54, "-"] = Parser.scan("€ 127,54-", locale: "nl")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

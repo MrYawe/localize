@@ -26,7 +26,12 @@ defmodule Localize.Number.Parser do
   @number_format @bidi_controls <>
                    "([-+]" <>
                    @bidi_controls <>
-                   ")?[0-9]([0-9_]|[,](?=[0-9]))*(\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
+                   ")?[0-9]([0-9_]|[,](?=[0-9]))*(\\.ZERO_FRACTION|\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
+
+  # A zero fraction written as a dash, "5.–", for a lenient scan: one or two of
+  # the dashes `@zero_fraction_dashes` reads, with no digit after them. A
+  # strict scan puts a pattern in its place that never matches.
+  @zero_fraction "[\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}][\\-\\x{2010}-\\x{2015}\\x{2212}\\x{FE58}\\x{FE63}\\x{FF0D}]?(?![0-9])"
 
   # TR35's loose matching for lenient parsing says to ignore every character in
   # `[:Zs:]`, and separately to normalize to NFKC, "thus no-break space will map
@@ -69,10 +74,19 @@ defmodule Localize.Number.Parser do
   # currency writes between them. Which separator groups and which marks the
   # decimal is left to `parse/2` once the currency is known. A separator
   # counts only between digits, so the period of `da` "kr.5" stays with the
-  # currency.
-  @amount_number ~r/\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*/u
+  # currency, or before a zero fraction written as a dash, "5.–", which
+  # `parse/2` reads as a whole amount.
+  @amount_number ~r/\p{Nd}(?:\p{Nd}|[\p{Zs}\p{Po}\p{Pf}](?=\p{Nd}))*(?:[\p{Po}\p{Pf}][\-\x{2010}-\x{2015}\x{2212}\x{FE58}\x{FE63}\x{FF0D}]{1,2}(?!\p{Nd}))?/u
 
   @any_digit ~r/\p{Nd}/u
+  @ends_in_digit ~r/\p{Nd}\z/u
+
+  # The dashes that stand for a zero fraction, one or two of them, after
+  # folding: "_" is CLDR's minus family, which has neither the hyphen U+2010
+  # nor the en dash U+2013 that Swiss text writes most.
+  @zero_fraction_dashes for dash <- ["_", "\u2010", "\u2013", "\u2014", "\u2015", "\uFE58"],
+                            count <- [2, 1],
+                            do: String.duplicate(dash, count)
 
   # The three places in `@number_format` that `localize_format_string/3` fills
   # in with the locale: the sign class, the grouping separator and the decimal.
@@ -181,15 +195,13 @@ defmodule Localize.Number.Parser do
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
+      lenient? = Keyword.get(options, :lenient, true)
+
       scanner =
         @number_format
         |> localize_format_string(symbol, language_tag)
-        |> group_lookahead(
-          language_tag,
-          number_system,
-          symbol,
-          Keyword.get(options, :lenient, true)
-        )
+        |> group_lookahead(language_tag, number_system, symbol, lenient?)
+        |> zero_fraction(lenient?)
         |> Regex.compile!([:unicode])
 
       normalized_string = transliterate_digits(string, number_system)
@@ -1195,6 +1207,7 @@ defmodule Localize.Number.Parser do
       |> String.replace(@format_characters, "")
       |> apply_lenient(lenient)
       |> normalize_spaces(group_sep)
+      |> drop_zero_fraction(decimal_sep, lenient?)
 
     with :ok <-
            validate_grouping(
@@ -1215,6 +1228,23 @@ defmodule Localize.Number.Parser do
        # being mistaken for a separator while the separators are being removed.
        |> String.replace("_", "-")}
     end
+  end
+
+  # Swiss "5.–" and Dutch "5,-" write a whole amount with a dash for its
+  # fraction. CLDR has no data for the convention (CLDR-3394), so it is read
+  # only leniently, after the folds.
+  defp drop_zero_fraction(string, decimal_sep, true) when decimal_sep != "" do
+    Enum.find_value(@zero_fraction_dashes, string, fn dashes ->
+      whole = String.replace_suffix(string, decimal_sep <> dashes, "")
+
+      if whole != string and String.match?(whole, @ends_in_digit) do
+        whole
+      end
+    end)
+  end
+
+  defp drop_zero_fraction(string, _decimal_sep, _lenient?) do
+    string
   end
 
   # Where the locale groups with a space, every space folds onto that separator
@@ -1539,6 +1569,14 @@ defmodule Localize.Number.Parser do
     characters
     |> Enum.reject(&(&1 == ""))
     |> Enum.map_join(&Regex.escape/1)
+  end
+
+  defp zero_fraction(pattern, true) do
+    String.replace(pattern, "ZERO_FRACTION", @zero_fraction)
+  end
+
+  defp zero_fraction(pattern, _strict) do
+    String.replace(pattern, "ZERO_FRACTION", "(?!)")
   end
 
   # `@number_format` admits a grouping separator whenever a digit follows. That

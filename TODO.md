@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **A dash after the decimal mark reads as a zero fraction** (next release) — Swiss `CHF 5.–` and Dutch `€ 5,-` are whole amounts, but `parse/2` refuses them and `scan/2` leaves `".–"` unread; CLDR has no data for it (CLDR-3394), so it is a lenient rule. Found from ex_money #209, 2026-09-27.
-
 * [ ] **`localize_mf1` sibling library** (next release) — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60. A separate package, since MF1 is ICU's specification and not TR35's. Port `ex_cldr_messages` 2.0.1's `v1/` parser (NimbleParsec), interpreter, printer and HTML renderer, about 1,700 lines. Its only ex_cldr calls are public formatters with Localize equivalents: `Number`, `Date`, `Time`, `DateTime`, `List`, `Unit` and `PluralRule`. Gettext passes neither a PO entry's flags nor its `msgctxt` to the interpolation module, so a flag cannot pick the format. Instead, a backend's interpolation module chooses it: an MF1 module for an all-MF1 backend, and a mixed module that reads a message as MF2 only when it opens with MF2's own `{{` or `.input`, `.local` or `.match`. Neither opener is valid MF1, so a mixed backend writes its simple MF2 messages quoted. Settle the PO flags too: MF1 keeps `icu-format`, and `Localize.Gettext.Interpolation.message_format/0` also writes `icu-format` for MF2, which tools that key on it read as MF1.
 
 * [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
@@ -69,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A dash after the decimal mark reads as a zero fraction** — one or two dashes after the decimal mark and no digit, read only leniently, in `parse/2`, `scan/2` and `parse_currency_amount/2`; a dash after the fraction digits is still a trailing minus. 2026-10-28, unreleased.
 
 * [x] **`Localize.Number.Parser.parse_currency_amount/2`** — reads one currency amount into `{:ok, {currency, decimal}}`: currency either side, a sign before, between or after, accounting parentheses, the currency's separators, `:default_currency` and `:unknown_currency`; reads every case in ex_money's `test/money_parse_test.exs`. 2026-10-28, unreleased.
 

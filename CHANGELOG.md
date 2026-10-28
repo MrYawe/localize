@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.resolve_currencies/2` and `resolve_currency/2` match a currency CLDR writes with a closing period whole, with any bidi controls after it: `da` "kr." and `ar` "ج.م." leave no "." behind. A period after any other currency is still text.
 
+* `Localize.Number.Parser.parse/2`, `scan/2` and `parse_currency_amount/2` read a zero fraction written as a dash, Swiss "5.–" and Dutch "5,-", as a whole amount when lenient. Found from ex_money #209.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed
