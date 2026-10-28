@@ -4,7 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **ASCII digits read with the Latin separators** (next release) — in a locale whose default digits are not Latin, `ar-EG` "100,00" reads as 100.00 and "1,234.56" is refused, because the `arab` decimal ٫ folds onto ","; with `number_system: :latn` both read as typed. Found comparing ex_money's readings, 2026-10-28.
+* [ ] **A stray space between digits** — in a locale that groups with a comma or full stop, `parse/2` deletes a space between digits, so `en` "1 2" reads as 12 and "12 34" as 1234; ex_money refused both before 6.3.0. Decide whether such a space is held to the lenient grouping shape or refused. Found 2026-10-28.
 
 * [ ] **`localize_mf1` sibling library** (next release) — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60. A separate package, since MF1 is ICU's specification and not TR35's. Port `ex_cldr_messages` 2.0.1's `v1/` parser (NimbleParsec), interpreter, printer and HTML renderer, about 1,700 lines. Its only ex_cldr calls are public formatters with Localize equivalents: `Number`, `Date`, `Time`, `DateTime`, `List`, `Unit` and `PluralRule`. Gettext passes neither a PO entry's flags nor its `msgctxt` to the interpolation module, so a flag cannot pick the format. Instead, a backend's interpolation module chooses it: an MF1 module for an all-MF1 backend, and a mixed module that reads a message as MF2 only when it opens with MF2's own `{{` or `.input`, `.local` or `.match`. Neither opener is valid MF1, so a mixed backend writes its simple MF2 messages quoted. Settle the PO flags too: MF1 keeps `icu-format`, and `Localize.Gettext.Interpolation.message_format/0` also writes `icu-format` for MF2, which tools that key on it read as MF1.
 
@@ -69,6 +69,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A grouping separator after the decimal mark** — refused, so `de` "1,234.56" and `en` "1.234,56" are errors rather than 1.23456. 2026-10-28, unreleased.
+
+* [x] **ASCII digits read with the Latin separators** — with no `:number_system`, text in Latin digits alone is read with the locale's `latn` separators, and `scan/2` passes its chosen system to each piece. 2026-10-28, unreleased.
 
 * [x] **Lenient grouping accepts a group that is too long** — every group is now at most the locale's longest grouping size, so `de` "1234.56" no longer reads as 123456; found comparing ex_money's old and new readings. 2026-10-28, unreleased.
 

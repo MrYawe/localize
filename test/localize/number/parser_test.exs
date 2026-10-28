@@ -252,6 +252,23 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "a grouping separator after the decimal mark" do
+    test "is not a number" do
+      for {string, locale} <- [
+            {"1,234.56", "de"},
+            {"1.234,56", "en"},
+            {"1,5 6", "fr"},
+            {"1.234,5.6", "de"},
+            {"1,234.5,6", "en"}
+          ],
+          lenient <- [true, false] do
+        assert {:error, _} =
+                 Parser.parse(string, locale: locale, number: :decimal, lenient: lenient),
+               "#{locale} #{inspect(string)} lenient: #{lenient}"
+      end
+    end
+  end
+
   describe "lenient grouping" do
     test "refuses a group longer than the locale's longest" do
       # A separator after four digits is no grouping any locale writes, and

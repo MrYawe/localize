@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Lenient `Localize.Number.Parser.parse/2` refuses a group longer than the locale's longest, so `de` "1234.56" is an error rather than 123456, and `de-AT` "1234.56" read as a euro amount likewise.
 
+* `Localize.Number.Parser.parse/2`, `scan/2` and `resolve_per/2` read text written in Latin digits with the locale's Latin separators where its own digits are not Latin, so `ar-EG` "1,234.56" is 1234.56 rather than refused and "100,00" is 10000 rather than 100.00.
+
+* `Localize.Number.Parser.parse/2` refuses a grouping separator after the decimal mark, so `de` "1,234.56" is an error rather than 1.23456.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

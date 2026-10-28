@@ -1295,12 +1295,28 @@ defmodule Localize.Number.Parser do
   # numbers in any locale, and no mode reads it as 345.
 
   defp validate_grouping(string, group_sep, decimal_sep, language_tag, number_system, lenient?) do
-    integer_part =
-      string
-      |> String.split(decimal_sep, parts: 2)
-      |> hd()
-      |> String.replace(["_", "+"], "")
+    [integer_part | fraction] = String.split(string, decimal_sep, parts: 2)
+    integer_part = String.replace(integer_part, ["_", "+"], "")
 
+    # Digits after the decimal mark are never grouped, so a grouping
+    # separator there means the text is not a number of this locale: `de`
+    # "1,234.56" is not 1.23456, nor `fr` "1,5 6" 1.56.
+    if grouped_fraction?(fraction, group_sep) do
+      {:error, :grouping}
+    else
+      validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?)
+    end
+  end
+
+  defp grouped_fraction?([fraction], group_sep) when group_sep != "" do
+    String.contains?(fraction, group_sep)
+  end
+
+  defp grouped_fraction?(_no_fraction, _group_sep) do
+    false
+  end
+
+  defp validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?) do
     case String.split(integer_part, group_sep) do
       # No grouping separator at all: grouping is optional in input.
       [_ungrouped] -> :ok
