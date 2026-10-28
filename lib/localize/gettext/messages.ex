@@ -35,6 +35,12 @@ defmodule Localize.Gettext.Messages do
         "currency",
         "The currency {$currency} is not known."
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "currency",
+        "The amount {$amount} of currency {$currency} is not a number."
+      ),
 
       # DateTime
       Gettext.Macros.dpgettext_noop_with_backend(

@@ -519,6 +519,10 @@ defmodule Localize.Number.Parser do
   * `{:error, %Localize.ParseError{reason: :missing_currency}}` when the
     string names no currency and there is no `:default_currency`, or
 
+  * `{:error, %Localize.InvalidAmountError{currency: currency, amount: text}}`
+    when the string names a currency but its number cannot be read with
+    the locale's separators for it, or
+
   * `{:error, %Localize.ParseError{reason: :unexpected_input}}` when the
     string is not one currency amount, or
 
@@ -547,7 +551,7 @@ defmodule Localize.Number.Parser do
          options = Keyword.put(options, :locale, language_tag),
          {:ok, parts} <- amount_parts(string, language_tag),
          {:ok, currency, separators_of} <- amount_currency(parts, string, options),
-         {:ok, number} <- amount_number(parts, separators_of, string, options) do
+         {:ok, number} <- amount_number(parts, currency, separators_of, options) do
       {:ok, {currency, signed_amount(number, parts)}}
     end
   end
@@ -1061,7 +1065,7 @@ defmodule Localize.Number.Parser do
     {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of one argument")}
   end
 
-  defp amount_number(%{number: number}, separators_of, string, options) do
+  defp amount_number(%{number: number}, currency, separators_of, options) do
     parse_options =
       options
       |> Keyword.take([:locale, :number_system, :separators])
@@ -1070,7 +1074,7 @@ defmodule Localize.Number.Parser do
 
     case parse(number, parse_options) do
       {:ok, decimal} -> {:ok, decimal}
-      {:error, exception} -> {:error, not_an_amount(string, exception)}
+      {:error, exception} -> {:error, invalid_amount(currency, number, exception)}
     end
   end
 
@@ -1090,13 +1094,16 @@ defmodule Localize.Number.Parser do
     decimal
   end
 
-  defp not_an_amount(string, cause \\ nil) do
+  defp not_an_amount(string) do
     Localize.ParseError.exception(
       input: string,
       reason: :unexpected_input,
-      detail: "not a currency amount",
-      cause: cause
+      detail: "not a currency amount"
     )
+  end
+
+  defp invalid_amount(currency, number, cause) do
+    Localize.InvalidAmountError.exception(currency: currency, amount: number, cause: cause)
   end
 
   defp find_and_replace_currency(string_map, string, fuzzy, language_tag) do

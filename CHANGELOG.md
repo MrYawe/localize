@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
+* `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
+
 ### Fixed
 
 * `Localize.Number.Parser.scan/2` reads the variants CLDR's `parseLenients` folds, as `parse/2` already did: a U+2212 minus, a U+2019 group in `de-CH` and fullwidth signs and separators no longer split a number. Found from ex_money #208.

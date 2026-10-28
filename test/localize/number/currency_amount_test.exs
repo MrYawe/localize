@@ -156,6 +156,19 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert %Localize.ParseError{reason: :missing_currency, input: "100"} = amount("100")
     end
 
+    test "a currency whose number cannot be read" do
+      assert %Localize.InvalidAmountError{
+               currency: :USD,
+               amount: "30\u00A0000,00",
+               cause: %Localize.InvalidValueError{}
+             } = amount("US$30\u00A0000,00", locale: :"en-ZA", separators: :us)
+
+      assert Exception.message(
+               Localize.InvalidAmountError.exception(currency: :USD, amount: "1,2,3")
+             ) ==
+               ~s(The amount "1,2,3" of currency :USD is not a number.)
+    end
+
     test "text that is not one currency amount" do
       for string <- [
             "USD 100 with trailing text",
