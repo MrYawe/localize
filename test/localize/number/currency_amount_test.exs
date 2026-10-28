@@ -185,6 +185,28 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:EUR, "-127.54"} = amount("€ 127,54-", locale: :nl)
     end
 
+    # An amount that could be two amounts is refused, never guessed.
+    test "a group the locale does not write is refused" do
+      assert %Localize.InvalidAmountError{amount: "1.23"} = amount("1.23 EUR", locale: :de)
+      assert %Localize.InvalidAmountError{amount: "1,23"} = amount("1,23 USD")
+      assert {:INR, "1234567"} = amount("1,234,567 INR", locale: :"en-IN")
+      assert {:INR, "1234567"} = amount("₹12,34,567", locale: :"en-IN")
+    end
+
+    test "de-AT and fr-CH amounts read with either set of separators" do
+      assert {:EUR, "1234.56"} = amount("€ 1.234,56", locale: :"de-AT")
+      assert {:EUR, "100.00"} = amount("100.00 EUR", locale: :"de-AT")
+      assert {:CHF, "1234.56"} = amount("1'234,56 CHF", locale: :"fr-CH")
+      assert {:CHF, "1234.56"} = amount("1'234.56 CHF", locale: :"fr-CH")
+      assert {:CHF, "100.00"} = amount("100,00 CHF", locale: :"fr-CH")
+      assert {:CHF, "0.5"} = amount("CHF,5", locale: :"fr-CH")
+
+      assert %Localize.InvalidAmountError{cause: %Localize.ParseError{detail: detail}} =
+               amount("1.234 EUR", locale: :"de-AT")
+
+      assert detail =~ "ambiguous"
+    end
+
     test "a sentence's closing period after the currency" do
       assert {:USD, "100"} = amount("100 USD.")
     end

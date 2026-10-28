@@ -68,6 +68,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **An amount that could be two amounts is refused** — `grouping: :sizes` for amounts (`de` "1.23 EUR" was €123), and `:currency` in `de-AT` and `fr-CH` reads with both separator sets and refuses where they differ (user, 2026-10-28: "We can never create a situation where the returned result is incorrect"). 2026-10-28, unreleased.
+
 * [x] **A stray space between digits** — refused where the locale does not group with a space, as `scan/2` reads it (user, 2026-10-28), so `en` "1 2" is an error rather than 12; space-grouping locales still take any `[:Zs:]`. 2026-10-28, unreleased.
 
 * [x] **A grouping separator after the decimal mark** — refused, so `de` "1,234.56" and `en` "1.234,56" are errors rather than 1.23456. 2026-10-28, unreleased.

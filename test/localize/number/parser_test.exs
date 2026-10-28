@@ -282,6 +282,54 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "grouping: :sizes" do
+    test "refuses a group the locale does not write" do
+      for {string, locale} <- [{"1.23", "de"}, {"1,23", "en"}, {"1 23", "fr"}, {"1,23", "en-IN"}] do
+        assert {:error, _} = Parser.parse(string, locale: locale, grouping: :sizes),
+               "#{locale} #{inspect(string)}"
+      end
+    end
+
+    test "takes the groups the locale writes, in either Indian or Western form" do
+      assert {:ok, 1234} = Parser.parse("1.234", locale: "de", grouping: :sizes)
+      assert {:ok, 12_345_678} = Parser.parse("12.345.678", locale: "de", grouping: :sizes)
+      assert {:ok, 1_234_567} = Parser.parse("1,234,567", locale: "en-IN", grouping: :sizes)
+      assert {:ok, 1_234_567} = Parser.parse("12,34,567", locale: "en-IN", grouping: :sizes)
+      assert {:ok, 5} = Parser.parse("5.–", locale: "de-CH", grouping: :sizes)
+    end
+
+    test "is an option with one value" do
+      assert {:error, %Localize.InvalidValueError{}} = Parser.parse("1", grouping: :nope)
+    end
+  end
+
+  # `de-AT` and `fr-CH` write a currency amount with other separators than a
+  # plain number. Either may be typed, so both are read; where both readings
+  # are valid and differ, the text is ambiguous and refused.
+  describe "parse/2 with :currency in a locale whose currency separators differ" do
+    defp amount_of(string, locale, currency) do
+      Parser.parse(string, locale: locale, currency: currency, number: :decimal, grouping: :sizes)
+    end
+
+    test "reads what either set reads" do
+      assert {:ok, %Decimal{} = d1} = amount_of("1.234,56", "de-AT", :EUR)
+      assert Decimal.equal?(d1, "1234.56")
+      assert {:ok, %Decimal{} = d2} = amount_of("1\u00A0234,56", "de-AT", :EUR)
+      assert Decimal.equal?(d2, "1234.56")
+      assert {:ok, %Decimal{} = d3} = amount_of("1234.56", "de-AT", :EUR)
+      assert Decimal.equal?(d3, "1234.56")
+      assert {:ok, %Decimal{} = d4} = amount_of("1'234,56", "fr-CH", :CHF)
+      assert Decimal.equal?(d4, "1234.56")
+      assert {:ok, %Decimal{} = d5} = amount_of("1'234.56", "fr-CH", :CHF)
+      assert Decimal.equal?(d5, "1234.56")
+    end
+
+    test "refuses what the two sets read as different numbers" do
+      assert {:error, %Localize.ParseError{detail: detail}} = amount_of("1.234", "de-AT", :EUR)
+      assert detail =~ "ambiguous"
+    end
+  end
+
   describe "lenient grouping" do
     test "refuses a group longer than the locale's longest" do
       # A separator after four digits is no grouping any locale writes, and
@@ -289,9 +337,6 @@ defmodule Localize.Number.ParserTest do
       assert {:error, _} = Parser.parse("1234.56", locale: "de", number: :decimal)
       assert {:error, _} = Parser.parse("1.2345", locale: "de", number: :decimal)
       assert {:error, _} = Parser.parse("1234,567", locale: "en", number: :decimal)
-
-      assert {:error, _} =
-               Parser.parse("1234.56", locale: "de-AT", currency: :EUR, number: :decimal)
     end
 
     test "still takes short groups and either grouping in en-IN" do

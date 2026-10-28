@@ -179,13 +179,22 @@ defmodule Localize.Number.Parser do
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
+  * `:grouping` set to `:sizes` checks each group against the sizes the
+    locale writes rather than as `:lenient` says: the last group of the
+    locale's grouping size, the others of that size or its secondary one,
+    so `de` refuses `"1.23"`, which a lenient reading takes as 123, and
+    `en-IN` takes both `"12,34,567"` and `"1,234,567"`. Suited to amounts of
+    money, where a misread group is a wrong amount. The default is `nil`.
+
   * `:currency` is a currency code or a `t:Localize.Currency.t/0`. When set,
     the string is read as an amount of that currency, with the separators
-    `Localize.Number.to_string/2` formats it with. Some locales separate a
-    currency amount differently from a plain number: `de-AT` formats
-    `€ 1.234,56` with a dot for grouping but writes `1 234,56` plain, so
-    `"1.234"` is a different number with and without this option. The default
-    is `nil`, a plain number.
+    `Localize.Number.to_string/2` formats it with. Two locales separate a
+    currency amount differently from a plain number, `de-AT`, which formats
+    `€ 1.234,56` but writes `1 234,56` plain, and `fr-CH`, which writes a
+    franc amount `1'234.56` but a plain number `1'234,56`. There the string
+    is read with both, and refused where both readings are valid and give
+    different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
+    `nil`, a plain number.
 
   * `:separators` names the set of decimal and grouping separators to read
     with, for a locale that has more than one. `en-ZA` writes `1 234,56` with
@@ -305,13 +314,22 @@ defmodule Localize.Number.Parser do
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
+  * `:grouping` set to `:sizes` checks each group against the sizes the
+    locale writes rather than as `:lenient` says: the last group of the
+    locale's grouping size, the others of that size or its secondary one,
+    so `de` refuses `"1.23"`, which a lenient reading takes as 123, and
+    `en-IN` takes both `"12,34,567"` and `"1,234,567"`. Suited to amounts of
+    money, where a misread group is a wrong amount. The default is `nil`.
+
   * `:currency` is a currency code or a `t:Localize.Currency.t/0`. When set,
     the string is read as an amount of that currency, with the separators
-    `Localize.Number.to_string/2` formats it with. Some locales separate a
-    currency amount differently from a plain number: `de-AT` formats
-    `€ 1.234,56` with a dot for grouping but writes `1 234,56` plain, so
-    `"1.234"` is a different number with and without this option. The default
-    is `nil`, a plain number.
+    `Localize.Number.to_string/2` formats it with. Two locales separate a
+    currency amount differently from a plain number, `de-AT`, which formats
+    `€ 1.234,56` but writes `1 234,56` plain, and `fr-CH`, which writes a
+    franc amount `1'234.56` but a plain number `1'234,56`. There the string
+    is read with both, and refused where both readings are valid and give
+    different numbers: `de-AT` `"1.234"` is 1234 or 1.234. The default is
+    `nil`, a plain number.
 
   * `:separators` names the set of decimal and grouping separators to read
     with, for a locale that has more than one. `en-ZA` writes `1 234,56` with
@@ -367,27 +385,119 @@ defmodule Localize.Number.Parser do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
-      lenient? = Keyword.get(options, :lenient, true)
+         {:ok, grouping} <- grouping_mode(options),
+         {:ok, symbol_sets} <- symbol_sets(language_tag, number_system, options) do
+      readings =
+        Enum.map(symbol_sets, fn symbols ->
+          read_number(string, number_type, number_system, symbols, language_tag, grouping)
+        end)
 
-      read_number(string, number_type, number_system, symbol, language_tag, lenient?)
+      agreed_reading(readings, string)
     end
+  end
+
+  # The symbols a number is read with. An amount of a currency is read with
+  # the separators the currency is formatted with and, in the two locales
+  # that write plain numbers otherwise (`de-AT`, `fr-CH`), with those too: a
+  # price may be typed either way.
+  defp symbol_sets(language_tag, number_system, options) do
+    with {:ok, symbols} <- number_symbols(language_tag, number_system, options) do
+      if is_nil(options[:currency]) do
+        {:ok, [symbols]}
+      else
+        with_plain_symbols(symbols, language_tag, number_system, options)
+      end
+    end
+  end
+
+  defp with_plain_symbols(currency_symbols, language_tag, number_system, options) do
+    plain_options = Keyword.delete(options, :currency)
+
+    with {:ok, plain} <- number_symbols(language_tag, number_system, plain_options) do
+      if plain.group == currency_symbols.group and plain.decimal == currency_symbols.decimal do
+        {:ok, [currency_symbols]}
+      else
+        {:ok, [currency_symbols, plain]}
+      end
+    end
+  end
+
+  # A number is the one every valid reading gives. Where two readings are
+  # valid and differ, the text is ambiguous and refused rather than one
+  # guessed: `de-AT` "1.234" is 1234 with the euro's separators and 1.234
+  # with the plain-number ones.
+  defp agreed_reading(readings, string) do
+    values = for {:ok, value} <- readings, do: value
+
+    case values do
+      [] -> hd(readings)
+      [value | others] -> same_reading(value, others, string)
+    end
+  end
+
+  defp same_reading(value, others, string) do
+    case Enum.reject(others, &same_value?(&1, value)) do
+      [] -> {:ok, value}
+      [other | _] -> {:error, ambiguous_number(string, value, other)}
+    end
+  end
+
+  defp same_value?(%Decimal{} = this, %Decimal{} = that) do
+    Decimal.equal?(this, that)
+  end
+
+  defp same_value?(this, that) do
+    this == that
+  end
+
+  defp ambiguous_number(string, value, other) do
+    Localize.ParseError.exception(
+      input: string,
+      reason: :unexpected_input,
+      detail: "it is ambiguous, #{number_text(value)} or #{number_text(other)}"
+    )
+  end
+
+  defp number_text(%Decimal{} = decimal) do
+    Decimal.to_string(decimal, :normal)
+  end
+
+  defp number_text(number) do
+    to_string(number)
+  end
+
+  # How a grouping separator's position is checked: `:sizes` when asked for,
+  # otherwise as `:lenient` says.
+  defp grouping_mode(options) do
+    case Keyword.get(options, :grouping) do
+      nil -> {:ok, lenient_grouping(Keyword.get(options, :lenient, true))}
+      :sizes -> {:ok, :sizes}
+      other -> {:error, Localize.Utils.Helpers.invalid_value(other, ":sizes")}
+    end
+  end
+
+  defp lenient_grouping(false) do
+    :strict
+  end
+
+  defp lenient_grouping(_lenient) do
+    :lenient
   end
 
   # Text that is not a number of this locale is a parse error naming the
   # text, not whichever step of the reading first refused it.
-  defp read_number(string, number_type, number_system, symbol, language_tag, lenient?) do
-    case normalized_value(string, number_type, number_system, symbol, language_tag, lenient?) do
+  defp read_number(string, number_type, number_system, symbol, language_tag, grouping) do
+    case normalized_value(string, number_type, number_system, symbol, language_tag, grouping) do
       {:ok, _value} = success -> bound_decimal_exponent(success, string)
       _unreadable -> {:error, parse_error(string)}
     end
   end
 
-  defp normalized_value(string, number_type, number_system, symbol, language_tag, lenient?) do
+  defp normalized_value(string, number_type, number_system, symbol, language_tag, grouping) do
     with {:ok, normalized} <-
            string
            |> transliterate_digits(number_system)
-           |> normalize_number_string(symbol, language_tag, number_system, lenient?) do
+           |> normalize_number_string(symbol, language_tag, number_system, grouping) do
       normalized |> String.trim() |> parse_number(number_type)
     end
   end
@@ -503,8 +613,13 @@ defmodule Localize.Number.Parser do
   before the currency, between the currency and the amount, or after
   the amount, and the parentheses of an accounting format negate it.
   The amount is read with the separators the locale uses for that
-  currency, so `fr-CH` "1’234.56 CHF" reads as it is written. Bidi
-  controls are ignored. Nothing else may surround the amount.
+  currency, so `fr-CH` "1’234.56 CHF" reads as it is written, and in
+  `de-AT` and `fr-CH`, which write plain numbers otherwise, with those too.
+  Its groups must be the sizes the locale writes (`grouping: :sizes` of
+  `parse/2`). Where the text could be two amounts it is refused rather
+  than one guessed: `de` "1.23 EUR" is not €123, and `de-AT` "1.234 EUR"
+  could be 1234 or 1.234. Bidi controls are ignored. Nothing else may
+  surround the amount.
 
   ### Arguments
 
@@ -1115,19 +1230,24 @@ defmodule Localize.Number.Parser do
       |> put_separators_currency(separators_of)
 
     case mark_symbols(language_tag, number, options, symbol_options) do
-      {:ok, symbols} ->
+      {:ok, symbol_sets} ->
         lenient = lenient_replacements(language_tag)
-        decimal = apply_lenient(extract_separator(symbols.decimal), lenient)
-        apply_lenient(mark, lenient) == decimal
+        folded_mark = apply_lenient(mark, lenient)
+
+        Enum.any?(symbol_sets, fn symbols ->
+          apply_lenient(extract_separator(symbols.decimal), lenient) == folded_mark
+        end)
 
       {:error, _no_symbols} ->
         false
     end
   end
 
+  # Every set the number is read with, so a mark is the number's when it is
+  # the decimal mark of any of them, as `fr-CH` "CHF,5" is.
   defp mark_symbols(language_tag, number, options, symbol_options) do
     with {:ok, number_system} <- digits_number_system_from(language_tag, number, options) do
-      number_symbols(language_tag, number_system, symbol_options)
+      symbol_sets(language_tag, number_system, symbol_options)
     end
   end
 
@@ -1193,6 +1313,7 @@ defmodule Localize.Number.Parser do
       options
       |> Keyword.take([:locale, :number_system, :separators])
       |> Keyword.put(:number, :decimal)
+      |> Keyword.put(:grouping, :sizes)
       |> put_separators_currency(separators_of)
 
     case parse(number, parse_options) do
@@ -1317,7 +1438,7 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp normalize_number_string(string, symbols, language_tag, number_system, lenient?) do
+  defp normalize_number_string(string, symbols, language_tag, number_system, grouping) do
     lenient = lenient_replacements(language_tag)
 
     # TR35 is explicit that loose matching applies "to both the input text and
@@ -1337,7 +1458,7 @@ defmodule Localize.Number.Parser do
       |> String.replace(@format_characters, "")
       |> apply_lenient(lenient)
       |> normalize_spaces(group_sep)
-      |> drop_zero_fraction(decimal_sep, lenient?)
+      |> drop_zero_fraction(decimal_sep, grouping)
 
     with :ok <-
            validate_grouping(
@@ -1346,7 +1467,7 @@ defmodule Localize.Number.Parser do
              decimal_sep,
              language_tag,
              number_system,
-             lenient?
+             grouping
            ) do
       {:ok,
        folded
@@ -1363,7 +1484,8 @@ defmodule Localize.Number.Parser do
   # Swiss "5.–" and Dutch "5,-" write a whole amount with a dash for its
   # fraction. CLDR has no data for the convention (CLDR-3394), so it is read
   # only leniently, after the folds.
-  defp drop_zero_fraction(string, decimal_sep, true) when decimal_sep != "" do
+  defp drop_zero_fraction(string, decimal_sep, grouping)
+       when grouping in [:lenient, :sizes] and decimal_sep != "" do
     Enum.find_value(@zero_fraction_dashes, string, fn dashes ->
       whole = String.replace_suffix(string, decimal_sep <> dashes, "")
 
@@ -1373,7 +1495,7 @@ defmodule Localize.Number.Parser do
     end)
   end
 
-  defp drop_zero_fraction(string, _decimal_sep, _lenient?) do
+  defp drop_zero_fraction(string, _decimal_sep, _strict) do
     string
   end
 
@@ -1413,7 +1535,7 @@ defmodule Localize.Number.Parser do
   # separator without swallowing adjacent small numbers: "3 4 5" is three
   # numbers in any locale, and no mode reads it as 345.
 
-  defp validate_grouping(string, group_sep, decimal_sep, language_tag, number_system, lenient?) do
+  defp validate_grouping(string, group_sep, decimal_sep, language_tag, number_system, grouping) do
     [integer_part | fraction] = String.split(string, decimal_sep, parts: 2)
     integer_part = String.replace(integer_part, ["_", "+"], "")
 
@@ -1428,7 +1550,7 @@ defmodule Localize.Number.Parser do
         {:error, :grouping}
 
       true ->
-        validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?)
+        validate_integer_grouping(integer_part, group_sep, language_tag, number_system, grouping)
     end
   end
 
@@ -1455,29 +1577,48 @@ defmodule Localize.Number.Parser do
     false
   end
 
-  defp validate_integer_grouping(integer_part, group_sep, language_tag, number_system, lenient?) do
+  defp validate_integer_grouping(integer_part, group_sep, language_tag, number_system, grouping) do
     case String.split(integer_part, group_sep) do
       # No grouping separator at all: grouping is optional in input.
       [_ungrouped] -> :ok
-      groups -> validate_groups(groups, grouping_sizes(language_tag, number_system), lenient?)
+      groups -> validate_groups(groups, grouping_sizes(language_tag, number_system), grouping)
     end
   end
 
-  defp validate_groups(groups, {primary, secondary}, lenient?) do
-    [leading | rest] = groups
+  defp validate_groups(groups, sizes, grouping) do
+    # A group that is not all digits is not a group at all.
+    digits? = Enum.all?(groups, &(&1 != "" and String.match?(&1, @digits_only)))
+
+    if digits? and grouped?(groups, sizes, grouping) do
+      :ok
+    else
+      {:error, :grouping}
+    end
+  end
+
+  defp grouped?([leading | rest], {primary, secondary}, :lenient) do
+    lenient_groups?(leading, rest, max(primary, secondary))
+  end
+
+  # Each group is one the locale writes: the last of the primary size, the
+  # ones before it of the primary or secondary size, and the first no longer
+  # than either. So `de` refuses "1.23", which a two-digit floor reads as
+  # 123 though it may well be 1.23, and `en-IN` takes both "12,34,567" and
+  # "1,234,567".
+  defp grouped?([leading | rest], {primary, secondary}, :sizes) do
     {last, middle} = List.pop_at(rest, -1)
 
-    valid? =
-      cond do
-        # A group that is not all digits is not a group at all.
-        Enum.any?(groups, &(&1 == "" or not String.match?(&1, @digits_only))) -> false
-        lenient? -> lenient_groups?(leading, rest, max(primary, secondary))
-        String.length(last) != primary -> false
-        Enum.any?(middle, &(String.length(&1) != secondary)) -> false
-        true -> String.length(leading) <= secondary
-      end
+    String.length(leading) <= max(primary, secondary) and
+      String.length(last) == primary and
+      Enum.all?(middle, &(String.length(&1) in [primary, secondary]))
+  end
 
-    if valid?, do: :ok, else: {:error, :grouping}
+  defp grouped?([leading | rest], {primary, secondary}, :strict) do
+    {last, middle} = List.pop_at(rest, -1)
+
+    String.length(last) == primary and
+      Enum.all?(middle, &(String.length(&1) == secondary)) and
+      String.length(leading) <= secondary
   end
 
   defp lenient_groups?(leading, rest, longest) do

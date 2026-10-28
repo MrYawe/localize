@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
+* `Localize.Number.Parser.parse/2` option `grouping: :sizes` takes only groups of the sizes the locale writes, so `de` "1.23" is refused rather than read as 123; `parse_currency_amount/2` reads amounts with it.
+
 * `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
 
 ### Fixed
@@ -31,6 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.Number.Parser.parse/2` refuses a grouping separator after the decimal mark, so `de` "1,234.56" is an error rather than 1.23456.
 
 * `Localize.Number.Parser.parse/2` refuses a space inside a number in a locale that does not group with one, as `scan/2` already reads it: `en` "1 2" is an error rather than 12. Spaces at either end, or beside the sign, are still ignored.
+
+* `Localize.Number.Parser.parse/2` with `:currency` in `de-AT` and `fr-CH`, whose currency amounts use other separators than plain numbers, reads the text with both and refuses it where the readings differ: `de-AT` "1.234" could be 1234 or 1.234.
 
 ## [1.4.3] — October 27th, 2026
 
