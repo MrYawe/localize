@@ -273,6 +273,24 @@ defmodule Localize.LanguageTagTest do
       assert tag.cldr_locale_id != nil
     end
 
+    # Extensions choose preferences, not the locale whose data is used, as
+    # ICU reads "root@numbers=latn" as the root locale.
+    test "takes the data of the same locale without its extensions" do
+      for {locale_id, cldr_locale_id} <- [
+            {"und", :und},
+            {"und-u-nu-latn", :und},
+            {"und-u-nu-arab", :und},
+            {"UND-u-ca-gregory", :und},
+            {"und-x-private", :und},
+            {"und-TW", :"zh-Hant"},
+            {"de-CH-u-nu-latn", :"de-CH"},
+            {"zh-Hant-TW-u-nu-hanidec", :"zh-Hant"}
+          ] do
+        assert {:ok, %LanguageTag{cldr_locale_id: ^cldr_locale_id}} = LanguageTag.new(locale_id),
+               locale_id
+      end
+    end
+
     test "accepts a -u-rg- subdivision region override without corrupting it" do
       # A subdivision override (gbeng = GB-ENG) must not have the region
       # filler "zzzz" appended, which would produce an unresolvable value.

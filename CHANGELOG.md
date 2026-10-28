@@ -32,6 +32,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A locale with extensions takes the data of the same locale without them, so `und-u-nu-latn` is the root locale, as `und` is, where it took `en`; `Localize.Number.Parser.parse_currency_amount("US$ 1.23", locale: "und-u-nu-latn")` now reads.
+
 * `Localize.Number.Parser.parse/2` reads a period that is neither of the locale's separators as the decimal point only where it can be nothing else: `fr` "100.00" is 100, but "1.234", which was 1.234, is refused.
 
 * `Localize.Number.Parser.scan/2` reads the variants CLDR's `parseLenients` folds, as `parse/2` already did: a U+2212 minus, a U+2019 group in `de-CH` and fullwidth signs and separators no longer split a number. Found from ex_money #208.

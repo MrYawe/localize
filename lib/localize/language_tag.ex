@@ -456,14 +456,26 @@ defmodule Localize.LanguageTag do
 
   def new(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
 
+  # Extensions choose preferences, not the locale whose data is used, so the
+  # id is looked up without them: `und-u-nu-latn` is the root locale, as
+  # `und` is, where matching its maximized subtags would give `en`.
   defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag) when is_binary(id) do
-    case Map.get(locale_id_index(), id) do
+    case Map.get(locale_id_index(), base_identifier(id)) do
       nil -> match_cldr_locale(tag)
       exact -> %{tag | cldr_locale_id: exact}
     end
   end
 
   defp resolve_cldr_locale(%__MODULE__{} = tag), do: match_cldr_locale(tag)
+
+  # A canonical id up to its first extension, which starts at the first
+  # one-letter subtag: `de-CH-u-nu-latn` is `de-CH`.
+  defp base_identifier(id) do
+    id
+    |> String.split("-")
+    |> Enum.take_while(&(String.length(&1) > 1))
+    |> Enum.join("-")
+  end
 
   # A tag that names a locale we actually hold data for resolves to that
   # locale, without consulting the matcher. Language matching answers "which

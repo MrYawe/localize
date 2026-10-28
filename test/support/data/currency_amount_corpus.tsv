@@ -2524,10 +2524,10 @@ ru-RU	5,00 российского рубля	RUB 5		icu4j:TestCurrencyIsoPluralF
 und	-US$\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und	-USD\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und	-1.23 USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
-und-u-nu-latn	-US$\u{00A0}1.23	USD -1.23	gap	icu4j:TestCurrencyIsoPluralFormat	USD -1.23	Localize resolves und with a -u- extension to en, not to root, and en has no US$	
+und-u-nu-latn	-US$\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und-u-nu-latn	-USD\u{00A0}1.23	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und-u-nu-latn	-1.23 USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
-und-u-nu-arab	\u{061C}-١٫٢٣\u{00A0}US$	USD -1.23	gap	icu4j:TestCurrencyIsoPluralFormat	USD -1.23	Localize resolves und with a -u- extension to en, not to root, and en has no US$	
+und-u-nu-arab	\u{061C}-١٫٢٣\u{00A0}US$	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und-u-nu-arab	\u{061C}-١٫٢٣\u{00A0}USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 und-u-nu-arab	\u{061C}-١٫٢٣ USD	USD -1.23		icu4j:TestCurrencyIsoPluralFormat	USD -1.23		
 es-AR	INR\u{00A0}1,00	INR 1		icu4j:TestCurrencyIsoPluralFormat	INR 1		
