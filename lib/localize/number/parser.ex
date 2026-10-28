@@ -59,6 +59,11 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
+  # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
+  # the end of a string.
+  @leading_bidi_controls ~r/\A[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+/u
+  @trailing_bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]+\z/u
+
   # The three places in `@number_format` that `localize_format_string/3` fills
   # in with the locale: the sign class, the grouping separator and the decimal.
   @format_placeholders ~r/-\+|,|\\\./
@@ -483,7 +488,7 @@ defmodule Localize.Number.Parser do
   # Canadian dollar in `fr`, as it is in `fr-CA`, and stays unknown in
   # `es`, which Mexico, the United States and Argentina are as near.
   defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters) do
-    case find_and_replace(currency_strings, string, fuzzy) do
+    case find_and_replace_currency(currency_strings, string, fuzzy, language_tag) do
       {:ok, _found} = found ->
         found
 
@@ -502,7 +507,7 @@ defmodule Localize.Number.Parser do
   end
 
   defp claimants_in(ambiguous, string, fuzzy, language_tag, error) do
-    case find_and_replace(ambiguous, string, fuzzy) do
+    case find_and_replace_currency(ambiguous, string, fuzzy, language_tag) do
       {:ok, found} when is_list(found) -> nearest_claimants(found, language_tag, error)
       _not_a_shared_string -> error
     end
@@ -761,11 +766,7 @@ defmodule Localize.Number.Parser do
   def find_and_replace(string_map, string, fuzzy \\ nil)
 
   def find_and_replace(string_map, string, fuzzy) when is_map(string_map) and is_binary(string) do
-    if String.trim(string) == "" do
-      {:ok, string}
-    else
-      do_find_and_replace(string_map, string, fuzzy)
-    end
+    replace_strings(string_map, string, fuzzy, MapSet.new())
   end
 
   def find_and_replace(string_map, _string, _fuzzy) when not is_map(string_map),
@@ -777,6 +778,58 @@ defmodule Localize.Number.Parser do
     do: {:error, Localize.Utils.Helpers.invalid_value(string, "a string")}
 
   # ── Private helpers ──────────────────────────────────────────
+
+  defp find_and_replace_currency(string_map, string, fuzzy, language_tag) do
+    replace_strings(string_map, string, fuzzy, period_strings(language_tag))
+  end
+
+  defp replace_strings(string_map, string, fuzzy, period_strings) do
+    if String.trim(string) == "" do
+      {:ok, string}
+    else
+      do_find_and_replace(string_map, string, fuzzy, period_strings)
+    end
+  end
+
+  # CLDR writes some currency symbols and names with a closing period, "kr." in
+  # `da` and "ج.م.‏" in `ar`, and `Localize.Currency.currency_strings/2` stores
+  # them without it, so "kr." matched as "kr" and left the period over as
+  # text. These are the stored strings whose CLDR form had one, so the
+  # matcher takes a period after them as part of the currency. After any
+  # other string a period is left alone: "100 USD." ends a sentence.
+  defp period_strings(language_tag) do
+    locale = locale_id(language_tag)
+
+    cached({:currency_period_strings, locale}, fn ->
+      locale
+      |> Localize.Currency.currencies_for_locale()
+      |> period_strings_of()
+    end)
+  end
+
+  defp period_strings_of({:ok, currencies}) do
+    for {_code, currency} <- currencies,
+        text <- currency_texts(currency),
+        text = String.trim_trailing(String.downcase(text), "\u200F"),
+        String.ends_with?(text, "."),
+        into: MapSet.new(),
+        do: String.trim_trailing(text, ".")
+  end
+
+  defp period_strings_of({:error, _no_currencies}) do
+    MapSet.new()
+  end
+
+  defp currency_texts(currency) do
+    counts =
+      if is_map(currency.count) do
+        Map.values(currency.count)
+      else
+        []
+      end
+
+    Enum.filter([currency.name, currency.symbol, currency.narrow_symbol | counts], &is_binary/1)
+  end
 
   defp parse_element(element, options) do
     case parse(element, options) do
@@ -1152,7 +1205,7 @@ defmodule Localize.Number.Parser do
   defp sign_class(symbols, sets) do
     signs =
       for sign <- ["-", "+", symbols.minus_sign, symbols.plus_sign],
-          sign = sign |> extract_separator() |> String.replace(@format_characters, ""),
+          sign = String.replace(extract_separator(sign), @format_characters, ""),
           character <- lenient_equivalents(sign, sets),
           character != "_",
           uniq: true,
@@ -1222,14 +1275,14 @@ defmodule Localize.Number.Parser do
   defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
   defp locale_id(%Localize.LanguageTag{}), do: :en
 
-  defp do_find_and_replace(string_map, string, nil) do
+  defp do_find_and_replace(string_map, string, nil, period_strings) do
     canonical = String.downcase(String.trim(string))
 
     if code = Map.get(string_map, canonical) do
       {:ok, [code]}
     else
-      [starting_code, remainder] = starting_string(string_map, string)
-      [remainder, ending_code] = ending_string(string_map, remainder)
+      [starting_code, remainder] = starting_string(string_map, string, period_strings)
+      [remainder, ending_code] = ending_string(string_map, remainder, period_strings)
 
       if starting_code == "" && ending_code == "" do
         {:error, parse_error("No match was found")}
@@ -1239,12 +1292,12 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp do_find_and_replace(string_map, _search, fuzzy)
+  defp do_find_and_replace(string_map, _search, fuzzy, _period_strings)
        when map_size(string_map) == 0 and is_float(fuzzy) and fuzzy > 0.0 and fuzzy <= 1.0 do
     {:error, parse_error("No match was found")}
   end
 
-  defp do_find_and_replace(string_map, search, fuzzy)
+  defp do_find_and_replace(string_map, search, fuzzy, _period_strings)
        when is_float(fuzzy) and fuzzy > 0.0 and fuzzy <= 1.0 do
     canonical_search = String.downcase(search)
 
@@ -1264,7 +1317,7 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp do_find_and_replace(_string_map, _string, fuzzy) do
+  defp do_find_and_replace(_string_map, _string, fuzzy, _period_strings) do
     {:error,
      Localize.InvalidValueError.exception(
        value: fuzzy,
@@ -1277,7 +1330,7 @@ defmodule Localize.Number.Parser do
   # "ars", which is not the Argentine peso. A match that begins or ends in a
   # letter must not run on into another letter; a symbol ("$", "€") needs no
   # boundary, and neither does a letter next to a digit ("USD100").
-  defp starting_string(string_map, search) do
+  defp starting_string(string_map, search, period_strings) do
     trimmed = String.downcase(String.trim_leading(search))
 
     matches =
@@ -1300,34 +1353,75 @@ defmodule Localize.Number.Parser do
         if offset >= 0 do
           skip = offset + match_length
           <<_::binary-size(^skip), remainder::binary>> = search
-          [code, remainder]
+          [code, drop_closing(remainder, match_string, period_strings)]
         else
           ["", search]
         end
     end
   end
 
-  defp ending_string(string_map, search) do
+  defp ending_string(string_map, search, period_strings) do
     trimmed = String.downcase(String.trim_trailing(search))
+    core = String.replace(trimmed, @trailing_bidi_controls, "")
+    closing = byte_size(trimmed) - byte_size(core)
 
     matches =
-      Enum.filter(string_map, fn {k, _v} ->
-        String.ends_with?(trimmed, k) and
-          word_boundary?(String.first(k), String.last(binary_part_before(trimmed, k)))
-      end)
+      for {key, code} <- string_map,
+          consumed <- ending_matches(trimmed, core, closing, key, period_strings),
+          do: {consumed, byte_size(key), code}
 
     case matches do
       [] ->
         [search, ""]
 
       list ->
-        {match_string, code} = longest_match(list)
-        match_length = byte_size(match_string)
-        total = byte_size(String.trim_trailing(search))
-        keep = total - match_length
+        # Of two matches that take as much of the text, the one written out
+        # in full wins over one that reaches it through a closing period.
+        {consumed, _key_size, code} = Enum.max(list)
+        keep = byte_size(String.trim_trailing(search)) - consumed
         <<remainder::binary-size(^keep), _::binary>> = search
         [remainder, code]
     end
+  end
+
+  # What follows a currency matched at the start of the text and belongs to
+  # it: the closing period its CLDR form was written with, then any bidi
+  # controls, which `Localize.Currency.currency_strings/2` also leaves off.
+  defp drop_closing(remainder, match_string, period_strings) do
+    remainder =
+      if MapSet.member?(period_strings, match_string) do
+        String.replace_prefix(remainder, ".", "")
+      else
+        remainder
+      end
+
+    String.replace(remainder, @leading_bidi_controls, "")
+  end
+
+  # The bytes `key` takes from the end of the text, once for each way it can
+  # end it: as written, before a closing run of bidi controls, and before the
+  # closing period its CLDR form was written with.
+  defp ending_matches(trimmed, core, closing, key, period_strings) do
+    candidates = [
+      {trimmed, 0},
+      {core, closing},
+      {period_core(core, key, period_strings), closing + 1}
+    ]
+
+    for {text, extra} <- candidates, is_binary(text), ends_with_word?(text, key) do
+      byte_size(key) + extra
+    end
+  end
+
+  defp period_core(core, key, period_strings) do
+    if MapSet.member?(period_strings, key) and String.ends_with?(core, ".") do
+      binary_part(core, 0, byte_size(core) - 1)
+    end
+  end
+
+  defp ends_with_word?(text, key) do
+    String.ends_with?(text, key) and
+      word_boundary?(String.first(key), String.last(binary_part_before(text, key)))
   end
 
   # Every match is a prefix (or every one a suffix) of the same text, so no

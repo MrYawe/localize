@@ -323,6 +323,33 @@ defmodule Localize.Number.ParserTest do
     end
   end
 
+  describe "resolve_currencies/2 closing periods" do
+    defp scan_currency(string, locale) do
+      string
+      |> Parser.scan(locale: locale, number: :decimal)
+      |> Parser.resolve_currencies(locale: locale)
+    end
+
+    test "a symbol CLDR writes with a closing period is matched whole" do
+      assert [%Decimal{}, :DKK] = scan_currency("1.234,56 kr.", "da")
+      assert [:DKK, " ", %Decimal{}] = scan_currency("kr. 5", "da")
+      assert [:DKK] = Parser.resolve_currency("kr.", locale: "da")
+    end
+
+    test "with the bidi controls that close it" do
+      assert [%Decimal{}, :EGP] = scan_currency("‏1,234.56 ج.م.‏", "ar")
+      assert [%Decimal{}, :MAD] = scan_currency("1.234,56 د.م.‏", "ar-MA")
+
+      assert ["(", %Decimal{}, :EGP, ")"] =
+               scan_currency("(؜1,234.56 ج.م.‏)", "ar")
+    end
+
+    test "a period after any other currency is left as text" do
+      assert [%Decimal{}, :USD, "."] = scan_currency("100 USD.", "en")
+      assert [:USD, ". ", %Decimal{}] = scan_currency("USD. 100", "en")
+    end
+  end
+
   describe "scan/2" do
     test "scans a string with a number" do
       result = Parser.scan("The prize is 23")

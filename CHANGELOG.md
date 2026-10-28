@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.scan/2` reads bidi controls before a number or between its sign and digits as part of it, so an `ar-EG` negative amount keeps its sign. Marks elsewhere in the text are returned as written.
 
+* `Localize.Number.Parser.resolve_currencies/2` and `resolve_currency/2` match a currency CLDR writes with a closing period whole, with any bidi controls after it: `da` "kr." and `ar` "ج.م." leave no "." behind. A period after any other currency is still text.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed
