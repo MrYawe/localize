@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Currency text is matched after NFKC normalization (`ja` "¥1.00"), a narrow symbol only for the locale's own currency, and an amount that could be read two ways, or whose symbol several currencies share, is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
 
+* `parse_currency_amount/2` refuses one to three digits, a decimal mark and three more in a currency of fewer decimal places, as `de` "1,599 €" may be 1599, and reads a historic currency only by its code or name, so `ru` "6 300 Р" is not the ruble of 1991–1998.
+
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
 * `Localize.Number.Parser.parse/2` reads a trailing sign and accounting parentheses, which make it negative: "127,54-" and "(5)". A sign and parentheses together, "(-5)", are refused. `parse_currency_amount/2` hands it everything but the currency text, so the two read a number the same way.

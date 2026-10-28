@@ -599,6 +599,10 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **A symbol several currencies share** — `fr` `$2.00` is refused, since the Canadian, US and other dollars all write `$` there; `resolve_currency/2` takes the nearest locale's, the Canadian dollar, but an amount is not read in a currency that is a guess.
 
+* **Three fraction digits in a currency of fewer** — `de` `1,599 €` is a fuel price, but a shop writing English separators means 1599, so one to three digits, a decimal mark and three more are refused in a currency of fewer than three decimal places. `0,123 €`, `1.234,567 €` and `KWD 1.599` have one reading and are read.
+
+* **A historic currency's symbol** — symbols are reused, so a currency no longer in use is read only by its code or its name: `ru` `6 300 Р` is refused rather than read as the ruble of 1991–1998, whose symbol is `р.`, while `100 RUR` reads.
+
 * **A dash for the zero** — Swiss `Fr. –.15` and Dutch `€ -,50` write a dash before the decimal mark for a zero, where a minus would stand, so a minus there is refused: `-$.50` is neither -0.50 nor 0.50 dollars.
 
 * **A sign and parentheses together** — `($-5)` is refused, where some would read it as -5 dollars and others as 5.

@@ -384,6 +384,58 @@ defmodule Localize.Number.CurrencyAmountTest do
     test "a sentence's closing period after the currency" do
       assert {:USD, "100"} = amount("100 USD.")
     end
+
+    # German "1,599 €" is a fuel price, but a shop writing English separators
+    # means 1599: three fraction digits are a thousands group as often as not
+    # in a currency with fewer.
+    test "three fraction digits after a single mark in a currency of fewer are refused" do
+      for {string, locale} <- [
+            {"73,460 €", :de},
+            {"-1,599 €", :de},
+            {"(1,599 €)", :de},
+            {"$59.568", :en},
+            {"USD (7.926)", :"en-GB"},
+            {"880,000 ₫", :vi},
+            {"3,990 Ft", :hu},
+            {"R8,499", :"en-ZA"},
+            {"￥1.000", :ja},
+            {"1,234 €", :fr}
+          ] do
+        assert %Localize.InvalidAmountError{cause: %Localize.ParseError{}} =
+                 amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+
+      assert {:EUR, "0.123"} = amount("0,123 €", locale: :de)
+      assert {:EUR, "1234.567"} = amount("1.234,567 €", locale: :de)
+      assert {:EUR, "1599"} = amount("1.599 €", locale: :de)
+      assert {:EUR, "73.46"} = amount("73,46 €", locale: :de)
+      assert {:USD, "12345.678"} = amount("$12,345.678", locale: :en)
+      assert {:USD, "1599"} = amount("$1,599", locale: :en)
+      assert {:KWD, "1.599"} = amount("KWD 1.599", locale: :en)
+      assert {:CLF, "1.599"} = amount("CLF 1.599", locale: :en)
+    end
+
+    # Symbols are reused: Russian shops write the ruble "Р", which folds to
+    # "р." of the ruble of 1991–1998.
+    test "a historic currency is read by its code or name, not its symbol" do
+      for {string, locale} <- [
+            {"6 300 Р", :ru},
+            {"336 р.", :ru},
+            {"230 лв.", :bg},
+            {"100 DM", :de},
+            {"100 kn", :hr}
+          ] do
+        assert %Localize.UnknownCurrencyError{} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+
+      assert {:RUR, "100"} = amount("100 RUR", locale: :ru)
+      assert {:BGN, "230"} = amount("230 BGN", locale: :bg)
+      assert {:DEM, "100"} = amount("100 DEM", locale: :de)
+      assert {:DEM, "100"} = amount("100 Deutsche Mark", locale: :de)
+      assert {:RUB, "100"} = amount("100 ₽", locale: :ru)
+    end
   end
 
   describe "errors" do

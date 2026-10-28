@@ -99,6 +99,10 @@ defmodule Localize.Number.Parser do
   @foreign_decimal_point ~r/\A[^.]*[0-9]\.[0-9][^.]*\z/
   @period_group ~r/\A[0-9]{1,3}\.[0-9]{3}(?![0-9])/
 
+  # A number of two runs of digits, one to three and then three, parted by
+  # one mark: "73,460" or "1.599", in any script's digits, signed or not.
+  @group_shape ~r/\A[^\p{Nd}]*\p{Nd}{1,3}[^\p{Nd}]\p{Nd}{3}[^\p{Nd}]*\z/u
+
   # A decimal point that opens or closes a number, beside a digit.
   @opening_point ~r/\A\.(?=[0-9])/
   @closing_point ~r/(?<=[0-9])\.\z/
@@ -735,7 +739,11 @@ defmodule Localize.Number.Parser do
   where `resolve_currency/2` takes the Canadian one. A narrow symbol is
   read only for the locale's own currency, so Swiss "15 Rp." (15
   Rappen) is not the rupiah, whose narrow symbol `de-CH` gives as "Rp".
-  The currency text,
+  A historic currency is read only by its code or its name, since its
+  symbols are reused: `ru` "6 300 Р" is not the ruble of 1991–1998. One
+  to three digits, a decimal mark and three more are refused in a
+  currency of fewer than three decimal places, since they may be a
+  thousands group: `de` "1,599 €" and `en` "$59.568". The currency text,
   but not the number, is matched after NFKC normalization, so `ja`
   "¥1.00" is the yen, which `ja` writes "￥", while "$5²" is refused.
   Bidi controls are ignored. Nothing else may surround the amount.
@@ -904,13 +912,17 @@ defmodule Localize.Number.Parser do
   # currency: CLDR writes it where the context makes the currency clear, and
   # elsewhere it may be an abbreviation of another thing. `de-CH` gives the
   # rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15 Rappen.
+  # A historic currency is read only by its code or its name, since its
+  # symbols are reused: a Russian "6 300 Р" is not the ruble of 1991–1998.
   defp amount_strings(language_tag, own, filters) do
     locale_id = locale_id(language_tag)
 
     with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters),
-         {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters) do
+         {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters),
+         {:ok, historic} <- Localize.Currency.historic_symbol_strings(locale_id, filters) do
       foreign = for {string, code} <- narrow, code != own, do: string
-      {:ok, strings |> Map.drop(foreign) |> nfkc_strings()}
+      dropped = foreign ++ Map.keys(historic)
+      {:ok, strings |> Map.drop(dropped) |> nfkc_strings()}
     end
   end
 
@@ -1587,9 +1599,46 @@ defmodule Localize.Number.Parser do
       |> put_separators_currency(separators_of)
 
     case parse(number, parse_options) do
-      {:ok, decimal} -> {:ok, decimal}
+      {:ok, decimal} -> unambiguous_fraction(decimal, number, currency)
       {:error, exception} -> {:error, invalid_amount(currency, number, exception)}
     end
+  end
+
+  # One to three digits, a decimal mark and three more are a thousands group
+  # where the text was written with other separators, and three fraction
+  # digits are unusual for a currency with fewer: German "1,599 €" is a fuel
+  # price, but a shop writing English separators means 1599. Such an amount is
+  # refused, as is the same shape with a period in `fr`. An amount under one,
+  # or in a currency of three decimal places or more, has one reading.
+  defp unambiguous_fraction(decimal, number, currency) do
+    if three_fraction_digits?(number, decimal) and fewer_digits?(currency, 3) do
+      cause =
+        Localize.ParseError.exception(
+          input: number,
+          reason: :unexpected_input,
+          detail: "it may be a whole amount written with a group separator"
+        )
+
+      {:error, invalid_amount(currency, number, cause)}
+    else
+      {:ok, decimal}
+    end
+  end
+
+  defp three_fraction_digits?(number, decimal) do
+    String.match?(number, @group_shape) and decimal.exp < 0 and
+      Decimal.compare(Decimal.abs(decimal), 1) != :lt
+  end
+
+  defp fewer_digits?(currency, places) when is_atom(currency) do
+    case Localize.Currency.currency_for_code(currency) do
+      {:ok, %{digits: digits, iso_digits: iso_digits}} -> max(digits, iso_digits || 0) < places
+      {:error, _not_iso} -> false
+    end
+  end
+
+  defp fewer_digits?(_caller_currency, _places) do
+    false
   end
 
   # A currency the caller's `:caller_currency` named has no separators in

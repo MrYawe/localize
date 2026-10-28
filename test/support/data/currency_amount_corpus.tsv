@@ -52,10 +52,10 @@ en-GB	53.45USD	USD 53.45		icu:parse currency ISO	USD 53.45
 en-GB	USD53.45	USD 53.45		icu:parse currency ISO	USD 53.45	
 en-GB	(7.92) USD	USD -7.92		icu:parse currency ISO	USD -7.92	
 en-GB	(7.92) GBP	GBP -7.92		icu:parse currency ISO	GBP -7.92	
-en-GB	(7.926) USD	USD -7.926		icu:parse currency ISO	USD -7.926	
-en-GB	(7.926 USD)	USD -7.926		icu:parse currency ISO	USD -7.926	
-en-GB	(USD 7.926)	USD -7.926		icu:parse currency ISO	USD -7.926	
-en-GB	USD (7.926)	USD -7.926		icu:parse currency ISO	USD -7.926	
+en-GB	(7.926) USD	refuse		icu:parse currency ISO	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-GB	(7.926 USD)	refuse		icu:parse currency ISO	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-GB	(USD 7.926)	refuse		icu:parse currency ISO	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-GB	USD (7.926)	refuse		icu:parse currency ISO	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
 en-GB	USD (7.92)	USD -7.92		icu:parse currency ISO	USD -7.92	
 en-GB	(7.92)USD	USD -7.92		icu:parse currency ISO	USD -7.92	
 en-GB	USD(7.92)	USD -7.92		icu:parse currency ISO	USD -7.92	
@@ -84,8 +84,8 @@ en-GB	US Dollat(53.45)	refuse		icu:parse currency ISO	refuse
 en-GB	(53.45)US Dollar	USD -53.45		icu:parse currency ISO	USD -53.45	
 en-GB	-7.92 USD	USD -7.92		icu:parse currency ISO negative	USD -7.92	
 en-GB	-7.92 GBP	GBP -7.92		icu:parse currency ISO negative	GBP -7.92	
-en-GB	-7.926 USD	USD -7.926		icu:parse currency ISO negative	USD -7.926	
-en-GB	USD -7.926	USD -7.926		icu:parse currency ISO negative	USD -7.926	
+en-GB	-7.926 USD	refuse		icu:parse currency ISO negative	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-GB	USD -7.926	refuse		icu:parse currency ISO negative	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
 en-GB	-7.92USD	USD -7.92		icu:parse currency ISO negative	USD -7.92	
 en-GB	USD-7.92	USD -7.92		icu:parse currency ISO negative	USD -7.92	
 fa-IR	ریال ۱۲۳۵	IRR 1235		icu:parse foreign currency symbol	IRR 1235	
@@ -109,10 +109,10 @@ en-US	53.45USD	USD 53.45		icu:parse currency ISO strict	refuse	ICU refuses it in
 en-US	USD53.45	USD 53.45		icu:parse currency ISO strict	USD 53.45	
 en-US	(7.92) USD	USD -7.92		icu:parse currency ISO strict	USD -7.92	
 en-US	(7.92) EUR	EUR -7.92		icu:parse currency ISO strict	EUR -7.92	
-en-US	(7.926) USD	USD -7.926		icu:parse currency ISO strict	USD -7.926	
-en-US	(7.926 USD)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
-en-US	(USD 7.926)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
-en-US	USD (7.926)	USD -7.926		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
+en-US	(7.926) USD	refuse		icu:parse currency ISO strict	USD -7.926	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-US	(7.926 USD)	refuse		icu:parse currency ISO strict	refuse	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-US	(USD 7.926)	refuse		icu:parse currency ISO strict	refuse	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en-US	USD (7.926)	refuse		icu:parse currency ISO strict	refuse	three fraction digits in a currency of two decimals or fewer may be a thousands group	
 en-US	USD (7.92)	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
 en-US	(7.92)USD	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
 en-US	USD(7.92)	USD -7.92		icu:parse currency ISO strict	refuse	ICU refuses it in strict mode; it is unambiguous
@@ -2663,8 +2663,8 @@ en	$59.5	USD 59.5		bojanz:TestFormatter_Digits	USD 59.5
 en	$59.56	USD 59.56		bojanz:TestFormatter_Digits	USD 59.56		
 en	$59.50	USD 59.5		bojanz:TestFormatter_Digits	USD 59.5		
 en	$59.57	USD 59.57		bojanz:TestFormatter_Digits	USD 59.567	the source formats the amount rounded, so the text shows this amount	
-en	$59.567	USD 59.567		bojanz:TestFormatter_Digits	USD 59.567		
-en	$59.568	USD 59.568		bojanz:TestFormatter_Digits	USD 59.5678	the source formats the amount rounded, so the text shows this amount	
+en	$59.567	refuse		bojanz:TestFormatter_Digits	USD 59.567	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+en	$59.568	refuse		bojanz:TestFormatter_Digits	USD 59.5678	three fraction digits in a currency of two decimals or fewer may be a thousands group	
 en	USD\u{00A0}1,234.59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
 de-AT	$\u{00A0}1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
 de-AT	USD\u{00A0}1.234,59	USD 1234.59		bojanz:TestFormatter_CurrencyDisplay	USD 1234.59		
@@ -6486,7 +6486,7 @@ vi	450 000 ₫	refuse		price-parser:examples_no_currency	450000	not a number of 
 de	30,00 €	EUR 30		price-parser:examples_no_currency	30		
 en-IE	12.34 €	EUR 12.34		price-parser:examples_no_currency	12.34		
 de	€799,00	EUR 799		price-parser:examples_no_currency	799		
-bg	230 лв.	BGN 230		price-parser:examples_no_currency	230		
+bg	230 лв.	refuse		price-parser:examples_no_currency	230	the lev (BGN) is historic since the euro replaced it in 2026, and a historic currency is read only by code or name	
 en-IE	14.55 €	EUR 14.55		price-parser:examples_no_currency	14.55		
 ro	133,86 LEI	RON 133.86		price-parser:examples_no_currency	133.86		
 cs	7 990,00 Kč	CZK 7990		price-parser:examples_no_currency	7990		
@@ -6537,7 +6537,7 @@ de	425,00 €	EUR 425		price-parser:examples_no_currency	425
 cs	93 499 Kč	CZK 93499		price-parser:examples_no_currency	93499		
 de	29,90 EUR	EUR 29.9		price-parser:examples_no_currency	29.9		
 en	$3.95	USD 3.95		price-parser:examples_no_currency	3.95		
-bg	3430 лв.	BGN 3430		price-parser:examples_no_currency	3430		
+bg	3430 лв.	refuse		price-parser:examples_no_currency	3430	the lev (BGN) is historic since the euro replaced it in 2026, and a historic currency is read only by code or name	
 de	724,00 €	EUR 724		price-parser:examples_no_currency	724		
 de	6,75 €	EUR 6.75		price-parser:examples_no_currency	6.75		
 fa	30,000 تومان	refuse		price-parser:examples_no_currency	30000	a toman is ten rials, so it is not the rial	
@@ -6610,7 +6610,7 @@ de	960,00 €	EUR 960		price-parser:examples_3	960
 ro	184,35 lei	RON 184.35		price-parser:examples_3	184.35		
 cs	1 505 Kč	CZK 1505		price-parser:examples_3	1505		
 de	58,19 €	EUR 58.19		price-parser:examples_3	58.19		
-bg	27.00 лв.	BGN 27		price-parser:examples_3	27		
+bg	27.00 лв.	refuse		price-parser:examples_3	27	the lev (BGN) is historic since the euro replaced it in 2026, and a historic currency is read only by code or name	
 de	3,85 €	EUR 3.85		price-parser:examples_3	3.85		
 de	10,90 €	EUR 10.9		price-parser:examples_3	10.9		
 en	$ 879.0	USD 879		price-parser:examples_3	879		
@@ -6645,7 +6645,7 @@ en	$ 30.00	USD 30		price-parser:examples_3	30
 en	$ 5.95	USD 5.95		price-parser:examples_3	5.95		
 en-GB	£74.00	GBP 74		price-parser:examples_3	74		
 de	158,24 €	EUR 158.24		price-parser:examples_3	158.24		
-bg	550,00 лв	BGN 550		price-parser:examples_3	550		
+bg	550,00 лв	refuse		price-parser:examples_3	550	the lev (BGN) is historic since the euro replaced it in 2026, and a historic currency is read only by code or name	
 fa	94,000 تومان	refuse		price-parser:examples_3	94000	a toman is ten rials, so it is not the rial	
 en	$8.27	USD 8.27		price-parser:examples_3	8.27		
 vi	12.500 ₫	VND 12500		price-parser:examples_3	12500		
@@ -6686,7 +6686,7 @@ en	1 BZ$	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own c
 dz	1 Nu.	BTN 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
 bs	1 KM	BAM 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
 pt-BR	1 R$	BRL 1		price-parser:examples_3	1		
-bg	1 лв	BGN 1		price-parser:examples_3	1		
+bg	1 лв	refuse		price-parser:examples_3	1	the lev (BGN) is historic since the euro replaced it in 2026, and a historic currency is read only by code or name	
 rn	1 FBu	BIF 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
 en	1 BD	refuse		price-parser:examples_3	1	no CLDR locale writes it as its own currency	
 km	1 ៛	KHR 1		price-parser:examples_3	1	the locale is one whose own currency the text names	
@@ -6859,3 +6859,28 @@ en	ر.ي	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR lo
 en	ش.ص	refuse		price-parser:examples_xfail_currencies_to_be_added	1	no CLDR locale writes it as its own currency	
 fr-HT	1 G	HTG 1		price-parser:examples_xfail_currencies_to_be_added	1	the locale is one whose own currency the text names	
 de	1250€600	refuse		price-parser:decimal_separator_examples	1250.6	not one currency amount	
+ru	6 300 Р	RUB 6300	gap	price-parser:examples	6300	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	1 890 Р	RUB 1890	gap	price-parser:examples	1890	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	94,456 Р	refuse		price-parser:examples	94456	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+ru	1 030 р.	RUB 1030	gap	price-parser:examples	1030	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+vi	880,000 ₫	refuse		price-parser:examples	880000	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+ru	336 р.	RUB 336	gap	price-parser:examples	336	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	5 000 Р	RUB 5000	gap	price-parser:examples	5000	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	1 400 Р	RUB 1400	gap	price-parser:examples_2	1400	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	2 690 Р	RUB 2690	gap	price-parser:examples_2	2690	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+hu	3,990 Ft	refuse		price-parser:examples_2	3990	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+ru	2 999 Р	RUB 2999	gap	price-parser:examples_2	2999	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	860 Р	RUB 860	gap	price-parser:examples_2	860	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	30 Р	RUB 30	gap	price-parser:examples_2	30	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	7 390 Р	RUB 7390	gap	price-parser:examples_2	7390	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	9 282 Р	RUB 9282	gap	price-parser:examples_2	9282	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	2 500 Р	RUB 2500	gap	price-parser:examples_2	2500	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	1 987 Р	RUB 1987	gap	price-parser:examples_2	1987	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	3 100р.	RUB 3100	gap	price-parser:examples_no_currency	3100	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	14 196 Р	RUB 14196	gap	price-parser:examples_no_currency	14196	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+de	73,460 €	refuse		price-parser:examples_no_currency	73460	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+ru	15 130 Р	RUB 15130	gap	price-parser:examples_3	15130	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	4 690 Р	RUB 4690	gap	price-parser:examples_3	4690	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+ru	18 000 Р	RUB 18000	gap	price-parser:examples_3	18000	Р and р. are no CLDR symbol of the ruble; р. is the symbol of the historic RUR, which is read only by code or name	
+en-ZA	R8,499	refuse		price-parser:examples_xfail	8499	three fraction digits in a currency of two decimals or fewer may be a thousands group	
+es-HN	61.858 L	refuse		price-parser:examples_xfail	61858	three fraction digits in a currency of two decimals or fewer may be a thousands group	

@@ -843,6 +843,35 @@ defmodule Localize.Currency do
     end
   end
 
+  @doc false
+  # The strings of `currency_strings/2` that name a historic currency only by
+  # one of its symbols, each with that currency: "р" for the Russian ruble
+  # of 1991–1998 in `ru`, whose symbol is "р.". Symbols are reused, so a
+  # currency amount reads a historic currency only by its code or its name.
+  @spec historic_symbol_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: {:ok, %{String.t() => currency_code()}} | {:error, Exception.t()}
+  def historic_symbol_strings(locale, options \\ []) do
+    with {:ok, only, except} <- filter_options(options),
+         {:ok, currencies} <- do_currencies_for_locale(locale, only, except),
+         {:ok, strings} <- currency_strings_for(locale, only, except) do
+      historic = for {code, currency} <- currencies, historic?(currency), do: {code, currency}
+      {:ok, Map.new(Enum.flat_map(historic, &historic_symbol_string(&1, strings)))}
+    end
+  end
+
+  defp historic_symbol_string({code, currency}, strings) do
+    counts = if currency.count, do: Map.values(currency.count), else: []
+    names = normalise_strings([currency.name, to_string(code) | counts])
+
+    [currency.symbol, currency.narrow_symbol]
+    |> normalise_strings()
+    |> Enum.reject(&(&1 in names))
+    |> Enum.filter(&(Map.get(strings, &1) == code))
+    |> Enum.map(&{&1, code})
+  end
+
   defp narrow_symbol_string({_code, %{narrow_symbol: nil}}, _strings) do
     []
   end
