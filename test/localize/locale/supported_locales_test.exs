@@ -133,4 +133,45 @@ defmodule Localize.Locale.SupportedLocalesTest do
       Localize.put_supported_locales(context.original_supported)
     end
   end
+
+  # Root's data ships with Localize, so a parent chain ends at root whether
+  # or not :und is a supported locale (#68).
+  describe "parent chain with supported_locales" do
+    test "ends at :und when :und is not supported", context do
+      Localize.put_supported_locales([:en, :da, :ru, :"zh-Hant"])
+
+      for locale <- [:da, :ru, :"en-AU", :"zh-Hant"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert List.last(cldr_chain(tag)) == :und, inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "a spellout rule the locale lacks is an error, not English words", context do
+      Localize.put_supported_locales([:en, :ru])
+      :persistent_term.erase({Localize.Number.Rbnf, :locale_chain, :ru})
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru}} =
+               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+  end
+
+  # The CLDR locale of each ancestor of a tag, up to the root.
+  defp cldr_chain(tag) do
+    tag
+    |> Stream.unfold(fn tag ->
+      case Localize.Locale.parent(tag) do
+        {:ok, parent} ->
+          {:ok, locale_id} = Localize.Locale.cldr_locale_id_from(parent)
+          {locale_id, parent}
+
+        {:error, _reason} ->
+          nil
+      end
+    end)
+    |> Enum.to_list()
+  end
 end

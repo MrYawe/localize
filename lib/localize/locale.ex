@@ -220,6 +220,16 @@ defmodule Localize.Locale do
   # validate the tag itself, which matches it against every CLDR locale and
   # took about 20 ms a step. Its subtags stay as they are, for the next step
   # of the walk to drop one more.
+  #
+  # Root is its own CLDR locale, whose data ships with Localize. Validating
+  # `und` gives it the default locale wherever `:und` is not a supported
+  # locale, which ended the walk in English data (#68).
+  defp with_cldr_locale_id(
+         %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = root
+       ) do
+    %{root | cldr_locale_id: :und}
+  end
+
   defp with_cldr_locale_id(%LanguageTag{} = parent) do
     case parent |> LanguageTag.to_string() |> Localize.validate_locale() do
       {:ok, %LanguageTag{cldr_locale_id: cldr_locale_id}} ->
