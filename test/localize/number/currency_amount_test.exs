@@ -242,8 +242,12 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:AED, "5"} = amount("5 ﺩ.ﺇ", locale: :ar)
       assert {:JPY, "1"} = amount("¥1", locale: :ja, only: [:JPY])
 
-      for string <- ["$5²", "$①", "$½"] do
-        assert %Localize.ParseError{} = amount(string), inspect(string)
+      assert %Localize.ParseError{} = amount("$5²")
+
+      # "①" and "½" are not decimal digits, so the text has no number and
+      # is read whole as currency text.
+      for string <- ["$①", "$½"] do
+        assert %Localize.UnknownCurrencyError{} = amount(string), inspect(string)
       end
     end
 
@@ -381,6 +385,20 @@ defmodule Localize.Number.CurrencyAmountTest do
       end
     end
 
+    # `resolve_currency/2` breaks a tie by the order of the names; an amount
+    # in a currency picked that way would be a guess.
+    test "a fuzzy match is refused where two currencies are equally close" do
+      for {string, locale} <- [{"100 dollars", :fr}, {"kr 100", :en}, {"100 USDD", :en}] do
+        assert %Localize.UnknownCurrencyError{} = amount(string, locale: locale, fuzzy: 0.8),
+               "#{locale} #{inspect(string)}"
+      end
+
+      assert {:EUR, "100"} = amount("100 eurosports", fuzzy: 0.8)
+      assert {:EUR, "100"} = amount("100 eruo", fuzzy: 0.8)
+      assert {:CHF, "100"} = amount("100 Swiss francs", fuzzy: 0.8)
+      assert [:RHD] = Parser.resolve_currency("dollars", locale: :fr, fuzzy: 0.8)
+    end
+
     test "a sentence's closing period after the currency" do
       assert {:USD, "100"} = amount("100 USD.")
     end
@@ -457,9 +475,27 @@ defmodule Localize.Number.CurrencyAmountTest do
     end
 
     test "text that is not one currency amount" do
-      for string <- ["USD 100 with trailing text", "USD 100 EUR", "5 USD 6", "USD", "", "   "] do
+      for string <- ["USD 100 with trailing text", "USD 100 EUR", "5 USD 6"] do
         assert %Localize.ParseError{reason: :unexpected_input} = amount(string),
                inspect(string)
+      end
+    end
+
+    # A form's empty field is a missing amount, as ex_money has always
+    # reported it, not text that is not money.
+    test "text with no number" do
+      for string <- ["", "   ", "\u00A0", "\u200E"] do
+        assert %Localize.ParseError{reason: :missing_currency} = amount(string), inspect(string)
+      end
+
+      assert %Localize.InvalidAmountError{currency: :EUR, amount: ""} =
+               amount("", default_currency: :EUR)
+
+      assert %Localize.InvalidAmountError{currency: :USD, amount: ""} = amount("USD")
+      assert %Localize.InvalidAmountError{currency: :USD, amount: ""} = amount(" $ ")
+
+      for string <- ["-", "(USD)", "()", "USD-", "+"] do
+        assert %Localize.ParseError{reason: :unexpected_input} = amount(string), inspect(string)
       end
     end
 

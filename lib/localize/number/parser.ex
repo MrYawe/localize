@@ -131,6 +131,10 @@ defmodule Localize.Number.Parser do
   # stand between them: spaces and the punctuation of separators, which
   # `parse/2` judges.
   @digit_run ~r/\p{Nd}(?:.*\p{Nd})?/us
+
+  # A sign or parenthesis that opens or closes text with no digits: "(USD)"
+  # and "-" are a number's decorations with no number, not currency text.
+  @number_decoration ~r/\A[(+\-\x{2212}]|[)+\-\x{2212}]\z/u
   @number_core ~r/\A[\p{Nd}\p{Zs}\p{Po}\p{Pf}]*\z/u
 
   # A currency text's closing punctuation mark, split from the rest.
@@ -748,6 +752,10 @@ defmodule Localize.Number.Parser do
   "¥1.00" is the yen, which `ja` writes "￥", while "$5²" is refused.
   Bidi controls are ignored. Nothing else may surround the amount.
 
+  ex_money's `Money.parse/2` is built on this function, and its
+  [parsing guide](https://hexdocs.pm/ex_money/parsing.html) describes
+  what is read and what is refused, with examples.
+
   ### Arguments
 
   * `string` is the string to parse.
@@ -761,7 +769,10 @@ defmodule Localize.Number.Parser do
 
   * `:number_system` and `:separators` are as for `parse/2`.
 
-  * `:only`, `:except` and `:fuzzy` are as for `resolve_currency/2`.
+  * `:only`, `:except` and `:fuzzy` are as for `resolve_currency/2`,
+    except that a fuzzy match is refused where another currency's
+    string is as close: `fr` "100 dollars" is neither the Fiji nor the
+    Rhodesian dollar.
 
   * `:default_currency` is the currency of an amount that names none:
     a currency code, or a name or symbol, resolved as currency text
@@ -791,8 +802,8 @@ defmodule Localize.Number.Parser do
     string names no currency and there is no `:default_currency`, or
 
   * `{:error, %Localize.InvalidAmountError{currency: currency, amount: text}}`
-    when the string names a currency but its number cannot be read with
-    the locale's separators for it, or
+    when the string names a currency but has no number, or one that
+    cannot be read with the locale's separators for it, or
 
   * `{:error, %Localize.ParseError{reason: :unexpected_input}}` when the
     string is not one currency amount, or
@@ -975,6 +986,9 @@ defmodule Localize.Number.Parser do
   # `es`, which Mexico, the United States and Argentina are as near.
   defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters, reading) do
     case find_and_replace_currency(currency_strings, string, fuzzy, language_tag) do
+      {:ok, _found} = found when reading == :amount and is_float(fuzzy) ->
+        closest_alone(found, currency_strings, string)
+
       {:ok, _found} = found ->
         found
 
@@ -983,6 +997,30 @@ defmodule Localize.Number.Parser do
 
       {:error, _not_found} = error ->
         error
+    end
+  end
+
+  # A fuzzy match names an amount's currency only when no other currency's
+  # string is as close: `fr` "dollars" is as close to "dollar rhodésien" as
+  # to "dollars fidjiens", and an amount is not read in either by the order
+  # of their names, which is how `resolve_currency/2` breaks the tie.
+  defp closest_alone(found, currency_strings, string) do
+    search = String.downcase(string)
+
+    distances =
+      Enum.map(currency_strings, fn {candidate, code} ->
+        {String.jaro_distance(candidate, search), code}
+      end)
+
+    {closest, _code} = Enum.max_by(distances, &elem(&1, 0))
+    codes = for {distance, code} <- distances, distance == closest, uniq: true, do: code
+
+    case codes do
+      [_one] ->
+        found
+
+      [_ | _] ->
+        {:error, parse_error("The closest currencies are equally close: #{inspect(codes)}")}
     end
   end
 
@@ -1302,7 +1340,22 @@ defmodule Localize.Number.Parser do
         split_amount(before, digits, rest, language_tag, string)
 
       nil ->
-        {:error, not_an_amount(string)}
+        currency_without_number(text, string)
+    end
+  end
+
+  # Text with no digits is currency text with no number: "" names no
+  # currency, as "100" names none, and "USD" names one whose amount cannot
+  # be read, as "USD abc" does. A form's empty field is so reported as a
+  # missing amount rather than as text that is not money. Text a sign or a
+  # parenthesis opens or closes, "(USD)", is not an amount.
+  defp currency_without_number(text, string) do
+    currency = String.trim(text)
+
+    if String.match?(currency, @number_decoration) do
+      {:error, not_an_amount(string)}
+    else
+      {:ok, %{currency: currency, mark: "", lead: "", rest: ""}}
     end
   end
 

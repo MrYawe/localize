@@ -587,6 +587,8 @@ iex> Localize.Number.parse_currency_amount("kr-127,54", locale: :da)
 {:ok, {:DKK, Decimal.new("-127.54")}}
 ```
 
+Most applications read money through [ex_money](https://hexdocs.pm/ex_money), whose `Money.parse/2` is built on this function; its [parsing guide](https://hexdocs.pm/ex_money/parsing.html) describes what is read and what is refused, with examples.
+
 An amount is money, so an amount that could be read as two amounts is refused rather than read as one of them:
 
 * **Groups the locale does not write** — `de` `1.23 EUR` is refused, where a lenient reading of the grouping would make it 123 euros.
@@ -602,6 +604,8 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 * **Three fraction digits in a currency of fewer** — `de` `1,599 €` is a fuel price, but a shop writing English separators means 1599, so one to three digits, a decimal mark and three more are refused in a currency of fewer than three decimal places. `0,123 €`, `1.234,567 €` and `KWD 1.599` have one reading and are read.
 
 * **A historic currency's symbol** — symbols are reused, so a currency no longer in use is read only by its code or its name: `ru` `6 300 Р` is refused rather than read as the ruble of 1991–1998, whose symbol is `р.`, while `100 RUR` reads.
+
+* **A fuzzy match two currencies share** — with `:fuzzy`, currency text as close to one currency's name as to another's is refused: `fr` `100 dollars` is as close to the Fiji dollar as to the Rhodesian dollar.
 
 * **A dash for the zero** — Swiss `Fr. –.15` and Dutch `€ -,50` write a dash before the decimal mark for a zero, where a minus would stand, so a minus there is refused: `-$.50` is neither -0.50 nor 0.50 dollars.
 
